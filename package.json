@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "generate-all-missing-diffs": "tsx src/lib/runGenerateAllScript.ts"
+    "generate-all-missing-diffs": "tsx src/runGenerateAllScript.ts"
   },
   "dependencies": {
     "zod": "^3.21.4"

@@ -1,4 +1,4 @@
-import {generateAllMissingDiffs} from "@/lib/generateAllMissingDiffs";
+import {generateAllMissingDiffs} from "@/generateAllMissingDiffs";
 
 generateAllMissingDiffs()
   .then(() => {

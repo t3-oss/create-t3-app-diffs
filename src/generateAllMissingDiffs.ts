@@ -1,6 +1,6 @@
-import {getMissingDiffs} from "@/lib/fileUtils";
-import generateDiff from "@/lib/generateDiff";
-import {extractVersionsAndFeatures} from "@/lib/utils";
+import {getMissingDiffs} from "@/fileUtils";
+import generateDiff from "@/generateDiff";
+import {extractVersionsAndFeatures} from "@/utils";
 
 export const generateAllMissingDiffs = async () => {
   console.log("Generating all missing diffs");

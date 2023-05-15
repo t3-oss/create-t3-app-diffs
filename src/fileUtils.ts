@@ -8,7 +8,7 @@ import {
   getFeaturesString,
   getT3Versions,
   type Features,
-} from "@/lib/utils";
+} from "@/utils";
 
 export interface DiffLocation {
   currentVersion: string;
