@@ -4,7 +4,18 @@ import { z } from "zod";
 
 import { executeCommand, getDiffPath } from "@/fileUtils";
 import { getFeaturesString } from "@/utils";
-import { paramsSchema } from "./types";
+
+const paramsSchema = z.object({
+  currentVersion: z.string(),
+  upgradeVersion: z.string(),
+  features: z.object({
+    nextAuth: z.boolean().optional(),
+    prisma: z.boolean().optional(),
+    trpc: z.boolean().optional(),
+    tailwind: z.boolean().optional(),
+  }),
+});
+
 
 export default async function generateDiff(params: unknown) {
   const { success } = paramsSchema.safeParse(params);

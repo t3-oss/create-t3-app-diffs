@@ -1,5 +1,11 @@
 import { z } from "zod";
-import { Features } from "./types";
+
+export interface Features {
+  nextAuth?: boolean;
+  prisma?: boolean;
+  trpc?: boolean;
+  tailwind?: boolean;
+}
 
 export const getT3Versions = async () => {
   const response = await fetch(
