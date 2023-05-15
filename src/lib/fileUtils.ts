@@ -1,13 +1,14 @@
 import {exec} from "child_process";
 import fs from "fs";
 import path from "path";
+
 import {
   arrangements,
   extractVersionsAndFeatures,
   getFeaturesString,
   getT3Versions,
   type Features,
-} from "./utils";
+} from "@/lib/utils";
 
 export interface DiffLocation {
   currentVersion: string;

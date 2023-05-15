@@ -1,6 +1,6 @@
-import { getMissingDiffs } from "./fileUtils";
-import generateDiff from "./generateDiff";
-import { extractVersionsAndFeatures } from "./utils";
+import {getMissingDiffs} from "@/lib/fileUtils";
+import generateDiff from "@/lib/generateDiff";
+import {extractVersionsAndFeatures} from "@/lib/utils";
 
 export const generateAllMissingDiffs = async () => {
   console.log("Generating all missing diffs");
@@ -18,7 +18,7 @@ export const generateAllMissingDiffs = async () => {
       const versionsAndFeatures = extractVersionsAndFeatures(diffLocation);
 
       if (!versionsAndFeatures) {
-        return { error: "Invalid diff location", differences: undefined };
+        return {error: "Invalid diff location", differences: undefined};
       }
 
       return generateDiff(versionsAndFeatures);

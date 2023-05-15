@@ -1,8 +1,9 @@
 import fs from "fs";
 import path from "path";
 import { z } from "zod";
-import { executeCommand, getDiffPath } from "./fileUtils";
-import { getFeaturesString } from "./utils";
+
+import {executeCommand, getDiffPath} from "@/lib/fileUtils";
+import {getFeaturesString} from "@/lib/utils";
 
 export const paramsSchema = z.object({
   currentVersion: z.string(),
