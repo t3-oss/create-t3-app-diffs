@@ -22,34 +22,6 @@ export const getT3Versions = async () => {
     .filter((v) => v !== "");
 };
 
-export const getT3VersionsGroupedByMajor = async () => {
-  const actualVersions = await getT3Versions();
-
-  const versionsGroupedByMajor: VersionsGroupedByMajor = [];
-
-  actualVersions.forEach((version) => {
-    const [major] = version.split(".");
-    if (!major) return;
-
-    const majorGroup = versionsGroupedByMajor.find(
-      (group) => group.major === major
-    );
-
-    if (majorGroup) {
-      majorGroup.versions.push(version);
-    } else {
-      versionsGroupedByMajor.push({
-        major,
-        versions: [version],
-      });
-    }
-  });
-
-  return versionsGroupedByMajor.sort(
-    (a, b) => Number(b.major) - Number(a.major)
-  );
-};
-
 export interface Features {
   nextAuth?: boolean;
   prisma?: boolean;
@@ -62,18 +34,6 @@ export const getFeaturesString = (features: Features) => {
     .filter(([, value]) => value)
     .map(([key]) => key)
     .join("-");
-};
-
-export const getFeatureUrl = (feature: string) => {
-  if (feature === "nextAuth") {
-    return "https://next-auth.js.org/";
-  } else if (feature === "prisma") {
-    return "https://www.prisma.io/";
-  } else if (feature === "trpc") {
-    return "https://trpc.io/";
-  } else if (feature === "tailwind") {
-    return "https://tailwindcss.com/";
-  }
 };
 
 type VersionsRegex = {
