@@ -1,4 +1,4 @@
-import {exec} from "child_process";
+import { exec } from "child_process";
 import fs from "fs";
 import path from "path";
 
@@ -7,8 +7,8 @@ import {
   extractVersionsAndFeatures,
   getFeaturesString,
   getT3Versions,
-  type Features,
 } from "@/utils";
+import { Features } from "./types";
 
 export interface DiffLocation {
   currentVersion: string;
@@ -16,7 +16,7 @@ export interface DiffLocation {
   features: Features;
 }
 
-export const executeCommand = (command: string, options?: {cwd: string}) => {
+export const executeCommand = (command: string, options?: { cwd: string }) => {
   if (options?.cwd) {
     exec(`cd ${options.cwd}`);
   }
@@ -42,8 +42,7 @@ export const getDiffPath = ({
   return path.join(
     process.cwd(),
     "diffs",
-    `diff-${currentVersion}-${upgradeVersion}${
-      featuresString ? `-${featuresString}` : ""
+    `diff-${currentVersion}-${upgradeVersion}${featuresString ? `-${featuresString}` : ""
     }.patch`
   );
 };
@@ -51,7 +50,7 @@ export const getDiffPath = ({
 export const getExistingDiffsMap = () => {
   const existingDiffs = fs.readdirSync(path.join(process.cwd(), "diffs"));
 
-  const diffsMap: {[key: string]: boolean} = existingDiffs.reduce(
+  const diffsMap: { [key: string]: boolean } = existingDiffs.reduce(
     (acc, diff) => {
       const versionsAndFeatures = extractVersionsAndFeatures(diff);
 
@@ -59,15 +58,14 @@ export const getExistingDiffsMap = () => {
         return acc;
       }
 
-      const {currentVersion, upgradeVersion, features} = versionsAndFeatures;
+      const { currentVersion, upgradeVersion, features } = versionsAndFeatures;
 
       const featuresString = getFeaturesString(features);
 
       return {
         ...acc,
-        [`${currentVersion}..${upgradeVersion}${
-          featuresString ? `-${featuresString}` : ""
-        }`]: true,
+        [`${currentVersion}..${upgradeVersion}${featuresString ? `-${featuresString}` : ""
+          }`]: true,
       };
     },
     {}
@@ -96,7 +94,7 @@ export const getMissingDiffs = async (count: number) => {
   });
 
   const existingDiffsMap = getExistingDiffsMap();
-  const newDiffsMap: {[key: string]: boolean} = {};
+  const newDiffsMap: { [key: string]: boolean } = {};
 
   const features = ["nextAuth", "prisma", "trpc", "tailwind"];
 

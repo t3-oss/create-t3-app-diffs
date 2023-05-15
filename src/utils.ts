@@ -1,16 +1,12 @@
-import {z} from "zod";
-
-export type VersionsGroupedByMajor = Array<{
-  major: string;
-  versions: string[];
-}>;
+import { z } from "zod";
+import { Features } from "./types";
 
 export const getT3Versions = async () => {
   const response = await fetch(
     "https://api.github.com/repos/t3-oss/create-t3-app/releases"
   );
 
-  const responseSchema = z.array(z.object({tag_name: z.string()}));
+  const responseSchema = z.array(z.object({ tag_name: z.string() }));
   const parsed = responseSchema.safeParse(await response.json());
 
   if (!parsed.success) {
@@ -22,13 +18,6 @@ export const getT3Versions = async () => {
     .filter((v) => v !== "");
 };
 
-export interface Features {
-  nextAuth?: boolean;
-  prisma?: boolean;
-  trpc?: boolean;
-  tailwind?: boolean;
-}
-
 export const getFeaturesString = (features: Features) => {
   return Object.entries(features)
     .filter(([, value]) => value)
@@ -36,23 +25,21 @@ export const getFeaturesString = (features: Features) => {
     .join("-");
 };
 
-type VersionsRegex = {
-  currentVersion: string;
-  upgradeVersion: string;
-};
-
 export const extractVersionsAndFeatures = (slug: string) => {
   const regex =
     /(?<currentVersion>\d+\.\d+\.\d+).*(?<upgradeVersion>\d+\.\d+\.\d+)/;
   const match =
     (slug.match(regex) as RegExpMatchArray & {
-      groups: VersionsRegex;
+      groups: {
+        currentVersion: string;
+        upgradeVersion: string;
+      };
     }) || null;
 
   if (!match) {
     return null;
   }
-  const {currentVersion, upgradeVersion} = match.groups;
+  const { currentVersion, upgradeVersion } = match.groups;
 
   return {
     currentVersion: currentVersion,

@@ -1,42 +1,28 @@
 import fs from "fs";
 import path from "path";
-import {z} from "zod";
+import { z } from "zod";
 
-import {executeCommand, getDiffPath} from "@/fileUtils";
-import {getFeaturesString} from "@/utils";
+import { executeCommand, getDiffPath } from "@/fileUtils";
+import { getFeaturesString } from "@/utils";
+import { paramsSchema } from "./types";
 
-export const paramsSchema = z.object({
-  currentVersion: z.string(),
-  upgradeVersion: z.string(),
-  features: z.object({
-    nextAuth: z.boolean().optional(),
-    prisma: z.boolean().optional(),
-    trpc: z.boolean().optional(),
-    tailwind: z.boolean().optional(),
-  }),
-});
-
-type Params = z.infer<typeof paramsSchema>;
-
-export default async function generateDiff(params: Params) {
-  const {success} = paramsSchema.safeParse(params);
+export default async function generateDiff(params: unknown) {
+  const { success } = paramsSchema.safeParse(params);
   if (!success) {
-    return {error: "Invalid request body"};
+    return { error: "Invalid request body" };
   }
-  const {currentVersion, upgradeVersion, features} = paramsSchema.parse(params);
+  const { currentVersion, upgradeVersion, features } = paramsSchema.parse(params);
   const featureFlags = Object.entries(features)
     .filter(([, value]) => value)
     .map(([key]) => `--${key}=true`)
     .join(" ");
 
-  const diffPath = getDiffPath({currentVersion, upgradeVersion, features});
+  const diffPath = getDiffPath({ currentVersion, upgradeVersion, features });
   const featuresString = getFeaturesString(features);
-  const diffDir = `/tmp/${currentVersion}..${upgradeVersion}${
-    featuresString ? `-${featuresString}` : ""
-  }`;
-  const url = `/diff/${currentVersion}..${upgradeVersion}${
-    featuresString ? `-${featuresString}` : ""
-  }`;
+  const diffDir = `/tmp/${currentVersion}..${upgradeVersion}${featuresString ? `-${featuresString}` : ""
+    }`;
+  const url = `/diff/${currentVersion}..${upgradeVersion}${featuresString ? `-${featuresString}` : ""
+    }`;
 
   const currentProjectPath = path.join(diffDir, "current");
   const upgradeProjectPath = path.join(diffDir, "upgrade");
@@ -57,7 +43,7 @@ export default async function generateDiff(params: Params) {
   if (fs.existsSync(diffPath)) {
     const differences = fs.readFileSync(diffPath, "utf8");
 
-    return {differences, url};
+    return { differences, url };
   }
 
   try {
@@ -92,8 +78,8 @@ export default async function generateDiff(params: Params) {
     await executeCommand(`rm -rf ${diffDir}`);
 
     // Send the diff back to the client
-    return {differences, url};
+    return { differences, url };
   } catch (error) {
-    return {error};
+    return { error };
   }
 }
