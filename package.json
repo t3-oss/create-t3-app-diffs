@@ -12,5 +12,8 @@
     "tsx": "^3.12.7",
     "typescript": "^5.0.2",
     "zod": "^3.21.4"
+  },
+  "devDependencies": {
+    "gitdiff-parser": "^0.3.1"
   }
 }
