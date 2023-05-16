@@ -22,7 +22,8 @@ export default async function generateDiff(params: unknown) {
   if (!success) {
     return { error: "Invalid request body" };
   }
-  const { currentVersion, upgradeVersion, features } = paramsSchema.parse(params);
+  const { currentVersion, upgradeVersion, features } =
+    paramsSchema.parse(params);
   const featureFlags = Object.entries(features)
     .filter(([, value]) => value)
     .map(([key]) => `--${key}=true`)
@@ -30,10 +31,12 @@ export default async function generateDiff(params: unknown) {
 
   const diffPath = getDiffPath({ currentVersion, upgradeVersion, features });
   const featuresString = getFeaturesString(features);
-  const diffDir = `/tmp/${currentVersion}..${upgradeVersion}${featuresString ? `-${featuresString}` : ""
-    }`;
-  const url = `/diff/${currentVersion}..${upgradeVersion}${featuresString ? `-${featuresString}` : ""
-    }`;
+  const diffDir = `/tmp/${currentVersion}..${upgradeVersion}${
+    featuresString ? `-${featuresString}` : ""
+  }`;
+  const url = `/diff/${currentVersion}..${upgradeVersion}${
+    featuresString ? `-${featuresString}` : ""
+  }`;
 
   const currentProjectPath = path.join(diffDir, "current");
   const upgradeProjectPath = path.join(diffDir, "upgrade");
@@ -42,11 +45,15 @@ export default async function generateDiff(params: unknown) {
   await executeCommand(`rm -rf ${currentProjectPath}`);
   await executeCommand(`rm -rf ${upgradeProjectPath}`);
 
-  // Configure git author
-  await executeCommand(`
-    git config --global user.email "t3-bot@example.com"
-    git config --global user.name "T3 Bot"
-  `);
+  // Check if ~/.gitconfig exists
+  const author = fs.existsSync(path.join(process.env.HOME ?? "", ".gitconfig"));
+  if (!author) {
+    // Configure git author
+    await executeCommand(`
+      git config --global user.email "t3-bot@example.com"
+      git config --global user.name "T3 Bot"
+    `);
+  }
 
   const getCommand = (version: string, path: string) =>
     `pnpm create t3-app@${version} ${path} --CI ${featureFlags} --noInstall`;
@@ -72,7 +79,7 @@ export default async function generateDiff(params: unknown) {
 
     // Move the upgrade project over the current project
     await executeCommand(
-      `rsync -a --delete --exclude=.git/ ${upgradeProjectPath}/ ${currentProjectPath}/`
+      `rsync -a --delete --exclude=.git/ ${upgradeProjectPath}/ ${currentProjectPath}/`,
     );
 
     // Generate the diff
