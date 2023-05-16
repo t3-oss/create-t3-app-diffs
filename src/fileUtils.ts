@@ -8,7 +8,7 @@ import {
   extractVersionsAndFeatures,
   getFeaturesString,
   getT3Versions,
-  Features
+  Features,
 } from "@/utils";
 
 export interface DiffLocation {
@@ -43,8 +43,9 @@ export const getDiffPath = ({
   return path.join(
     process.cwd(),
     "diffs",
-    `diff-${currentVersion}-${upgradeVersion}${featuresString ? `-${featuresString}` : ""
-    }.patch`
+    `diff-${currentVersion}-${upgradeVersion}${
+      featuresString ? `-${featuresString}` : ""
+    }.patch`,
   );
 };
 
@@ -65,11 +66,12 @@ export const getExistingDiffsMap = () => {
 
       return {
         ...acc,
-        [`${currentVersion}..${upgradeVersion}${featuresString ? `-${featuresString}` : ""
-          }`]: true,
+        [`${currentVersion}..${upgradeVersion}${
+          featuresString ? `-${featuresString}` : ""
+        }`]: true,
       };
     },
-    {}
+    {},
   );
 
   return diffsMap;
@@ -158,7 +160,7 @@ export const getMissingDiffs = async (count: number) => {
         };
 
         const key = `${currentVersion}..${upgradeVersion}-${getFeaturesString(
-          features
+          features,
         )}`;
 
         if (existingDiffsMap[key]) {
