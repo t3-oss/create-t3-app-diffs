@@ -93,15 +93,31 @@ export const getMissingDiffs = async (count: number) => {
     return 0;
   });
 
+  const filteredT3Versions = sortedT3Versions.filter((version) => {
+    const [major, minor, patch] = version.split(".").map(Number);
+    // ignore versions under 5.10.3
+    if (!major || !minor || !patch) return false;
+    if (major < 5) {
+      return false;
+    }
+    if (major === 5 && minor < 10) {
+      return false;
+    }
+    if (major === 5 && minor === 10 && patch < 3) {
+      return false;
+    }
+    return true;
+  });
+
   const existingDiffsMap = getExistingDiffsMap();
   const newDiffsMap: { [key: string]: boolean } = {};
 
   const features = ["nextAuth", "prisma", "trpc", "tailwind"];
 
-  for (let i = 0; i < sortedT3Versions.length; i++) {
-    const currentVersion = sortedT3Versions[i] as string;
-    for (let j = i + 1; j < sortedT3Versions.length; j++) {
-      const upgradeVersion = sortedT3Versions[j] as string;
+  for (let i = 0; i < filteredT3Versions.length; i++) {
+    const currentVersion = filteredT3Versions[i] as string;
+    for (let j = i + 1; j < filteredT3Versions.length; j++) {
+      const upgradeVersion = filteredT3Versions[j] as string;
       const combinations = arrangements(features);
 
       const noFeaturesDiff = `${currentVersion}..${upgradeVersion}`;
