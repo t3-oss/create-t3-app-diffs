@@ -1,3 +1,6 @@
+import fs from "fs";
+import path from "path";
+
 import { getMissingDiffs } from "@/fileUtils";
 import generateDiff from "@/generateDiff";
 import { extractVersionsAndFeatures } from "@/utils";
@@ -27,6 +30,24 @@ export const generateAllMissingDiffs = async () => {
     const timeStart = performance.now();
     try {
       await Promise.all(promises);
+      // read files in /tmp/emptyDiffs
+      const emptyDiffs = await fs.promises.readdir("/tmp/emptyDiffs");
+      console.log(`Empty diffs: ${emptyDiffs.length}`);
+      console.log("Empty diff example: ", emptyDiffs[0]);
+      // create a new file in the diffs folder named ignoredDiffs that contains the empty diffs if it doesn't exist already
+      const ignoredDiffsPath = path.join(
+        process.cwd(),
+        "diffs",
+        "ignoredDiffs.txt",
+      );
+      // append the empty diffs to the ignoredDiffs file
+      await fs.promises.appendFile(ignoredDiffsPath, emptyDiffs.join("\n"));
+      // delete the empty diffs
+      await Promise.all(
+        emptyDiffs.map((emptyDiff) =>
+          fs.promises.unlink(path.join("/tmp/emptyDiffs", emptyDiff)),
+        ),
+      );
     } catch (error) {
       console.error(error);
     }
