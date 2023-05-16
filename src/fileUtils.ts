@@ -1,5 +1,6 @@
 import { exec } from "child_process";
 import fs from "fs";
+import gitdiffParser from "gitdiff-parser";
 import path from "path";
 
 import {
@@ -72,6 +73,29 @@ export const getExistingDiffsMap = () => {
   );
 
   return diffsMap;
+};
+
+export const checkIfDiffIsEmpty = (diff: string) => {
+  const files = gitdiffParser.parse(diff);
+  if (files.length > 1) {
+    return false;
+  }
+
+  const file = files[0];
+  if (!file?.newPath.includes("package.json")) {
+    return false;
+  }
+
+  const hunks = file.hunks.map((hunk) => {
+    return hunk.changes
+      .filter((change) => change.type === "insert" || change.type === "delete")
+      .map((change) => change.content.trim())
+      .join("");
+  });
+
+  return hunks.every(
+    (hunk) => hunk.includes("name") || hunk.includes("initVersion"),
+  );
 };
 
 export const getMissingDiffs = async (count: number) => {
