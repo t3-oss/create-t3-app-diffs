@@ -1,0 +1,59 @@
+diff --git a/package.json b/package.json
+index d7b4930..bc4e30e 100644
+--- a/package.json
++++ b/package.json
+@@ -1,5 +1,5 @@
+ {
+-  "name": "current",
++  "name": "upgrade",
+   "version": "0.1.0",
+   "private": true,
+   "scripts": {
+@@ -39,6 +39,6 @@
+     "typescript": "^4.8.4"
+   },
+   "ct3aMetadata": {
+-    "initVersion": "6.10.3"
++    "initVersion": "6.11.4"
+   }
+ }
+diff --git a/src/env/schema.mjs b/src/env/schema.mjs
+index db72a63..45d3935 100644
+--- a/src/env/schema.mjs
++++ b/src/env/schema.mjs
+@@ -16,7 +16,7 @@ export const serverSchema = z.object({
+  * To expose them to the client, prefix them with `NEXT_PUBLIC_`.
+  */
+ export const clientSchema = z.object({
+-  // NEXT_PUBLIC_BAR: z.string(),
++  // NEXT_PUBLIC_CLIENTVAR: z.string(),
+ });
+ 
+ /**
+@@ -26,5 +26,5 @@ export const clientSchema = z.object({
+  * @type {{ [k in keyof z.infer<typeof clientSchema>]: z.infer<typeof clientSchema>[k] | undefined }}
+  */
+ export const clientEnv = {
+-  // NEXT_PUBLIC_BAR: process.env.NEXT_PUBLIC_BAR,
++  // NEXT_PUBLIC_CLIENTVAR: process.env.NEXT_PUBLIC_CLIENTVAR,
+ };
+diff --git a/src/pages/index.tsx b/src/pages/index.tsx
+index ccab419..1967114 100644
+--- a/src/pages/index.tsx
++++ b/src/pages/index.tsx
+@@ -23,6 +23,7 @@ const Home: NextPage = () => {
+             <Link
+               className="flex max-w-xs flex-col gap-4 rounded-xl bg-white/10 p-4 text-white hover:bg-white/20"
+               href="https://create.t3.gg/en/usage/first-steps"
++              target="_blank"
+             >
+               <h3 className="text-2xl font-bold">First Steps →</h3>
+               <div className="text-lg">
+@@ -33,6 +34,7 @@ const Home: NextPage = () => {
+             <Link
+               className="flex max-w-xs flex-col gap-4 rounded-xl bg-white/10 p-4 text-white hover:bg-white/20"
+               href="https://create.t3.gg/en/introduction"
++              target="_blank"
+             >
+               <h3 className="text-2xl font-bold">Documentation →</h3>
+               <div className="text-lg">

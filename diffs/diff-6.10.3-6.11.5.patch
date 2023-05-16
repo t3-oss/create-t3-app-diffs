@@ -1,0 +1,70 @@
+diff --git a/.env.example b/.env.example
+new file mode 100644
+index 0000000..38b70c1
+--- /dev/null
++++ b/.env.example
+@@ -0,0 +1,11 @@
++# Since .env is gitignored, you can use .env.example to build a new `.env` file when you clone the repo.
++# Keep this file up-to-date when you add new variables to `.env`.
++
++# This file will be committed to version control, so make sure not to have any secrets in it.
++# If you are cloning this repo, create a copy of this file named `.env` and populate it with your secrets.
++
++# When adding additional env variables, the schema in /env/schema.mjs should be updated accordingly
++
++# Example:
++# SERVERVAR=foo
++# NEXT_PUBLIC_CLIENTVAR=bar
+diff --git a/package.json b/package.json
+index b431e46..982198a 100644
+--- a/package.json
++++ b/package.json
+@@ -1,5 +1,5 @@
+ {
+-  "name": "current",
++  "name": "upgrade",
+   "version": "0.1.0",
+   "private": true,
+   "scripts": {
+@@ -9,7 +9,7 @@
+     "lint": "next lint"
+   },
+   "dependencies": {
+-    "next": "13.0.2",
++    "next": "13.1.1",
+     "react": "18.2.0",
+     "react-dom": "18.2.0",
+     "zod": "^3.18.0"
+@@ -21,10 +21,10 @@
+     "@typescript-eslint/eslint-plugin": "^5.33.0",
+     "@typescript-eslint/parser": "^5.33.0",
+     "eslint": "^8.26.0",
+-    "eslint-config-next": "13.0.2",
++    "eslint-config-next": "13.1.1",
+     "typescript": "^4.8.4"
+   },
+   "ct3aMetadata": {
+-    "initVersion": "6.10.3"
++    "initVersion": "6.11.5"
+   }
+ }
+diff --git a/src/pages/index.tsx b/src/pages/index.tsx
+index cbfff1a..35f4e30 100644
+--- a/src/pages/index.tsx
++++ b/src/pages/index.tsx
+@@ -20,6 +20,7 @@ const Home: NextPage = () => {
+             <Link
+               className={styles.card}
+               href="https://create.t3.gg/en/usage/first-steps"
++              target="_blank"
+             >
+               <h3 className={styles.cardTitle}>First Steps →</h3>
+               <div className={styles.cardText}>
+@@ -30,6 +31,7 @@ const Home: NextPage = () => {
+             <Link
+               className={styles.card}
+               href="https://create.t3.gg/en/introduction"
++              target="_blank"
+             >
+               <h3 className={styles.cardTitle}>Documentation →</h3>
+               <div className={styles.cardText}>
