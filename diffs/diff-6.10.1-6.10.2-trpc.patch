@@ -1,0 +1,36 @@
+diff --git a/package.json b/package.json
+index 29b947c..db7355a 100644
+--- a/package.json
++++ b/package.json
+@@ -1,5 +1,5 @@
+ {
+-  "name": "current",
++  "name": "upgrade",
+   "version": "0.1.0",
+   "private": true,
+   "scripts": {
+@@ -9,11 +9,11 @@
+     "start": "next start"
+   },
+   "dependencies": {
+-    "@tanstack/react-query": "^4.10.0",
+-    "@trpc/client": "10.0.0-rc.4",
+-    "@trpc/next": "10.0.0-rc.4",
+-    "@trpc/react-query": "10.0.0-rc.4",
+-    "@trpc/server": "10.0.0-rc.4",
++    "@tanstack/react-query": "^4.16.0",
++    "@trpc/client": "^10.0.0",
++    "@trpc/next": "^10.0.0",
++    "@trpc/react-query": "^10.0.0",
++    "@trpc/server": "^10.0.0",
+     "next": "13.0.2",
+     "react": "18.2.0",
+     "react-dom": "18.2.0",
+@@ -31,6 +31,6 @@
+     "typescript": "^4.8.4"
+   },
+   "ct3aMetadata": {
+-    "initVersion": "6.10.1"
++    "initVersion": "6.10.2"
+   }
+ }
