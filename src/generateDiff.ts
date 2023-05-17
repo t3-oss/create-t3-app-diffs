@@ -4,6 +4,7 @@ import { z } from "zod";
 
 import { checkIfDiffIsEmpty, executeCommand, getDiffPath } from "@/fileUtils";
 import { getFeaturesString } from "@/utils";
+import { IGNORED_DIFFS_PATH } from "./consts";
 
 const paramsSchema = z.object({
   currentVersion: z.string(),
@@ -63,6 +64,18 @@ export default async function generateDiff(params: unknown) {
     return { differences, url };
   }
 
+  // check if the diff is ignored
+  const ignoredDiffs = fs.readFileSync(IGNORED_DIFFS_PATH, "utf8");
+  if (
+    ignoredDiffs.includes(
+      `${currentVersion}..${upgradeVersion}${
+        featuresString ? `-${featuresString}` : ""
+      }}`,
+    )
+  ) {
+    return { differences: "", url };
+  }
+
   try {
     await executeCommand(getCommand(currentVersion, currentProjectPath));
     await executeCommand(getCommand(upgradeVersion, upgradeProjectPath));
@@ -99,6 +112,11 @@ export default async function generateDiff(params: unknown) {
         featuresString ? `-${featuresString}` : ""
       }`,
     );
+
+    // create a directory for empty diffs
+    if (!fs.existsSync("/tmp/emptyDiffs")) {
+      fs.mkdirSync("/tmp/emptyDiffs");
+    }
 
     if (checkIfDiffIsEmpty(differences)) {
       // Delete the diff if it's empty
