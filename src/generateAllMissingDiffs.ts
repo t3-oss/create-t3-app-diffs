@@ -32,7 +32,10 @@ export const generateAllMissingDiffs = async () => {
       await Promise.all(promises);
       const emptyDiffs = await fs.promises.readdir("/tmp/emptyDiffs");
       if (emptyDiffs.length) {
-        await fs.promises.appendFile(IGNORED_DIFFS_PATH, emptyDiffs.join("\n"));
+        await fs.promises.appendFile(
+          IGNORED_DIFFS_PATH,
+          "\n" + emptyDiffs.join("\n"),
+        );
         await executeCommand("rm -rf /tmp/emptyDiffs/*");
       }
     } catch (error) {

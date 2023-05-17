@@ -33,7 +33,7 @@ export const purgeAllEmptyDiffs = async () => {
     });
 
   // write to diffs/ignored-diffs.txt
-  fs.appendFileSync(IGNORED_DIFFS_PATH, emptyDiffsKeys.join("\n"));
+  fs.appendFileSync(IGNORED_DIFFS_PATH, "\n" + emptyDiffsKeys.join("\n"));
 
   return emptyDiffs.length;
 };
