@@ -1,0 +1,48 @@
+diff --git a/package.json b/package.json
+index 20e05a2..3ad5767 100644
+--- a/package.json
++++ b/package.json
+@@ -1,5 +1,5 @@
+ {
+-  "name": "current",
++  "name": "upgrade",
+   "version": "0.1.0",
+   "private": true,
+   "scripts": {
+@@ -15,7 +15,7 @@
+     "@trpc/react-query": "^10.0.0",
+     "@trpc/server": "^10.0.0",
+     "next": "13.0.2",
+-    "next-auth": "^4.15.1",
++    "next-auth": "4.17.0",
+     "react": "18.2.0",
+     "react-dom": "18.2.0",
+     "superjson": "1.9.1",
+@@ -32,6 +32,6 @@
+     "typescript": "^4.8.4"
+   },
+   "ct3aMetadata": {
+-    "initVersion": "6.10.3"
++    "initVersion": "6.11.1"
+   }
+ }
+diff --git a/src/env/schema.mjs b/src/env/schema.mjs
+index 0d07195..cd0e268 100644
+--- a/src/env/schema.mjs
++++ b/src/env/schema.mjs
+@@ -28,7 +28,7 @@ export const serverSchema = z.object({
+  * To expose them to the client, prefix them with `NEXT_PUBLIC_`.
+  */
+ export const clientSchema = z.object({
+-  // NEXT_PUBLIC_BAR: z.string(),
++  // NEXT_PUBLIC_CLIENTVAR: z.string(),
+ });
+ 
+ /**
+@@ -38,5 +38,5 @@ export const clientSchema = z.object({
+  * @type {{ [k in keyof z.infer<typeof clientSchema>]: z.infer<typeof clientSchema>[k] | undefined }}
+  */
+ export const clientEnv = {
+-  // NEXT_PUBLIC_BAR: process.env.NEXT_PUBLIC_BAR,
++  // NEXT_PUBLIC_CLIENTVAR: process.env.NEXT_PUBLIC_CLIENTVAR,
+ };

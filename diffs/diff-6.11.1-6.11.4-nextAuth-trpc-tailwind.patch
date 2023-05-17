@@ -1,0 +1,48 @@
+diff --git a/package.json b/package.json
+index 470f2a0..a537cc6 100644
+--- a/package.json
++++ b/package.json
+@@ -1,5 +1,5 @@
+ {
+-  "name": "current",
++  "name": "upgrade",
+   "version": "0.1.0",
+   "private": true,
+   "scripts": {
+@@ -15,7 +15,7 @@
+     "@trpc/react-query": "^10.0.0",
+     "@trpc/server": "^10.0.0",
+     "next": "13.0.2",
+-    "next-auth": "4.17.0",
++    "next-auth": "^4.18.3",
+     "react": "18.2.0",
+     "react-dom": "18.2.0",
+     "superjson": "1.9.1",
+@@ -37,6 +37,6 @@
+     "typescript": "^4.8.4"
+   },
+   "ct3aMetadata": {
+-    "initVersion": "6.11.1"
++    "initVersion": "6.11.4"
+   }
+ }
+diff --git a/src/pages/index.tsx b/src/pages/index.tsx
+index f696bdf..e727579 100644
+--- a/src/pages/index.tsx
++++ b/src/pages/index.tsx
+@@ -24,6 +24,7 @@ const Home: NextPage = () => {
+             <Link
+               className="flex max-w-xs flex-col gap-4 rounded-xl bg-white/10 p-4 text-white hover:bg-white/20"
+               href="https://create.t3.gg/en/usage/first-steps"
++              target="_blank"
+             >
+               <h3 className="text-2xl font-bold">First Steps →</h3>
+               <div className="text-lg">
+@@ -34,6 +35,7 @@ const Home: NextPage = () => {
+             <Link
+               className="flex max-w-xs flex-col gap-4 rounded-xl bg-white/10 p-4 text-white hover:bg-white/20"
+               href="https://create.t3.gg/en/introduction"
++              target="_blank"
+             >
+               <h3 className="text-2xl font-bold">Documentation →</h3>
+               <div className="text-lg">

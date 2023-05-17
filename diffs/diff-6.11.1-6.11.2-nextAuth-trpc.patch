@@ -1,0 +1,39 @@
+diff --git a/package.json b/package.json
+index bda725e..7ce3439 100644
+--- a/package.json
++++ b/package.json
+@@ -1,5 +1,5 @@
+ {
+-  "name": "current",
++  "name": "upgrade",
+   "version": "0.1.0",
+   "private": true,
+   "scripts": {
+@@ -32,6 +32,6 @@
+     "typescript": "^4.8.4"
+   },
+   "ct3aMetadata": {
+-    "initVersion": "6.11.1"
++    "initVersion": "6.11.2"
+   }
+ }
+diff --git a/src/pages/index.tsx b/src/pages/index.tsx
+index bdc091a..533c7b4 100644
+--- a/src/pages/index.tsx
++++ b/src/pages/index.tsx
+@@ -25,6 +25,7 @@ const Home: NextPage = () => {
+             <Link
+               className={styles.card}
+               href="https://create.t3.gg/en/usage/first-steps"
++              target="_blank"
+             >
+               <h3 className={styles.cardTitle}>First Steps →</h3>
+               <div className={styles.cardText}>
+@@ -35,6 +36,7 @@ const Home: NextPage = () => {
+             <Link
+               className={styles.card}
+               href="https://create.t3.gg/en/introduction"
++              target="_blank"
+             >
+               <h3 className={styles.cardTitle}>Documentation →</h3>
+               <div className={styles.cardText}>

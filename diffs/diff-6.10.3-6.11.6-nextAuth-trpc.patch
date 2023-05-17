@@ -1,0 +1,75 @@
+diff --git a/package.json b/package.json
+index 20e05a2..38f7601 100644
+--- a/package.json
++++ b/package.json
+@@ -1,5 +1,5 @@
+ {
+-  "name": "current",
++  "name": "upgrade",
+   "version": "0.1.0",
+   "private": true,
+   "scripts": {
+@@ -14,8 +14,8 @@
+     "@trpc/next": "^10.0.0",
+     "@trpc/react-query": "^10.0.0",
+     "@trpc/server": "^10.0.0",
+-    "next": "13.0.2",
+-    "next-auth": "^4.15.1",
++    "next": "13.1.1",
++    "next-auth": "^4.18.3",
+     "react": "18.2.0",
+     "react-dom": "18.2.0",
+     "superjson": "1.9.1",
+@@ -28,10 +28,10 @@
+     "@typescript-eslint/eslint-plugin": "^5.33.0",
+     "@typescript-eslint/parser": "^5.33.0",
+     "eslint": "^8.26.0",
+-    "eslint-config-next": "13.0.2",
++    "eslint-config-next": "13.1.1",
+     "typescript": "^4.8.4"
+   },
+   "ct3aMetadata": {
+-    "initVersion": "6.10.3"
++    "initVersion": "6.11.6"
+   }
+ }
+diff --git a/src/env/schema.mjs b/src/env/schema.mjs
+index 0d07195..cd0e268 100644
+--- a/src/env/schema.mjs
++++ b/src/env/schema.mjs
+@@ -28,7 +28,7 @@ export const serverSchema = z.object({
+  * To expose them to the client, prefix them with `NEXT_PUBLIC_`.
+  */
+ export const clientSchema = z.object({
+-  // NEXT_PUBLIC_BAR: z.string(),
++  // NEXT_PUBLIC_CLIENTVAR: z.string(),
+ });
+ 
+ /**
+@@ -38,5 +38,5 @@ export const clientSchema = z.object({
+  * @type {{ [k in keyof z.infer<typeof clientSchema>]: z.infer<typeof clientSchema>[k] | undefined }}
+  */
+ export const clientEnv = {
+-  // NEXT_PUBLIC_BAR: process.env.NEXT_PUBLIC_BAR,
++  // NEXT_PUBLIC_CLIENTVAR: process.env.NEXT_PUBLIC_CLIENTVAR,
+ };
+diff --git a/src/pages/index.tsx b/src/pages/index.tsx
+index bdc091a..533c7b4 100644
+--- a/src/pages/index.tsx
++++ b/src/pages/index.tsx
+@@ -25,6 +25,7 @@ const Home: NextPage = () => {
+             <Link
+               className={styles.card}
+               href="https://create.t3.gg/en/usage/first-steps"
++              target="_blank"
+             >
+               <h3 className={styles.cardTitle}>First Steps →</h3>
+               <div className={styles.cardText}>
+@@ -35,6 +36,7 @@ const Home: NextPage = () => {
+             <Link
+               className={styles.card}
+               href="https://create.t3.gg/en/introduction"
++              target="_blank"
+             >
+               <h3 className={styles.cardTitle}>Documentation →</h3>
+               <div className={styles.cardText}>
