@@ -2,8 +2,9 @@ import fs from "fs";
 import path from "path";
 import { z } from "zod";
 
-import { executeCommand, getDiffPath } from "@/fileUtils";
+import { checkIfDiffIsEmpty, executeCommand, getDiffPath } from "@/fileUtils";
 import { getFeaturesString } from "@/utils";
+import { IGNORED_DIFFS_PATH } from "./consts";
 
 const paramsSchema = z.object({
   currentVersion: z.string(),
@@ -15,7 +16,6 @@ const paramsSchema = z.object({
     tailwind: z.boolean().optional(),
   }),
 });
-
 
 export default async function generateDiff(params: unknown) {
   const { success } = paramsSchema.safeParse(params);
@@ -64,6 +64,18 @@ export default async function generateDiff(params: unknown) {
     return { differences, url };
   }
 
+  // check if the diff is ignored
+  const ignoredDiffs = fs.readFileSync(IGNORED_DIFFS_PATH, "utf8");
+  if (
+    ignoredDiffs.includes(
+      `${currentVersion}..${upgradeVersion}${
+        featuresString ? `-${featuresString}` : ""
+      }}`,
+    )
+  ) {
+    return { differences: "", url };
+  }
+
   try {
     await executeCommand(getCommand(currentVersion, currentProjectPath));
     await executeCommand(getCommand(upgradeVersion, upgradeProjectPath));
@@ -94,6 +106,31 @@ export default async function generateDiff(params: unknown) {
     const differences = fs.readFileSync(diffPath, "utf8");
 
     await executeCommand(`rm -rf ${diffDir}`);
+
+    console.log(
+      `Generated diff: ${currentVersion}..${upgradeVersion}${
+        featuresString ? `-${featuresString}` : ""
+      }`,
+    );
+
+    // create a directory for empty diffs
+    if (!fs.existsSync("/tmp/emptyDiffs")) {
+      fs.mkdirSync("/tmp/emptyDiffs");
+    }
+
+    if (checkIfDiffIsEmpty(differences)) {
+      // Delete the diff if it's empty
+      await executeCommand(`rm -rf ${diffPath}`);
+      // Create a file with the filename to indicate that the diff is empty
+      fs.writeFileSync(
+        `/tmp/emptyDiffs/${currentVersion}..${upgradeVersion}${
+          featuresString ? `-${featuresString}` : ""
+        }`,
+        "",
+      );
+
+      return { differences: "", url };
+    }
 
     // Send the diff back to the client
     return { differences, url };

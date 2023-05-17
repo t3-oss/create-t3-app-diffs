@@ -4,7 +4,10 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "generate-all-missing-diffs": "tsx src/runGenerateAllScript.ts"
+    "generate-all-missing-diffs": "tsx src/runGenerateAllScript.ts",
+    "purge-empty-diffs": "tsx src/runPurgeAllEmptyScript.ts",
+    "format": "pnpm format:check --write",
+    "format:check": "prettier --check **/*.{cjs,mjs,ts,tsx,json} --ignore-path .gitignore --ignore-unknown --no-error-on-unmatched-pattern"
   },
   "dependencies": {
     "@types/node": "^18.15.5",
@@ -12,5 +15,8 @@
     "tsx": "^3.12.7",
     "typescript": "^5.0.2",
     "zod": "^3.21.4"
+  },
+  "devDependencies": {
+    "gitdiff-parser": "^0.3.1"
   }
 }

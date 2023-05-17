@@ -1,14 +1,16 @@
 import { exec } from "child_process";
 import fs from "fs";
+import gitdiffParser from "gitdiff-parser";
 import path from "path";
 
 import {
+  Features,
   arrangements,
   extractVersionsAndFeatures,
   getFeaturesString,
   getT3Versions,
-  Features
 } from "@/utils";
+import { DIFFS_PATH, IGNORED_DIFFS_PATH } from "./consts";
 
 export interface DiffLocation {
   currentVersion: string;
@@ -28,7 +30,6 @@ export const executeCommand = (command: string, options?: { cwd: string }) => {
         return;
       }
       resolve(stdout);
-      console.log(stdout);
     });
   });
 };
@@ -40,15 +41,15 @@ export const getDiffPath = ({
 }: DiffLocation) => {
   const featuresString = getFeaturesString(features);
   return path.join(
-    process.cwd(),
-    "diffs",
-    `diff-${currentVersion}-${upgradeVersion}${featuresString ? `-${featuresString}` : ""
-    }.patch`
+    DIFFS_PATH,
+    `diff-${currentVersion}-${upgradeVersion}${
+      featuresString ? `-${featuresString}` : ""
+    }.patch`,
   );
 };
 
 export const getExistingDiffsMap = () => {
-  const existingDiffs = fs.readdirSync(path.join(process.cwd(), "diffs"));
+  const existingDiffs = fs.readdirSync(DIFFS_PATH);
 
   const diffsMap: { [key: string]: boolean } = existingDiffs.reduce(
     (acc, diff) => {
@@ -64,18 +65,43 @@ export const getExistingDiffsMap = () => {
 
       return {
         ...acc,
-        [`${currentVersion}..${upgradeVersion}${featuresString ? `-${featuresString}` : ""
-          }`]: true,
+        [`${currentVersion}..${upgradeVersion}${
+          featuresString ? `-${featuresString}` : ""
+        }`]: true,
       };
     },
-    {}
+    {},
   );
 
   return diffsMap;
 };
 
+export const checkIfDiffIsEmpty = (diff: string) => {
+  const files = gitdiffParser.parse(diff);
+  if (files.length > 1) {
+    return false;
+  }
+
+  const file = files[0];
+  if (!file?.newPath.includes("package.json")) {
+    return false;
+  }
+
+  const hunks = file.hunks.map((hunk) => {
+    return hunk.changes
+      .filter((change) => change.type === "insert" || change.type === "delete")
+      .map((change) => change.content.trim())
+      .join("");
+  });
+
+  return hunks.every(
+    (hunk) => hunk.includes("name") || hunk.includes("initVersion"),
+  );
+};
+
 export const getMissingDiffs = async (count: number) => {
   const t3Versions = await getT3Versions();
+  const ignoredDiffs = await fs.promises.readFile(IGNORED_DIFFS_PATH, "utf8");
   const sortedT3Versions = t3Versions.sort((a, b) => {
     const aParts = a.split(".").map(Number);
     const bParts = b.split(".").map(Number);
@@ -121,7 +147,10 @@ export const getMissingDiffs = async (count: number) => {
       const combinations = arrangements(features);
 
       const noFeaturesDiff = `${currentVersion}..${upgradeVersion}`;
-      if (!existingDiffsMap[noFeaturesDiff]) {
+      if (
+        !existingDiffsMap[noFeaturesDiff] &&
+        !ignoredDiffs.includes(noFeaturesDiff)
+      ) {
         newDiffsMap[noFeaturesDiff] = true;
       }
 
@@ -134,10 +163,10 @@ export const getMissingDiffs = async (count: number) => {
         };
 
         const key = `${currentVersion}..${upgradeVersion}-${getFeaturesString(
-          features
+          features,
         )}`;
 
-        if (existingDiffsMap[key]) {
+        if (existingDiffsMap[key] || ignoredDiffs.includes(key)) {
           continue;
         }
 
