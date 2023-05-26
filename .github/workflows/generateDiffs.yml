@@ -23,7 +23,7 @@ jobs:
 
       - name: Run generate-all-missing-diffs script
         run: pnpm generate-all-missing-diffs
-        timeout-minutes: 5
+        timeout-minutes: 15
       
       - name: Create Pull Request
         if: always()
