@@ -26,6 +26,7 @@ jobs:
         timeout-minutes: 5
       
       - name: Create Pull Request
+        if: always()
         uses: peter-evans/create-pull-request@v5
         with:
           commit-message: Generate new diffs
