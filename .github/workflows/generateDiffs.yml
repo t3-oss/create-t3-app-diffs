@@ -23,10 +23,10 @@ jobs:
 
       - name: Run generate-all-missing-diffs script
         run: pnpm generate-all-missing-diffs
-        timeout-minutes: 15
+        timeout-minutes: 60
+        continue-on-error: true
       
       - name: Create Pull Request
-        if: always()
         uses: peter-evans/create-pull-request@v5
         with:
           commit-message: Generate new diffs
