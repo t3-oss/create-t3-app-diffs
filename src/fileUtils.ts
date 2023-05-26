@@ -120,9 +120,15 @@ export const getMissingDiffs = async (count: number) => {
   });
 
   const filteredT3Versions = sortedT3Versions.filter((version) => {
-    const [major, minor, patch] = version.split(".").map(Number);
+    const [majorStr, minorStr, patchStr] = version.split(".");
+    const major = Number(majorStr);
+    const minor = Number(minorStr);
+    const patch = Number(patchStr);
+    if (isNaN(major) || isNaN(minor) || isNaN(patch)) {
+      console.warn(`Failed to parse version ${version}`);
+      return false;
+    }
     // ignore versions under 5.10.3
-    if (!major || !minor || !patch) return false;
     if (major < 5) {
       return false;
     }
