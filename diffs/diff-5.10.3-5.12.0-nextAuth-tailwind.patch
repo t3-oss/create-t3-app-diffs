@@ -1,0 +1,42 @@
+diff --git a/.env-example b/.env-example
+index bc00398..b48d7cb 100644
+--- a/.env-example
++++ b/.env-example
+@@ -1,4 +1,5 @@
+ # Note that not all variables here might be in use for your selected configuration
++# When adding additional env variables, the schema in /env/schema.mjs should be updated accordingly
+ 
+ # Prisma
+ DATABASE_URL=file:./db.sqlite
+diff --git a/package.json b/package.json
+index 024a270..2b6b5a5 100644
+--- a/package.json
++++ b/package.json
+@@ -1,5 +1,5 @@
+ {
+-  "name": "current",
++  "name": "upgrade",
+   "version": "0.1.0",
+   "private": true,
+   "scripts": {
+@@ -25,6 +25,6 @@
+     "typescript": "4.7.4"
+   },
+   "ct3aMetadata": {
+-    "initVersion": "5.10.3"
++    "initVersion": "5.12.0"
+   }
+ }
+diff --git a/src/env/schema.mjs b/src/env/schema.mjs
+index 3fedded..c621d13 100644
+--- a/src/env/schema.mjs
++++ b/src/env/schema.mjs
+@@ -6,7 +6,7 @@ import { z } from "zod";
+  * This way you can ensure the app isn't built with invalid env vars.
+  */
+ export const serverSchema = z.object({
+-  // SERVERVAR: z.string(),
++  NODE_ENV: z.enum(["development", "test", "production"]),
+ });
+ 
+ /**

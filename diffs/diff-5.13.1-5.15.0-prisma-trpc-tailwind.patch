@@ -1,0 +1,42 @@
+diff --git a/.env-example b/.env-example
+deleted file mode 100644
+index b48d7cb..0000000
+--- a/.env-example
++++ /dev/null
+@@ -1,13 +0,0 @@
+-# Note that not all variables here might be in use for your selected configuration
+-# When adding additional env variables, the schema in /env/schema.mjs should be updated accordingly
+-
+-# Prisma
+-DATABASE_URL=file:./db.sqlite
+-
+-# Next Auth
+-NEXTAUTH_SECRET=
+-NEXTAUTH_URL=http://localhost:3000
+-
+-# Next Auth Discord Provider
+-DISCORD_CLIENT_ID=
+-DISCORD_CLIENT_SECRET=
+diff --git a/package.json b/package.json
+index f3cff7f..66d6f65 100644
+--- a/package.json
++++ b/package.json
+@@ -1,5 +1,5 @@
+ {
+-  "name": "current",
++  "name": "upgrade",
+   "version": "0.1.0",
+   "private": true,
+   "scripts": {
+@@ -22,9 +22,10 @@
+     "@typescript-eslint/parser": "^5.33.0",
+     "eslint": "8.22.0",
+     "eslint-config-next": "12.3.1",
++    "prettier": "2.7.1",
+     "typescript": "4.7.4"
+   },
+   "ct3aMetadata": {
+-    "initVersion": "5.13.1"
++    "initVersion": "5.15.0"
+   }
+ }
