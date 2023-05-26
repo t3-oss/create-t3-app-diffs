@@ -8,6 +8,7 @@ import { IGNORED_DIFFS_PATH } from "./consts";
 export const generateAllMissingDiffs = async () => {
   console.log("Generating all missing diffs");
   const missingDiffs = await getMissingDiffs(Infinity);
+  let remainingDiffs = missingDiffs.length;
 
   const batchSize = 20;
 
@@ -43,6 +44,7 @@ export const generateAllMissingDiffs = async () => {
     }
     const timeEnd = performance.now();
     console.count("Generated batch");
-    console.log(`Batch took ${timeEnd - timeStart}ms`);
+    remainingDiffs -= batch.length;
+    console.log(`Batch took ${timeEnd - timeStart}ms. ${remainingDiffs} left`);
   }
 };
