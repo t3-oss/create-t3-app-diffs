@@ -1,0 +1,270 @@
+diff --git a/.env.example b/.env.example
+index 5a3a375..dbeac89 100644
+--- a/.env.example
++++ b/.env.example
+@@ -5,7 +5,6 @@
+ # If you are cloning this repo, create a copy of this file named `.env` and populate it with your secrets.
+ 
+ # When adding additional env variables, the schema in /env/schema.mjs should be updated accordingly
+-
+ # Next Auth
+ # You can generate the secret via 'openssl rand -base64 32' on Linux
+ # More info: https://next-auth.js.org/configuration/options#secret
+diff --git a/.gitignore b/.gitignore
+index 9dfddc1..2971a0b 100644
+--- a/.gitignore
++++ b/.gitignore
+@@ -31,6 +31,7 @@ yarn-error.log*
+ .pnpm-debug.log*
+ 
+ # local env files
++# do not commit any .env files to git, except for the .env.example file. https://create.t3.gg/en/usage/env-variables#using-environment-variables
+ .env
+ .env*.local
+ 
+diff --git a/README.md b/README.md
+index 716470c..fba19ed 100644
+--- a/README.md
++++ b/README.md
+@@ -1,27 +1,28 @@
+ # Create T3 App
+ 
+-This is an app bootstrapped according to the [init.tips](https://init.tips) stack, also known as the T3-Stack.
++This is a [T3 Stack](https://create.t3.gg/) project bootstrapped with `create-t3-app`.
+ 
+ ## What's next? How do I make an app with this?
+ 
+-We try to keep this project as simple as possible, so you can start with the most basic configuration and then move on to more advanced configuration.
++We try to keep this project as simple as possible, so you can start with just the scaffolding we set up for you, and add additional things later when they become necessary.
+ 
+ If you are not familiar with the different technologies used in this project, please refer to the respective docs. If you still are in the wind, please join our [Discord](https://t3.gg/discord) and ask for help.
+ 
+-- [Next-Auth.js](https://next-auth.js.org)
++- [Next.js](https://nextjs.org)
++- [NextAuth.js](https://next-auth.js.org)
+ - [Prisma](https://prisma.io)
+-- [TailwindCSS](https://tailwindcss.com)
++- [Tailwind CSS](https://tailwindcss.com)
+ - [tRPC](https://trpc.io)
+ 
+-We also [roll our own docs](https://create.t3.gg) with some summary information and links to the respective documentation.
++## Learn More
+ 
+-Also checkout these awesome tutorials on `create-t3-app`.
++To learn more about the [T3 Stack](https://create.t3.gg/), take a look at the following resources:
+ 
+-- [Build a Blog With the T3 Stack - tRPC, TypeScript, Next.js, Prisma & Zod](https://www.youtube.com/watch?v=syEWlxVFUrY)
+-- [Build a Live Chat Application with the T3 Stack - TypeScript, Tailwind, tRPC](https://www.youtube.com/watch?v=dXRRY37MPuk)
+-- [Build a full stack app with create-t3-app](https://www.nexxel.dev/blog/ct3a-guestbook)
+-- [A first look at create-t3-app](https://dev.to/ajcwebdev/a-first-look-at-create-t3-app-1i8f)
++- [Documentation](https://create.t3.gg/)
++- [Learn the T3 Stack](https://create.t3.gg/en/faq#what-learning-resources-are-currently-available) — Check out these awesome tutorials
++
++You can check out the [create-t3-app GitHub repository](https://github.com/t3-oss/create-t3-app) — your feedback and contributions are welcome!
+ 
+ ## How do I deploy this?
+ 
+-Follow our deployment guides for [Vercel](https://create.t3.gg/en/deployment/vercel) and [Docker](https://create.t3.gg/en/deployment/docker) for more information.
++Follow our deployment guides for [Vercel](https://create.t3.gg/en/deployment/vercel), [Netlify](https://create.t3.gg/en/deployment/netlify) and [Docker](https://create.t3.gg/en/deployment/docker) for more information.
+diff --git a/package.json b/package.json
+index 4a459e6..09c94b5 100644
+--- a/package.json
++++ b/package.json
+@@ -1,5 +1,5 @@
+ {
+-  "name": "current",
++  "name": "upgrade",
+   "version": "0.1.0",
+   "private": true,
+   "scripts": {
+@@ -9,28 +9,29 @@
+     "start": "next start"
+   },
+   "dependencies": {
+-    "next": "13.0.2",
+-    "next-auth": "^4.15.1",
++    "next": "13.1.1",
++    "next-auth": "^4.18.7",
+     "react": "18.2.0",
+     "react-dom": "18.2.0",
+-    "zod": "^3.18.0"
++    "zod": "^3.20.2"
+   },
+   "devDependencies": {
+-    "@types/node": "^18.0.0",
+-    "@types/react": "^18.0.14",
+-    "@types/react-dom": "^18.0.5",
+-    "@typescript-eslint/eslint-plugin": "^5.33.0",
+-    "@typescript-eslint/parser": "^5.33.0",
++    "@types/node": "^18.11.18",
++    "@types/prettier": "^2.7.2",
++    "@types/react": "^18.0.26",
++    "@types/react-dom": "^18.0.10",
++    "@typescript-eslint/eslint-plugin": "^5.47.1",
++    "@typescript-eslint/parser": "^5.47.1",
+     "autoprefixer": "^10.4.7",
+-    "eslint": "^8.26.0",
+-    "eslint-config-next": "13.0.2",
++    "eslint": "^8.30.0",
++    "eslint-config-next": "13.1.1",
+     "postcss": "^8.4.14",
+-    "prettier": "^2.7.1",
+-    "prettier-plugin-tailwindcss": "^0.1.13",
++    "prettier": "^2.8.1",
++    "prettier-plugin-tailwindcss": "^0.2.1",
+     "tailwindcss": "^3.2.0",
+-    "typescript": "^4.8.4"
++    "typescript": "^4.9.4"
+   },
+   "ct3aMetadata": {
+-    "initVersion": "6.10.1"
++    "initVersion": "7.0.1"
+   }
+ }
+diff --git a/src/env/schema.mjs b/src/env/schema.mjs
+index 1a4d09f..cd0e268 100644
+--- a/src/env/schema.mjs
++++ b/src/env/schema.mjs
+@@ -13,9 +13,9 @@ export const serverSchema = z.object({
+       : z.string().min(1).optional(),
+   NEXTAUTH_URL: z.preprocess(
+     // This makes Vercel deployments not fail if you don't set NEXTAUTH_URL
+-    // Since NextAuth automatically uses the VERCEL_URL if present.
++    // Since NextAuth.js automatically uses the VERCEL_URL if present.
+     (str) => process.env.VERCEL_URL ?? str,
+-    // VERCEL_URL doesnt include `https` so it cant be validated as a URL
++    // VERCEL_URL doesn't include `https` so it cant be validated as a URL
+     process.env.VERCEL ? z.string() : z.string().url(),
+   ),
+   DISCORD_CLIENT_ID: z.string(),
+@@ -28,7 +28,7 @@ export const serverSchema = z.object({
+  * To expose them to the client, prefix them with `NEXT_PUBLIC_`.
+  */
+ export const clientSchema = z.object({
+-  // NEXT_PUBLIC_BAR: z.string(),
++  // NEXT_PUBLIC_CLIENTVAR: z.string(),
+ });
+ 
+ /**
+@@ -38,5 +38,5 @@ export const clientSchema = z.object({
+  * @type {{ [k in keyof z.infer<typeof clientSchema>]: z.infer<typeof clientSchema>[k] | undefined }}
+  */
+ export const clientEnv = {
+-  // NEXT_PUBLIC_BAR: process.env.NEXT_PUBLIC_BAR,
++  // NEXT_PUBLIC_CLIENTVAR: process.env.NEXT_PUBLIC_CLIENTVAR,
+ };
+diff --git a/src/pages/api/auth/[...nextauth].ts b/src/pages/api/auth/[...nextauth].ts
+index 396fc10..d317154 100644
+--- a/src/pages/api/auth/[...nextauth].ts
++++ b/src/pages/api/auth/[...nextauth].ts
+@@ -19,7 +19,15 @@ export const authOptions: NextAuthOptions = {
+       clientId: env.DISCORD_CLIENT_ID,
+       clientSecret: env.DISCORD_CLIENT_SECRET,
+     }),
+-    // ...add more providers here
++    /**
++     * ...add more providers here
++     *
++     * Most other providers require a bit more work than the Discord provider.
++     * For example, the GitHub provider requires you to add the
++     * `refresh_token_expires_in` field to the Account model. Refer to the
++     * NextAuth.js docs for the provider you want to use. Example:
++     * @see https://next-auth.js.org/providers/github
++     */
+   ],
+ };
+ 
+diff --git a/src/pages/api/restricted.ts b/src/pages/api/restricted.ts
+deleted file mode 100644
+index 39d936d..0000000
+--- a/src/pages/api/restricted.ts
++++ /dev/null
+@@ -1,21 +0,0 @@
+-import { type NextApiRequest, type NextApiResponse } from "next";
+-
+-import { getServerAuthSession } from "../../server/common/get-server-auth-session";
+-
+-const restricted = async (req: NextApiRequest, res: NextApiResponse) => {
+-  const session = await getServerAuthSession({ req, res });
+-
+-  if (session) {
+-    res.send({
+-      content:
+-        "This is protected content. You can access this content because you are signed in.",
+-    });
+-  } else {
+-    res.send({
+-      error:
+-        "You must be signed in to view the protected content on this page.",
+-    });
+-  }
+-};
+-
+-export default restricted;
+diff --git a/src/pages/index.tsx b/src/pages/index.tsx
+index 7e880c8..5513c42 100644
+--- a/src/pages/index.tsx
++++ b/src/pages/index.tsx
+@@ -19,6 +19,7 @@ const Home: NextPage = () => {
+             <Link
+               className="flex max-w-xs flex-col gap-4 rounded-xl bg-white/10 p-4 text-white hover:bg-white/20"
+               href="https://create.t3.gg/en/usage/first-steps"
++              target="_blank"
+             >
+               <h3 className="text-2xl font-bold">First Steps →</h3>
+               <div className="text-lg">
+@@ -29,6 +30,7 @@ const Home: NextPage = () => {
+             <Link
+               className="flex max-w-xs flex-col gap-4 rounded-xl bg-white/10 p-4 text-white hover:bg-white/20"
+               href="https://create.t3.gg/en/introduction"
++              target="_blank"
+             >
+               <h3 className="text-2xl font-bold">Documentation →</h3>
+               <div className="text-lg">
+diff --git a/src/server/auth.ts b/src/server/auth.ts
+new file mode 100644
+index 0000000..a99fdae
+--- /dev/null
++++ b/src/server/auth.ts
+@@ -0,0 +1,21 @@
++import { type GetServerSidePropsContext } from "next";
++import { unstable_getServerSession } from "next-auth";
++
++import { authOptions } from "../pages/api/auth/[...nextauth]";
++
++/**
++ * Wrapper for unstable_getServerSession, used in trpc createContext and the
++ * restricted API route
++ *
++ * Don't worry too much about the "unstable", it's safe to use but the syntax
++ * may change in future versions
++ *
++ * @see https://next-auth.js.org/configuration/nextjs
++ */
++
++export const getServerAuthSession = async (ctx: {
++  req: GetServerSidePropsContext["req"];
++  res: GetServerSidePropsContext["res"];
++}) => {
++  return await unstable_getServerSession(ctx.req, ctx.res, authOptions);
++};
+diff --git a/src/server/common/get-server-auth-session.ts b/src/server/common/get-server-auth-session.ts
+deleted file mode 100644
+index 8323ff2..0000000
+--- a/src/server/common/get-server-auth-session.ts
++++ /dev/null
+@@ -1,14 +0,0 @@
+-import { type GetServerSidePropsContext } from "next";
+-import { unstable_getServerSession } from "next-auth";
+-import { authOptions } from "../../pages/api/auth/[...nextauth]";
+-
+-/**
+- * Wrapper for unstable_getServerSession https://next-auth.js.org/configuration/nextjs
+- * See example usage in trpc createContext or the restricted API route
+- */
+-export const getServerAuthSession = async (ctx: {
+-  req: GetServerSidePropsContext["req"];
+-  res: GetServerSidePropsContext["res"];
+-}) => {
+-  return await unstable_getServerSession(ctx.req, ctx.res, authOptions);
+-};
