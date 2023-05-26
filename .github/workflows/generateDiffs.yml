@@ -8,7 +8,6 @@ on:
 jobs:
   generate-diffs:
     runs-on: ubuntu-latest
-    timeout-minutes: 60
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
@@ -24,6 +23,7 @@ jobs:
 
       - name: Run generate-all-missing-diffs script
         run: pnpm generate-all-missing-diffs
+        timeout-minutes: 5
       
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v5
