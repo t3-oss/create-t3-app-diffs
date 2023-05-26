@@ -1,0 +1,94 @@
+diff --git a/.env.example b/.env.example
+index b0c4cad..5a3a375 100644
+--- a/.env.example
++++ b/.env.example
+@@ -1,4 +1,4 @@
+-# Since .env is gitignored, you can use .env-example to build a new `.env` file when you clone the repo.
++# Since .env is gitignored, you can use .env.example to build a new `.env` file when you clone the repo.
+ # Keep this file up-to-date when you add new variables to `.env`.
+ 
+ # This file will be committed to version control, so make sure not to have any secrets in it.
+diff --git a/.gitignore b/.gitignore
+index d9bbc5d..9dfddc1 100644
+--- a/.gitignore
++++ b/.gitignore
+@@ -15,6 +15,7 @@
+ # next.js
+ /.next/
+ /out/
++next-env.d.ts
+ 
+ # production
+ /build
+diff --git a/package.json b/package.json
+index c77e4a3..5ec8e0c 100644
+--- a/package.json
++++ b/package.json
+@@ -1,5 +1,5 @@
+ {
+-  "name": "current",
++  "name": "upgrade",
+   "version": "0.1.0",
+   "private": true,
+   "scripts": {
+@@ -9,11 +9,11 @@
+     "start": "next start"
+   },
+   "dependencies": {
+-    "@tanstack/react-query": "^4.10.0",
+-    "@trpc/client": "10.0.0-rc.4",
+-    "@trpc/next": "10.0.0-rc.4",
+-    "@trpc/react-query": "10.0.0-rc.4",
+-    "@trpc/server": "10.0.0-rc.4",
++    "@tanstack/react-query": "^4.16.0",
++    "@trpc/client": "^10.0.0",
++    "@trpc/next": "^10.0.0",
++    "@trpc/react-query": "^10.0.0",
++    "@trpc/server": "^10.0.0",
+     "next": "13.0.2",
+     "next-auth": "^4.15.1",
+     "react": "18.2.0",
+@@ -37,6 +37,6 @@
+     "typescript": "^4.8.4"
+   },
+   "ct3aMetadata": {
+-    "initVersion": "6.10.0"
++    "initVersion": "6.10.2"
+   }
+ }
+diff --git a/src/pages/index.tsx b/src/pages/index.tsx
+index 8ea1320..f696bdf 100644
+--- a/src/pages/index.tsx
++++ b/src/pages/index.tsx
+@@ -67,7 +67,7 @@ const AuthShowcase: React.FC = () => {
+   return (
+     <div className="flex flex-col items-center justify-center gap-4">
+       <p className="text-center text-2xl text-white">
+-        {sessionData && <span>Logged in as {sessionData?.user?.name}</span>}
++        {sessionData && <span>Logged in as {sessionData.user?.name}</span>}
+         {secretMessage && <span> - {secretMessage}</span>}
+       </p>
+       <button
+diff --git a/src/server/common/get-server-auth-session.ts b/src/server/common/get-server-auth-session.ts
+index 8323ff2..b2b90ed 100644
+--- a/src/server/common/get-server-auth-session.ts
++++ b/src/server/common/get-server-auth-session.ts
+@@ -1,5 +1,6 @@
+ import { type GetServerSidePropsContext } from "next";
+ import { unstable_getServerSession } from "next-auth";
++
+ import { authOptions } from "../../pages/api/auth/[...nextauth]";
+ 
+ /**
+diff --git a/src/server/trpc/router/auth.ts b/src/server/trpc/router/auth.ts
+index aa083d1..0fd2185 100644
+--- a/src/server/trpc/router/auth.ts
++++ b/src/server/trpc/router/auth.ts
+@@ -5,6 +5,6 @@ export const authRouter = router({
+     return ctx.session;
+   }),
+   getSecretMessage: protectedProcedure.query(() => {
+-    return "you can see this secret message!";
++    return "you can now see this secret message!";
+   }),
+ });

@@ -1,0 +1,41 @@
+diff --git a/.env.example b/.env.example
+index 0f3aff4..96d6793 100644
+--- a/.env.example
++++ b/.env.example
+@@ -1,4 +1,4 @@
+-# Since .env is gitignored, you can use .env-example to build a new `.env` file when you clone the repo.
++# Since .env is gitignored, you can use .env.example to build a new `.env` file when you clone the repo.
+ # Keep this file up-to-date when you add new variables to `.env`.
+ 
+ # This file will be committed to version control, so make sure not to have any secrets in it.
+diff --git a/.gitignore b/.gitignore
+index d9bbc5d..9dfddc1 100644
+--- a/.gitignore
++++ b/.gitignore
+@@ -15,6 +15,7 @@
+ # next.js
+ /.next/
+ /out/
++next-env.d.ts
+ 
+ # production
+ /build
+diff --git a/package.json b/package.json
+index ae7ca2d..722b7b4 100644
+--- a/package.json
++++ b/package.json
+@@ -1,5 +1,5 @@
+ {
+-  "name": "current",
++  "name": "upgrade",
+   "version": "0.1.0",
+   "private": true,
+   "scripts": {
+@@ -39,6 +39,6 @@
+     "typescript": "^4.8.4"
+   },
+   "ct3aMetadata": {
+-    "initVersion": "6.10.0"
++    "initVersion": "6.10.1"
+   }
+ }

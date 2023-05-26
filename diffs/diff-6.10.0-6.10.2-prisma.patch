@@ -1,0 +1,68 @@
+diff --git a/.env.example b/.env.example
+index 0f3aff4..96d6793 100644
+--- a/.env.example
++++ b/.env.example
+@@ -1,4 +1,4 @@
+-# Since .env is gitignored, you can use .env-example to build a new `.env` file when you clone the repo.
++# Since .env is gitignored, you can use .env.example to build a new `.env` file when you clone the repo.
+ # Keep this file up-to-date when you add new variables to `.env`.
+ 
+ # This file will be committed to version control, so make sure not to have any secrets in it.
+diff --git a/.gitignore b/.gitignore
+index d9bbc5d..9dfddc1 100644
+--- a/.gitignore
++++ b/.gitignore
+@@ -15,6 +15,7 @@
+ # next.js
+ /.next/
+ /out/
++next-env.d.ts
+ 
+ # production
+ /build
+diff --git a/package.json b/package.json
+index b862cc5..cc4308b 100644
+--- a/package.json
++++ b/package.json
+@@ -1,5 +1,5 @@
+ {
+-  "name": "current",
++  "name": "upgrade",
+   "version": "0.1.0",
+   "private": true,
+   "scripts": {
+@@ -28,6 +28,6 @@
+     "typescript": "^4.8.4"
+   },
+   "ct3aMetadata": {
+-    "initVersion": "6.10.0"
++    "initVersion": "6.10.2"
+   }
+ }
+diff --git a/src/pages/index.tsx b/src/pages/index.tsx
+index 835590d..cbfff1a 100644
+--- a/src/pages/index.tsx
++++ b/src/pages/index.tsx
+@@ -17,14 +17,20 @@ const Home: NextPage = () => {
+             Create <span className={styles.pinkSpan}>T3</span> App
+           </h1>
+           <div className={styles.cardRow}>
+-            <Link className={styles.card} href="https://beta.nextjs.com">
++            <Link
++              className={styles.card}
++              href="https://create.t3.gg/en/usage/first-steps"
++            >
+               <h3 className={styles.cardTitle}>First Steps →</h3>
+               <div className={styles.cardText}>
+                 Just the basics - Everything you need to know to set up your
+                 database and authentication.
+               </div>
+             </Link>
+-            <Link className={styles.card} href="https://beta.nextjs.com">
++            <Link
++              className={styles.card}
++              href="https://create.t3.gg/en/introduction"
++            >
+               <h3 className={styles.cardTitle}>Documentation →</h3>
+               <div className={styles.cardText}>
+                 Learn more about Create T3 App, the libraries it uses, and how
