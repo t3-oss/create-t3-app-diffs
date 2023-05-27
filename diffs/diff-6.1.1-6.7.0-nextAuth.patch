@@ -1,0 +1,388 @@
+diff --git a/.env-example b/.env-example
+new file mode 100644
+index 0000000..3451e8e
+--- /dev/null
++++ b/.env-example
+@@ -0,0 +1,17 @@
++# Since .env is gitignored, you can use .env-example to build a new `.env` file when you clone the repo.
++# Keep this file up-to-date when you add new variables to `.env`.
++
++# This file will be committed to version control, so make sure not to have any secrets in it.
++# If you are cloning this repo, create a copy of this file named `.env` and populate it with your secrets.
++
++# When adding additional env variables, the schema in /env/schema.mjs should be updated accordingly
++
++# Next Auth
++# You can generate the secret via 'openssl rand -base64 32' on Linux
++# More info: https://next-auth.js.org/configuration/options#secret
++NEXTAUTH_SECRET=
++NEXTAUTH_URL=http://localhost:3000
++
++# Next Auth Discord Provider
++DISCORD_CLIENT_ID=
++DISCORD_CLIENT_SECRET=
+diff --git a/.eslintrc.json b/.eslintrc.json
+index 1cd4470..4cc0a95 100644
+--- a/.eslintrc.json
++++ b/.eslintrc.json
+@@ -4,5 +4,8 @@
+     "project": "./tsconfig.json"
+   },
+   "plugins": ["@typescript-eslint"],
+-  "extends": ["next/core-web-vitals", "plugin:@typescript-eslint/recommended"]
++  "extends": ["next/core-web-vitals", "plugin:@typescript-eslint/recommended"],
++  "rules": {
++    "@typescript-eslint/consistent-type-imports": "warn"
++  }
+ }
+diff --git a/.npmrc b/.npmrc
+new file mode 100644
+index 0000000..2c4405d
+--- /dev/null
++++ b/.npmrc
+@@ -0,0 +1,6 @@
++# next-auth not officially Node 18 compatible
++engine-strict=false
++
++# next-auth currently on Next.js 12
++strict-peer-dependencies=false
++legacy-peer-deps=true
+\ No newline at end of file
+diff --git a/.yarnrc b/.yarnrc
+new file mode 100644
+index 0000000..f757a6a
+--- /dev/null
++++ b/.yarnrc
+@@ -0,0 +1 @@
++--ignore-engines true
+\ No newline at end of file
+diff --git a/README.md b/README.md
+index e37ef87..d7c5b20 100644
+--- a/README.md
++++ b/README.md
+@@ -2,12 +2,6 @@
+ 
+ This is an app bootstrapped according to the [init.tips](https://init.tips) stack, also known as the T3-Stack.
+ 
+-## Why are there `.js` files in here?
+-
+-As per [T3-Axiom #3](https://github.com/t3-oss/create-t3-app/tree/next#3-typesafety-isnt-optional), we take typesafety as a first class citizen. Unfortunately, not all frameworks and plugins support TypeScript which means some of the configuration files have to be `.js` files.
+-
+-We try to emphasize that these files are javascript for a reason, by explicitly declaring its type (`cjs` or `mjs`) depending on what's supported by the library it is used by. Also, all the `js` files in this project are still typechecked using a `@ts-check` comment at the top.
+-
+ ## What's next? How do I make an app with this?
+ 
+ We try to keep this project as simple as possible, so you can start with the most basic configuration and then move on to more advanced configuration.
+@@ -17,7 +11,9 @@ If you are not familiar with the different technologies used in this project, pl
+ - [Next-Auth.js](https://next-auth.js.org)
+ - [Prisma](https://prisma.io)
+ - [TailwindCSS](https://tailwindcss.com)
+-- [tRPC](https://trpc.io) (using @next version? [see v10 docs here](https://trpc.io/docs/v10/))
++- [tRPC](https://trpc.io)
++
++We also [roll our own docs](https://beta.create.t3.gg) with some summary information and links to the respective documentation.
+ 
+ Also checkout these awesome tutorials on `create-t3-app`.
+ 
+@@ -28,23 +24,4 @@ Also checkout these awesome tutorials on `create-t3-app`.
+ 
+ ## How do I deploy this?
+ 
+-### Vercel
+-
+-We recommend deploying to [Vercel](https://vercel.com/?utm_source=t3-oss&utm_campaign=oss). It makes it super easy to deploy NextJs apps.
+-
+-- Push your code to a GitHub repository.
+-- Go to [Vercel](https://vercel.com/?utm_source=t3-oss&utm_campaign=oss) and sign up with GitHub.
+-- Create a Project and import the repository you pushed your code to.
+-- Add your environment variables.
+-- Click **Deploy**
+-- Now whenever you push a change to your repository, Vercel will automatically redeploy your website!
+-
+-### Docker
+-
+-You can also dockerize this stack and deploy a container. See the [Docker deployment page](https://create-t3-app-nu.vercel.app/en/deployment/docker) for details.
+-
+-## Useful resources
+-
+-Here are some resources that we commonly refer to:
+-
+-- [Protecting routes with Next-Auth.js](https://next-auth.js.org/configuration/nextjs#unstable_getserversession)
++Follow our deployment guides for [Vercel](https://beta.create.t3.gg/en/deployment/vercel) and [Docker](https://beta.create.t3.gg/en/deployment/docker) for more information.
+diff --git a/next.config.mjs b/next.config.mjs
+index 9a4c0c9..b5bef6c 100644
+--- a/next.config.mjs
++++ b/next.config.mjs
+@@ -1,24 +1,17 @@
+ // @ts-check
+-import { env } from "./src/env/server.mjs";
+-
+ /**
+- * Don't be scared of the generics here.
+- * All they do is to give us autocompletion when using this.
+- *
+- * @template {import('next').NextConfig} T
+- * @param {T} config - A generic parameter that flows through to the return type
+- * @constraint {{import('next').NextConfig}}
++ * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation.
++ * This is especially useful for Docker builds.
+  */
+-function defineNextConfig(config) {
+-  return config;
+-}
++!process.env.SKIP_ENV_VALIDATION && (await import("./src/env/server.mjs"));
+ 
+-export default defineNextConfig({
++/** @type {import("next").NextConfig} */
++const config = {
+   reactStrictMode: true,
+   swcMinify: true,
+-  // Next.js i18n docs: https://nextjs.org/docs/advanced-features/i18n-routing
+   i18n: {
+     locales: ["en"],
+     defaultLocale: "en",
+   },
+-});
++};
++export default config;
+diff --git a/package.json b/package.json
+index 6020434..00b8abc 100644
+--- a/package.json
++++ b/package.json
+@@ -1,15 +1,16 @@
+ {
+-  "name": "current",
++  "name": "upgrade",
+   "version": "0.1.0",
+   "private": true,
+   "scripts": {
+-    "dev": "next dev",
+     "build": "next build",
+-    "start": "next start",
+-    "lint": "next lint"
++    "dev": "next dev",
++    "lint": "next lint",
++    "start": "next start"
+   },
+   "dependencies": {
+-    "next": "12.3.1",
++    "next": "13.0.1",
++    "next-auth": "^4.15.0",
+     "react": "18.2.0",
+     "react-dom": "18.2.0",
+     "zod": "^3.18.0"
+@@ -21,10 +22,10 @@
+     "@typescript-eslint/eslint-plugin": "^5.33.0",
+     "@typescript-eslint/parser": "^5.33.0",
+     "eslint": "8.22.0",
+-    "eslint-config-next": "12.3.1",
++    "eslint-config-next": "13.0.1",
+     "typescript": "^4.8.4"
+   },
+   "ct3aMetadata": {
+-    "initVersion": "6.1.1"
++    "initVersion": "6.7.0"
+   }
+ }
+diff --git a/src/env/schema.mjs b/src/env/schema.mjs
+index c621d13..9e17f4d 100644
+--- a/src/env/schema.mjs
++++ b/src/env/schema.mjs
+@@ -7,6 +7,16 @@ import { z } from "zod";
+  */
+ export const serverSchema = z.object({
+   NODE_ENV: z.enum(["development", "test", "production"]),
++  NEXTAUTH_SECRET: z.string(),
++  NEXTAUTH_URL: z.preprocess(
++    // This makes Vercel deployments not fail if you don't set NEXTAUTH_URL
++    // Since NextAuth automatically uses the VERCEL_URL if present.
++    (str) => process.env.VERCEL_URL ?? str,
++    // VERCEL_URL doesnt include `https` so it cant be validated as a URL
++    process.env.VERCEL ? z.string() : z.string().url(),
++  ),
++  DISCORD_CLIENT_ID: z.string(),
++  DISCORD_CLIENT_SECRET: z.string(),
+ });
+ 
+ /**
+@@ -15,7 +25,7 @@ export const serverSchema = z.object({
+  * To expose them to the client, prefix them with `NEXT_PUBLIC_`.
+  */
+ export const clientSchema = z.object({
+-  // NEXT_PUBLIC_CLIENTVAR: z.string(),
++  // NEXT_PUBLIC_BAR: z.string(),
+ });
+ 
+ /**
+@@ -25,5 +35,5 @@ export const clientSchema = z.object({
+  * @type {{ [k in keyof z.infer<typeof clientSchema>]: z.infer<typeof clientSchema>[k] | undefined }}
+  */
+ export const clientEnv = {
+-  // NEXT_PUBLIC_CLIENTVAR: process.env.NEXT_PUBLIC_CLIENTVAR,
++  // NEXT_PUBLIC_BAR: process.env.NEXT_PUBLIC_BAR,
+ };
+diff --git a/src/pages/_app.tsx b/src/pages/_app.tsx
+index c1c9d2f..43ed98e 100644
+--- a/src/pages/_app.tsx
++++ b/src/pages/_app.tsx
+@@ -1,8 +1,18 @@
++import { type AppType } from "next/app";
++import { type Session } from "next-auth";
++import { SessionProvider } from "next-auth/react";
++
+ import "../styles/globals.css";
+-import type { AppType } from "next/dist/shared/lib/utils";
+ 
+-const MyApp: AppType = ({ Component, pageProps }) => {
+-  return <Component {...pageProps} />;
++const MyApp: AppType<{ session: Session | null }> = ({
++  Component,
++  pageProps: { session, ...pageProps },
++}) => {
++  return (
++    <SessionProvider session={session}>
++      <Component {...pageProps} />
++    </SessionProvider>
++  );
+ };
+ 
+ export default MyApp;
+diff --git a/src/pages/api/auth/[...nextauth].ts b/src/pages/api/auth/[...nextauth].ts
+new file mode 100644
+index 0000000..396fc10
+--- /dev/null
++++ b/src/pages/api/auth/[...nextauth].ts
+@@ -0,0 +1,26 @@
++import NextAuth, { type NextAuthOptions } from "next-auth";
++import DiscordProvider from "next-auth/providers/discord";
++
++import { env } from "../../../env/server.mjs";
++
++export const authOptions: NextAuthOptions = {
++  // Include user.id on session
++  callbacks: {
++    session({ session, user }) {
++      if (session.user) {
++        session.user.id = user.id;
++      }
++      return session;
++    },
++  },
++  // Configure one or more authentication providers
++  providers: [
++    DiscordProvider({
++      clientId: env.DISCORD_CLIENT_ID,
++      clientSecret: env.DISCORD_CLIENT_SECRET,
++    }),
++    // ...add more providers here
++  ],
++};
++
++export default NextAuth(authOptions);
+diff --git a/src/pages/api/restricted.ts b/src/pages/api/restricted.ts
+new file mode 100644
+index 0000000..39d936d
+--- /dev/null
++++ b/src/pages/api/restricted.ts
+@@ -0,0 +1,21 @@
++import { type NextApiRequest, type NextApiResponse } from "next";
++
++import { getServerAuthSession } from "../../server/common/get-server-auth-session";
++
++const restricted = async (req: NextApiRequest, res: NextApiResponse) => {
++  const session = await getServerAuthSession({ req, res });
++
++  if (session) {
++    res.send({
++      content:
++        "This is protected content. You can access this content because you are signed in.",
++    });
++  } else {
++    res.send({
++      error:
++        "You must be signed in to view the protected content on this page.",
++    });
++  }
++};
++
++export default restricted;
+diff --git a/src/pages/index.tsx b/src/pages/index.tsx
+index 173337b..5240025 100644
+--- a/src/pages/index.tsx
++++ b/src/pages/index.tsx
+@@ -1,5 +1,7 @@
+-import type { NextPage } from "next";
++import { type NextPage } from "next";
+ import Head from "next/head";
++import Link from "next/link";
++
+ import styles from "./index.module.css";
+ 
+ const Home: NextPage = () => {
+@@ -72,14 +74,14 @@ const TechnologyCard = ({
+     <section className={styles.card}>
+       <h2 className={styles.cardTitle}>{name}</h2>
+       <p className={styles.cardDescription}>{description}</p>
+-      <a
++      <Link
+         className={styles.cardDocumentation}
+         href={documentation}
+         target="_blank"
+         rel="noreferrer"
+       >
+         Documentation
+-      </a>
++      </Link>
+     </section>
+   );
+ };
+diff --git a/src/server/common/get-server-auth-session.ts b/src/server/common/get-server-auth-session.ts
+new file mode 100644
+index 0000000..8323ff2
+--- /dev/null
++++ b/src/server/common/get-server-auth-session.ts
+@@ -0,0 +1,14 @@
++import { type GetServerSidePropsContext } from "next";
++import { unstable_getServerSession } from "next-auth";
++import { authOptions } from "../../pages/api/auth/[...nextauth]";
++
++/**
++ * Wrapper for unstable_getServerSession https://next-auth.js.org/configuration/nextjs
++ * See example usage in trpc createContext or the restricted API route
++ */
++export const getServerAuthSession = async (ctx: {
++  req: GetServerSidePropsContext["req"];
++  res: GetServerSidePropsContext["res"];
++}) => {
++  return await unstable_getServerSession(ctx.req, ctx.res, authOptions);
++};
+diff --git a/src/types/next-auth.d.ts b/src/types/next-auth.d.ts
+new file mode 100644
+index 0000000..fc41716
+--- /dev/null
++++ b/src/types/next-auth.d.ts
+@@ -0,0 +1,12 @@
++import { type DefaultSession } from "next-auth";
++
++declare module "next-auth" {
++  /**
++   * Returned by `useSession`, `getSession` and received as a prop on the `SessionProvider` React Context
++   */
++  interface Session {
++    user?: {
++      id: string;
++    } & DefaultSession["user"];
++  }
++}
+diff --git a/tsconfig.json b/tsconfig.json
+index 0608fd0..658068a 100644
+--- a/tsconfig.json
++++ b/tsconfig.json
+@@ -1,6 +1,6 @@
+ {
+   "compilerOptions": {
+-    "target": "es5",
++    "target": "es2017",
+     "lib": ["dom", "dom.iterable", "esnext"],
+     "allowJs": true,
+     "skipLibCheck": true,

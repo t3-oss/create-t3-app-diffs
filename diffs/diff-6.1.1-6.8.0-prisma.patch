@@ -1,0 +1,324 @@
+diff --git a/.env-example b/.env-example
+new file mode 100644
+index 0000000..0f3aff4
+--- /dev/null
++++ b/.env-example
+@@ -0,0 +1,10 @@
++# Since .env is gitignored, you can use .env-example to build a new `.env` file when you clone the repo.
++# Keep this file up-to-date when you add new variables to `.env`.
++
++# This file will be committed to version control, so make sure not to have any secrets in it.
++# If you are cloning this repo, create a copy of this file named `.env` and populate it with your secrets.
++
++# When adding additional env variables, the schema in /env/schema.mjs should be updated accordingly
++
++# Prisma
++DATABASE_URL=file:./db.sqlite
+diff --git a/.eslintrc.json b/.eslintrc.json
+index 1cd4470..4cc0a95 100644
+--- a/.eslintrc.json
++++ b/.eslintrc.json
+@@ -4,5 +4,8 @@
+     "project": "./tsconfig.json"
+   },
+   "plugins": ["@typescript-eslint"],
+-  "extends": ["next/core-web-vitals", "plugin:@typescript-eslint/recommended"]
++  "extends": ["next/core-web-vitals", "plugin:@typescript-eslint/recommended"],
++  "rules": {
++    "@typescript-eslint/consistent-type-imports": "warn"
++  }
+ }
+diff --git a/README.md b/README.md
+index e37ef87..d7c5b20 100644
+--- a/README.md
++++ b/README.md
+@@ -2,12 +2,6 @@
+ 
+ This is an app bootstrapped according to the [init.tips](https://init.tips) stack, also known as the T3-Stack.
+ 
+-## Why are there `.js` files in here?
+-
+-As per [T3-Axiom #3](https://github.com/t3-oss/create-t3-app/tree/next#3-typesafety-isnt-optional), we take typesafety as a first class citizen. Unfortunately, not all frameworks and plugins support TypeScript which means some of the configuration files have to be `.js` files.
+-
+-We try to emphasize that these files are javascript for a reason, by explicitly declaring its type (`cjs` or `mjs`) depending on what's supported by the library it is used by. Also, all the `js` files in this project are still typechecked using a `@ts-check` comment at the top.
+-
+ ## What's next? How do I make an app with this?
+ 
+ We try to keep this project as simple as possible, so you can start with the most basic configuration and then move on to more advanced configuration.
+@@ -17,7 +11,9 @@ If you are not familiar with the different technologies used in this project, pl
+ - [Next-Auth.js](https://next-auth.js.org)
+ - [Prisma](https://prisma.io)
+ - [TailwindCSS](https://tailwindcss.com)
+-- [tRPC](https://trpc.io) (using @next version? [see v10 docs here](https://trpc.io/docs/v10/))
++- [tRPC](https://trpc.io)
++
++We also [roll our own docs](https://beta.create.t3.gg) with some summary information and links to the respective documentation.
+ 
+ Also checkout these awesome tutorials on `create-t3-app`.
+ 
+@@ -28,23 +24,4 @@ Also checkout these awesome tutorials on `create-t3-app`.
+ 
+ ## How do I deploy this?
+ 
+-### Vercel
+-
+-We recommend deploying to [Vercel](https://vercel.com/?utm_source=t3-oss&utm_campaign=oss). It makes it super easy to deploy NextJs apps.
+-
+-- Push your code to a GitHub repository.
+-- Go to [Vercel](https://vercel.com/?utm_source=t3-oss&utm_campaign=oss) and sign up with GitHub.
+-- Create a Project and import the repository you pushed your code to.
+-- Add your environment variables.
+-- Click **Deploy**
+-- Now whenever you push a change to your repository, Vercel will automatically redeploy your website!
+-
+-### Docker
+-
+-You can also dockerize this stack and deploy a container. See the [Docker deployment page](https://create-t3-app-nu.vercel.app/en/deployment/docker) for details.
+-
+-## Useful resources
+-
+-Here are some resources that we commonly refer to:
+-
+-- [Protecting routes with Next-Auth.js](https://next-auth.js.org/configuration/nextjs#unstable_getserversession)
++Follow our deployment guides for [Vercel](https://beta.create.t3.gg/en/deployment/vercel) and [Docker](https://beta.create.t3.gg/en/deployment/docker) for more information.
+diff --git a/next.config.mjs b/next.config.mjs
+index 9a4c0c9..b5bef6c 100644
+--- a/next.config.mjs
++++ b/next.config.mjs
+@@ -1,24 +1,17 @@
+ // @ts-check
+-import { env } from "./src/env/server.mjs";
+-
+ /**
+- * Don't be scared of the generics here.
+- * All they do is to give us autocompletion when using this.
+- *
+- * @template {import('next').NextConfig} T
+- * @param {T} config - A generic parameter that flows through to the return type
+- * @constraint {{import('next').NextConfig}}
++ * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation.
++ * This is especially useful for Docker builds.
+  */
+-function defineNextConfig(config) {
+-  return config;
+-}
++!process.env.SKIP_ENV_VALIDATION && (await import("./src/env/server.mjs"));
+ 
+-export default defineNextConfig({
++/** @type {import("next").NextConfig} */
++const config = {
+   reactStrictMode: true,
+   swcMinify: true,
+-  // Next.js i18n docs: https://nextjs.org/docs/advanced-features/i18n-routing
+   i18n: {
+     locales: ["en"],
+     defaultLocale: "en",
+   },
+-});
++};
++export default config;
+diff --git a/package.json b/package.json
+index 6020434..84510e8 100644
+--- a/package.json
++++ b/package.json
+@@ -1,30 +1,33 @@
+ {
+-  "name": "current",
++  "name": "upgrade",
+   "version": "0.1.0",
+   "private": true,
+   "scripts": {
+-    "dev": "next dev",
+     "build": "next build",
++    "dev": "next dev",
++    "lint": "next lint",
+     "start": "next start",
+-    "lint": "next lint"
++    "postinstall": "prisma generate"
+   },
+   "dependencies": {
+-    "next": "12.3.1",
++    "@prisma/client": "^4.5.0",
++    "next": "13.0.2",
+     "react": "18.2.0",
+     "react-dom": "18.2.0",
+     "zod": "^3.18.0"
+   },
+   "devDependencies": {
+-    "@types/node": "18.0.0",
+-    "@types/react": "18.0.14",
+-    "@types/react-dom": "18.0.5",
++    "@types/node": "^18.0.0",
++    "@types/react": "^18.0.14",
++    "@types/react-dom": "^18.0.5",
+     "@typescript-eslint/eslint-plugin": "^5.33.0",
+     "@typescript-eslint/parser": "^5.33.0",
+-    "eslint": "8.22.0",
+-    "eslint-config-next": "12.3.1",
++    "eslint": "^8.26.0",
++    "eslint-config-next": "13.0.2",
++    "prisma": "^4.5.0",
+     "typescript": "^4.8.4"
+   },
+   "ct3aMetadata": {
+-    "initVersion": "6.1.1"
++    "initVersion": "6.8.0"
+   }
+ }
+diff --git a/prisma/schema.prisma b/prisma/schema.prisma
+new file mode 100644
+index 0000000..06dc8cd
+--- /dev/null
++++ b/prisma/schema.prisma
+@@ -0,0 +1,17 @@
++// This is your Prisma schema file,
++// learn more about it in the docs: https://pris.ly/d/prisma-schema
++
++generator client {
++  provider = "prisma-client-js"
++}
++
++datasource db {
++  provider = "sqlite"
++  url      = env("DATABASE_URL")
++}
++
++model Example {
++  id        String   @id @default(cuid())
++  createdAt DateTime @default(now())
++  updatedAt DateTime @updatedAt
++}
+diff --git a/src/env/schema.mjs b/src/env/schema.mjs
+index c621d13..db72a63 100644
+--- a/src/env/schema.mjs
++++ b/src/env/schema.mjs
+@@ -6,6 +6,7 @@ import { z } from "zod";
+  * This way you can ensure the app isn't built with invalid env vars.
+  */
+ export const serverSchema = z.object({
++  DATABASE_URL: z.string().url(),
+   NODE_ENV: z.enum(["development", "test", "production"]),
+ });
+ 
+@@ -15,7 +16,7 @@ export const serverSchema = z.object({
+  * To expose them to the client, prefix them with `NEXT_PUBLIC_`.
+  */
+ export const clientSchema = z.object({
+-  // NEXT_PUBLIC_CLIENTVAR: z.string(),
++  // NEXT_PUBLIC_BAR: z.string(),
+ });
+ 
+ /**
+@@ -25,5 +26,5 @@ export const clientSchema = z.object({
+  * @type {{ [k in keyof z.infer<typeof clientSchema>]: z.infer<typeof clientSchema>[k] | undefined }}
+  */
+ export const clientEnv = {
+-  // NEXT_PUBLIC_CLIENTVAR: process.env.NEXT_PUBLIC_CLIENTVAR,
++  // NEXT_PUBLIC_BAR: process.env.NEXT_PUBLIC_BAR,
+ };
+diff --git a/src/pages/_app.tsx b/src/pages/_app.tsx
+index c1c9d2f..adea8e0 100644
+--- a/src/pages/_app.tsx
++++ b/src/pages/_app.tsx
+@@ -1,5 +1,6 @@
++import { type AppType } from "next/dist/shared/lib/utils";
++
+ import "../styles/globals.css";
+-import type { AppType } from "next/dist/shared/lib/utils";
+ 
+ const MyApp: AppType = ({ Component, pageProps }) => {
+   return <Component {...pageProps} />;
+diff --git a/src/pages/api/examples.ts b/src/pages/api/examples.ts
+new file mode 100644
+index 0000000..c0889f5
+--- /dev/null
++++ b/src/pages/api/examples.ts
+@@ -0,0 +1,10 @@
++import { type NextApiRequest, type NextApiResponse } from "next";
++
++import { prisma } from "../../server/db/client";
++
++const examples = async (req: NextApiRequest, res: NextApiResponse) => {
++  const examples = await prisma.example.findMany();
++  res.status(200).json(examples);
++};
++
++export default examples;
+diff --git a/src/pages/index.tsx b/src/pages/index.tsx
+index 173337b..6ef4f5b 100644
+--- a/src/pages/index.tsx
++++ b/src/pages/index.tsx
+@@ -1,5 +1,7 @@
+-import type { NextPage } from "next";
++import { type NextPage } from "next";
+ import Head from "next/head";
++import Link from "next/link";
++
+ import styles from "./index.module.css";
+ 
+ const Home: NextPage = () => {
+@@ -63,23 +65,23 @@ type TechnologyCardProps = {
+   documentation: string;
+ };
+ 
+-const TechnologyCard = ({
++const TechnologyCard: React.FC<TechnologyCardProps> = ({
+   name,
+   description,
+   documentation,
+-}: TechnologyCardProps) => {
++}) => {
+   return (
+     <section className={styles.card}>
+       <h2 className={styles.cardTitle}>{name}</h2>
+       <p className={styles.cardDescription}>{description}</p>
+-      <a
++      <Link
+         className={styles.cardDocumentation}
+         href={documentation}
+         target="_blank"
+         rel="noreferrer"
+       >
+         Documentation
+-      </a>
++      </Link>
+     </section>
+   );
+ };
+diff --git a/src/server/db/client.ts b/src/server/db/client.ts
+new file mode 100644
+index 0000000..0c3d234
+--- /dev/null
++++ b/src/server/db/client.ts
+@@ -0,0 +1,19 @@
++import { PrismaClient } from "@prisma/client";
++
++import { env } from "../../env/server.mjs";
++
++declare global {
++  // eslint-disable-next-line no-var
++  var prisma: PrismaClient | undefined;
++}
++
++export const prisma =
++  global.prisma ||
++  new PrismaClient({
++    log:
++      env.NODE_ENV === "development" ? ["query", "error", "warn"] : ["error"],
++  });
++
++if (env.NODE_ENV !== "production") {
++  global.prisma = prisma;
++}
+diff --git a/tsconfig.json b/tsconfig.json
+index 0608fd0..658068a 100644
+--- a/tsconfig.json
++++ b/tsconfig.json
+@@ -1,6 +1,6 @@
+ {
+   "compilerOptions": {
+-    "target": "es5",
++    "target": "es2017",
+     "lib": ["dom", "dom.iterable", "esnext"],
+     "allowJs": true,
+     "skipLibCheck": true,
