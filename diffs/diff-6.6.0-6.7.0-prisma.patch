@@ -1,0 +1,148 @@
+diff --git a/.env-example b/.env-example
+new file mode 100644
+index 0000000..0f3aff4
+--- /dev/null
++++ b/.env-example
+@@ -0,0 +1,10 @@
++# Since .env is gitignored, you can use .env-example to build a new `.env` file when you clone the repo.
++# Keep this file up-to-date when you add new variables to `.env`.
++
++# This file will be committed to version control, so make sure not to have any secrets in it.
++# If you are cloning this repo, create a copy of this file named `.env` and populate it with your secrets.
++
++# When adding additional env variables, the schema in /env/schema.mjs should be updated accordingly
++
++# Prisma
++DATABASE_URL=file:./db.sqlite
+diff --git a/package.json b/package.json
+index 0634808..a38746c 100644
+--- a/package.json
++++ b/package.json
+@@ -1,15 +1,17 @@
+ {
+-  "name": "current",
++  "name": "upgrade",
+   "version": "0.1.0",
+   "private": true,
+   "scripts": {
+-    "dev": "next dev",
+     "build": "next build",
++    "dev": "next dev",
++    "lint": "next lint",
+     "start": "next start",
+-    "lint": "next lint"
++    "postinstall": "prisma generate"
+   },
+   "dependencies": {
+-    "next": "13.0.0",
++    "@prisma/client": "^4.5.0",
++    "next": "13.0.1",
+     "react": "18.2.0",
+     "react-dom": "18.2.0",
+     "zod": "^3.18.0"
+@@ -21,10 +23,11 @@
+     "@typescript-eslint/eslint-plugin": "^5.33.0",
+     "@typescript-eslint/parser": "^5.33.0",
+     "eslint": "8.22.0",
+-    "eslint-config-next": "13.0.0",
++    "eslint-config-next": "13.0.1",
++    "prisma": "^4.5.0",
+     "typescript": "^4.8.4"
+   },
+   "ct3aMetadata": {
+-    "initVersion": "6.6.0"
++    "initVersion": "6.7.0"
+   }
+ }
+diff --git a/prisma/schema.prisma b/prisma/schema.prisma
+new file mode 100644
+index 0000000..06dc8cd
+--- /dev/null
++++ b/prisma/schema.prisma
+@@ -0,0 +1,17 @@
++// This is your Prisma schema file,
++// learn more about it in the docs: https://pris.ly/d/prisma-schema
++
++generator client {
++  provider = "prisma-client-js"
++}
++
++datasource db {
++  provider = "sqlite"
++  url      = env("DATABASE_URL")
++}
++
++model Example {
++  id        String   @id @default(cuid())
++  createdAt DateTime @default(now())
++  updatedAt DateTime @updatedAt
++}
+diff --git a/src/env/schema.mjs b/src/env/schema.mjs
+index c621d13..db72a63 100644
+--- a/src/env/schema.mjs
++++ b/src/env/schema.mjs
+@@ -6,6 +6,7 @@ import { z } from "zod";
+  * This way you can ensure the app isn't built with invalid env vars.
+  */
+ export const serverSchema = z.object({
++  DATABASE_URL: z.string().url(),
+   NODE_ENV: z.enum(["development", "test", "production"]),
+ });
+ 
+@@ -15,7 +16,7 @@ export const serverSchema = z.object({
+  * To expose them to the client, prefix them with `NEXT_PUBLIC_`.
+  */
+ export const clientSchema = z.object({
+-  // NEXT_PUBLIC_CLIENTVAR: z.string(),
++  // NEXT_PUBLIC_BAR: z.string(),
+ });
+ 
+ /**
+@@ -25,5 +26,5 @@ export const clientSchema = z.object({
+  * @type {{ [k in keyof z.infer<typeof clientSchema>]: z.infer<typeof clientSchema>[k] | undefined }}
+  */
+ export const clientEnv = {
+-  // NEXT_PUBLIC_CLIENTVAR: process.env.NEXT_PUBLIC_CLIENTVAR,
++  // NEXT_PUBLIC_BAR: process.env.NEXT_PUBLIC_BAR,
+ };
+diff --git a/src/pages/api/examples.ts b/src/pages/api/examples.ts
+new file mode 100644
+index 0000000..c0889f5
+--- /dev/null
++++ b/src/pages/api/examples.ts
+@@ -0,0 +1,10 @@
++import { type NextApiRequest, type NextApiResponse } from "next";
++
++import { prisma } from "../../server/db/client";
++
++const examples = async (req: NextApiRequest, res: NextApiResponse) => {
++  const examples = await prisma.example.findMany();
++  res.status(200).json(examples);
++};
++
++export default examples;
+diff --git a/src/server/db/client.ts b/src/server/db/client.ts
+new file mode 100644
+index 0000000..0c3d234
+--- /dev/null
++++ b/src/server/db/client.ts
+@@ -0,0 +1,19 @@
++import { PrismaClient } from "@prisma/client";
++
++import { env } from "../../env/server.mjs";
++
++declare global {
++  // eslint-disable-next-line no-var
++  var prisma: PrismaClient | undefined;
++}
++
++export const prisma =
++  global.prisma ||
++  new PrismaClient({
++    log:
++      env.NODE_ENV === "development" ? ["query", "error", "warn"] : ["error"],
++  });
++
++if (env.NODE_ENV !== "production") {
++  global.prisma = prisma;
++}

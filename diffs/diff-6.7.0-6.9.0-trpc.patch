@@ -1,0 +1,96 @@
+diff --git a/package.json b/package.json
+index 9bc90fe..8f6cdaf 100644
+--- a/package.json
++++ b/package.json
+@@ -1,5 +1,5 @@
+ {
+-  "name": "current",
++  "name": "upgrade",
+   "version": "0.1.0",
+   "private": true,
+   "scripts": {
+@@ -10,27 +10,27 @@
+   },
+   "dependencies": {
+     "@tanstack/react-query": "^4.10.0",
+-    "@trpc/client": "10.0.0-rc.0",
+-    "@trpc/next": "10.0.0-rc.0",
+-    "@trpc/react-query": "10.0.0-rc.0",
+-    "@trpc/server": "10.0.0-rc.0",
+-    "next": "13.0.1",
++    "@trpc/client": "10.0.0-rc.4",
++    "@trpc/next": "10.0.0-rc.4",
++    "@trpc/react-query": "10.0.0-rc.4",
++    "@trpc/server": "10.0.0-rc.4",
++    "next": "13.0.2",
+     "react": "18.2.0",
+     "react-dom": "18.2.0",
+     "superjson": "1.9.1",
+     "zod": "^3.18.0"
+   },
+   "devDependencies": {
+-    "@types/node": "18.0.0",
+-    "@types/react": "18.0.14",
+-    "@types/react-dom": "18.0.5",
++    "@types/node": "^18.0.0",
++    "@types/react": "^18.0.14",
++    "@types/react-dom": "^18.0.5",
+     "@typescript-eslint/eslint-plugin": "^5.33.0",
+     "@typescript-eslint/parser": "^5.33.0",
+-    "eslint": "8.22.0",
+-    "eslint-config-next": "13.0.1",
++    "eslint": "^8.26.0",
++    "eslint-config-next": "13.0.2",
+     "typescript": "^4.8.4"
+   },
+   "ct3aMetadata": {
+-    "initVersion": "6.7.0"
++    "initVersion": "6.9.0"
+   }
+ }
+diff --git a/src/pages/index.tsx b/src/pages/index.tsx
+index 86605a4..b6b41c8 100644
+--- a/src/pages/index.tsx
++++ b/src/pages/index.tsx
+@@ -73,11 +73,11 @@ type TechnologyCardProps = {
+   documentation: string;
+ };
+ 
+-const TechnologyCard = ({
++const TechnologyCard: React.FC<TechnologyCardProps> = ({
+   name,
+   description,
+   documentation,
+-}: TechnologyCardProps) => {
++}) => {
+   return (
+     <section className={styles.card}>
+       <h2 className={styles.cardTitle}>{name}</h2>
+diff --git a/src/utils/trpc.ts b/src/utils/trpc.ts
+index 0939a2b..2391cbc 100644
+--- a/src/utils/trpc.ts
++++ b/src/utils/trpc.ts
+@@ -1,6 +1,6 @@
+ import { httpBatchLink, loggerLink } from "@trpc/client";
+ import { createTRPCNext } from "@trpc/next";
+-import { type GetInferenceHelpers } from "@trpc/server";
++import { type inferRouterInputs, type inferRouterOutputs } from "@trpc/server";
+ import superjson from "superjson";
+ 
+ import { type AppRouter } from "../server/trpc/router/_app";
+@@ -31,7 +31,12 @@ export const trpc = createTRPCNext<AppRouter>({
+ });
+ 
+ /**
+- * Inference helpers
+- * @example type HelloOutput = RouterTypes['example']['hello']['output']
++ * Inference helper for inputs
++ * @example type HelloInput = RouterInputs['example']['hello']
+  **/
+-export type RouterTypes = GetInferenceHelpers<AppRouter>;
++export type RouterInputs = inferRouterInputs<AppRouter>;
++/**
++ * Inference helper for outputs
++ * @example type HelloOutput = RouterOutputs['example']['hello']
++ **/
++export type RouterOutputs = inferRouterOutputs<AppRouter>;

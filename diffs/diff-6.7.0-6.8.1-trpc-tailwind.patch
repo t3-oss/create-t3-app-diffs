@@ -1,0 +1,101 @@
+diff --git a/package.json b/package.json
+index b618f07..95dac1d 100644
+--- a/package.json
++++ b/package.json
+@@ -1,5 +1,5 @@
+ {
+-  "name": "current",
++  "name": "upgrade",
+   "version": "0.1.0",
+   "private": true,
+   "scripts": {
+@@ -10,25 +10,25 @@
+   },
+   "dependencies": {
+     "@tanstack/react-query": "^4.10.0",
+-    "@trpc/client": "10.0.0-rc.0",
+-    "@trpc/next": "10.0.0-rc.0",
+-    "@trpc/react-query": "10.0.0-rc.0",
+-    "@trpc/server": "10.0.0-rc.0",
+-    "next": "13.0.1",
++    "@trpc/client": "10.0.0-rc.4",
++    "@trpc/next": "10.0.0-rc.4",
++    "@trpc/react-query": "10.0.0-rc.4",
++    "@trpc/server": "10.0.0-rc.4",
++    "next": "13.0.2",
+     "react": "18.2.0",
+     "react-dom": "18.2.0",
+     "superjson": "1.9.1",
+     "zod": "^3.18.0"
+   },
+   "devDependencies": {
+-    "@types/node": "18.0.0",
+-    "@types/react": "18.0.14",
+-    "@types/react-dom": "18.0.5",
++    "@types/node": "^18.0.0",
++    "@types/react": "^18.0.14",
++    "@types/react-dom": "^18.0.5",
+     "@typescript-eslint/eslint-plugin": "^5.33.0",
+     "@typescript-eslint/parser": "^5.33.0",
+     "autoprefixer": "^10.4.7",
+-    "eslint": "8.22.0",
+-    "eslint-config-next": "13.0.1",
++    "eslint": "^8.26.0",
++    "eslint-config-next": "13.0.2",
+     "postcss": "^8.4.14",
+     "prettier": "^2.7.1",
+     "prettier-plugin-tailwindcss": "^0.1.13",
+@@ -36,6 +36,6 @@
+     "typescript": "^4.8.4"
+   },
+   "ct3aMetadata": {
+-    "initVersion": "6.7.0"
++    "initVersion": "6.8.1"
+   }
+ }
+diff --git a/src/pages/index.tsx b/src/pages/index.tsx
+index 33a15f7..83baaf6 100644
+--- a/src/pages/index.tsx
++++ b/src/pages/index.tsx
+@@ -68,11 +68,11 @@ type TechnologyCardProps = {
+   documentation: string;
+ };
+ 
+-const TechnologyCard = ({
++const TechnologyCard: React.FC<TechnologyCardProps> = ({
+   name,
+   description,
+   documentation,
+-}: TechnologyCardProps) => {
++}) => {
+   return (
+     <section className="flex flex-col justify-center rounded border-2 border-gray-500 p-6 shadow-xl duration-500 motion-safe:hover:scale-105">
+       <h2 className="text-lg text-gray-700">{name}</h2>
+diff --git a/src/utils/trpc.ts b/src/utils/trpc.ts
+index 0939a2b..2391cbc 100644
+--- a/src/utils/trpc.ts
++++ b/src/utils/trpc.ts
+@@ -1,6 +1,6 @@
+ import { httpBatchLink, loggerLink } from "@trpc/client";
+ import { createTRPCNext } from "@trpc/next";
+-import { type GetInferenceHelpers } from "@trpc/server";
++import { type inferRouterInputs, type inferRouterOutputs } from "@trpc/server";
+ import superjson from "superjson";
+ 
+ import { type AppRouter } from "../server/trpc/router/_app";
+@@ -31,7 +31,12 @@ export const trpc = createTRPCNext<AppRouter>({
+ });
+ 
+ /**
+- * Inference helpers
+- * @example type HelloOutput = RouterTypes['example']['hello']['output']
++ * Inference helper for inputs
++ * @example type HelloInput = RouterInputs['example']['hello']
+  **/
+-export type RouterTypes = GetInferenceHelpers<AppRouter>;
++export type RouterInputs = inferRouterInputs<AppRouter>;
++/**
++ * Inference helper for outputs
++ * @example type HelloOutput = RouterOutputs['example']['hello']
++ **/
++export type RouterOutputs = inferRouterOutputs<AppRouter>;
