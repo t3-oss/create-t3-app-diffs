@@ -1,0 +1,111 @@
+diff --git a/.env-example b/.env-example
+index 3451e8e..b0c4cad 100644
+--- a/.env-example
++++ b/.env-example
+@@ -9,7 +9,7 @@
+ # Next Auth
+ # You can generate the secret via 'openssl rand -base64 32' on Linux
+ # More info: https://next-auth.js.org/configuration/options#secret
+-NEXTAUTH_SECRET=
++# NEXTAUTH_SECRET=
+ NEXTAUTH_URL=http://localhost:3000
+ 
+ # Next Auth Discord Provider
+diff --git a/.npmrc b/.npmrc
+deleted file mode 100644
+index 2c4405d..0000000
+--- a/.npmrc
++++ /dev/null
+@@ -1,6 +0,0 @@
+-# next-auth not officially Node 18 compatible
+-engine-strict=false
+-
+-# next-auth currently on Next.js 12
+-strict-peer-dependencies=false
+-legacy-peer-deps=true
+\ No newline at end of file
+diff --git a/.yarnrc b/.yarnrc
+deleted file mode 100644
+index f757a6a..0000000
+--- a/.yarnrc
++++ /dev/null
+@@ -1 +0,0 @@
+---ignore-engines true
+\ No newline at end of file
+diff --git a/package.json b/package.json
+index 716a09f..b4845d0 100644
+--- a/package.json
++++ b/package.json
+@@ -1,5 +1,5 @@
+ {
+-  "name": "current",
++  "name": "upgrade",
+   "version": "0.1.0",
+   "private": true,
+   "scripts": {
+@@ -9,23 +9,23 @@
+     "start": "next start"
+   },
+   "dependencies": {
+-    "next": "13.0.1",
+-    "next-auth": "^4.15.0",
++    "next": "13.0.2",
++    "next-auth": "^4.15.1",
+     "react": "18.2.0",
+     "react-dom": "18.2.0",
+     "zod": "^3.18.0"
+   },
+   "devDependencies": {
+-    "@types/node": "18.0.0",
+-    "@types/react": "18.0.14",
+-    "@types/react-dom": "18.0.5",
++    "@types/node": "^18.0.0",
++    "@types/react": "^18.0.14",
++    "@types/react-dom": "^18.0.5",
+     "@typescript-eslint/eslint-plugin": "^5.33.0",
+     "@typescript-eslint/parser": "^5.33.0",
+-    "eslint": "8.22.0",
+-    "eslint-config-next": "13.0.1",
++    "eslint": "^8.26.0",
++    "eslint-config-next": "13.0.2",
+     "typescript": "^4.8.4"
+   },
+   "ct3aMetadata": {
+-    "initVersion": "6.7.0"
++    "initVersion": "6.9.0"
+   }
+ }
+diff --git a/src/env/schema.mjs b/src/env/schema.mjs
+index 9e17f4d..1a4d09f 100644
+--- a/src/env/schema.mjs
++++ b/src/env/schema.mjs
+@@ -7,7 +7,10 @@ import { z } from "zod";
+  */
+ export const serverSchema = z.object({
+   NODE_ENV: z.enum(["development", "test", "production"]),
+-  NEXTAUTH_SECRET: z.string(),
++  NEXTAUTH_SECRET:
++    process.env.NODE_ENV === "production"
++      ? z.string().min(1)
++      : z.string().min(1).optional(),
+   NEXTAUTH_URL: z.preprocess(
+     // This makes Vercel deployments not fail if you don't set NEXTAUTH_URL
+     // Since NextAuth automatically uses the VERCEL_URL if present.
+diff --git a/src/pages/index.tsx b/src/pages/index.tsx
+index 5240025..6ef4f5b 100644
+--- a/src/pages/index.tsx
++++ b/src/pages/index.tsx
+@@ -65,11 +65,11 @@ type TechnologyCardProps = {
+   documentation: string;
+ };
+ 
+-const TechnologyCard = ({
++const TechnologyCard: React.FC<TechnologyCardProps> = ({
+   name,
+   description,
+   documentation,
+-}: TechnologyCardProps) => {
++}) => {
+   return (
+     <section className={styles.card}>
+       <h2 className={styles.cardTitle}>{name}</h2>
