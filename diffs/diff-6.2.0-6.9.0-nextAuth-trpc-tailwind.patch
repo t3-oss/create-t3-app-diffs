@@ -1,0 +1,1007 @@
+diff --git a/.env-example b/.env-example
+new file mode 100644
+index 0000000..b0c4cad
+--- /dev/null
++++ b/.env-example
+@@ -0,0 +1,17 @@
++# Since .env is gitignored, you can use .env-example to build a new `.env` file when you clone the repo.
++# Keep this file up-to-date when you add new variables to `.env`.
++
++# This file will be committed to version control, so make sure not to have any secrets in it.
++# If you are cloning this repo, create a copy of this file named `.env` and populate it with your secrets.
++
++# When adding additional env variables, the schema in /env/schema.mjs should be updated accordingly
++
++# Next Auth
++# You can generate the secret via 'openssl rand -base64 32' on Linux
++# More info: https://next-auth.js.org/configuration/options#secret
++# NEXTAUTH_SECRET=
++NEXTAUTH_URL=http://localhost:3000
++
++# Next Auth Discord Provider
++DISCORD_CLIENT_ID=
++DISCORD_CLIENT_SECRET=
+diff --git a/.eslintrc.json b/.eslintrc.json
+index 1cd4470..4cc0a95 100644
+--- a/.eslintrc.json
++++ b/.eslintrc.json
+@@ -4,5 +4,8 @@
+     "project": "./tsconfig.json"
+   },
+   "plugins": ["@typescript-eslint"],
+-  "extends": ["next/core-web-vitals", "plugin:@typescript-eslint/recommended"]
++  "extends": ["next/core-web-vitals", "plugin:@typescript-eslint/recommended"],
++  "rules": {
++    "@typescript-eslint/consistent-type-imports": "warn"
++  }
+ }
+diff --git a/README.md b/README.md
+index 29b901c..d7c5b20 100644
+--- a/README.md
++++ b/README.md
+@@ -2,12 +2,6 @@
+ 
+ This is an app bootstrapped according to the [init.tips](https://init.tips) stack, also known as the T3-Stack.
+ 
+-## Why are there `.js` files in here?
+-
+-As per [T3-Axiom #3](https://github.com/t3-oss/create-t3-app/tree/next#3-typesafety-isnt-optional), we take typesafety as a first class citizen. Unfortunately, not all frameworks and plugins support TypeScript which means some of the configuration files have to be `.js` files.
+-
+-We try to emphasize that these files are javascript for a reason, by explicitly declaring its type (`cjs` or `mjs`) depending on what's supported by the library it is used by. Also, all the `js` files in this project are still typechecked using a `@ts-check` comment at the top.
+-
+ ## What's next? How do I make an app with this?
+ 
+ We try to keep this project as simple as possible, so you can start with the most basic configuration and then move on to more advanced configuration.
+@@ -19,6 +13,8 @@ If you are not familiar with the different technologies used in this project, pl
+ - [TailwindCSS](https://tailwindcss.com)
+ - [tRPC](https://trpc.io)
+ 
++We also [roll our own docs](https://beta.create.t3.gg) with some summary information and links to the respective documentation.
++
+ Also checkout these awesome tutorials on `create-t3-app`.
+ 
+ - [Build a Blog With the T3 Stack - tRPC, TypeScript, Next.js, Prisma & Zod](https://www.youtube.com/watch?v=syEWlxVFUrY)
+@@ -28,23 +24,4 @@ Also checkout these awesome tutorials on `create-t3-app`.
+ 
+ ## How do I deploy this?
+ 
+-### Vercel
+-
+-We recommend deploying to [Vercel](https://vercel.com/?utm_source=t3-oss&utm_campaign=oss). It makes it super easy to deploy NextJs apps.
+-
+-- Push your code to a GitHub repository.
+-- Go to [Vercel](https://vercel.com/?utm_source=t3-oss&utm_campaign=oss) and sign up with GitHub.
+-- Create a Project and import the repository you pushed your code to.
+-- Add your environment variables.
+-- Click **Deploy**
+-- Now whenever you push a change to your repository, Vercel will automatically redeploy your website!
+-
+-### Docker
+-
+-You can also dockerize this stack and deploy a container. See the [Docker deployment page](https://create-t3-app-nu.vercel.app/en/deployment/docker) for details.
+-
+-## Useful resources
+-
+-Here are some resources that we commonly refer to:
+-
+-- [Protecting routes with Next-Auth.js](https://next-auth.js.org/configuration/nextjs#unstable_getserversession)
++Follow our deployment guides for [Vercel](https://beta.create.t3.gg/en/deployment/vercel) and [Docker](https://beta.create.t3.gg/en/deployment/docker) for more information.
+diff --git a/next.config.mjs b/next.config.mjs
+index 9a4c0c9..b5bef6c 100644
+--- a/next.config.mjs
++++ b/next.config.mjs
+@@ -1,24 +1,17 @@
+ // @ts-check
+-import { env } from "./src/env/server.mjs";
+-
+ /**
+- * Don't be scared of the generics here.
+- * All they do is to give us autocompletion when using this.
+- *
+- * @template {import('next').NextConfig} T
+- * @param {T} config - A generic parameter that flows through to the return type
+- * @constraint {{import('next').NextConfig}}
++ * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation.
++ * This is especially useful for Docker builds.
+  */
+-function defineNextConfig(config) {
+-  return config;
+-}
++!process.env.SKIP_ENV_VALIDATION && (await import("./src/env/server.mjs"));
+ 
+-export default defineNextConfig({
++/** @type {import("next").NextConfig} */
++const config = {
+   reactStrictMode: true,
+   swcMinify: true,
+-  // Next.js i18n docs: https://nextjs.org/docs/advanced-features/i18n-routing
+   i18n: {
+     locales: ["en"],
+     defaultLocale: "en",
+   },
+-});
++};
++export default config;
+diff --git a/package.json b/package.json
+index 9379e49..8a77073 100644
+--- a/package.json
++++ b/package.json
+@@ -1,30 +1,42 @@
+ {
+-  "name": "current",
++  "name": "upgrade",
+   "version": "0.1.0",
+   "private": true,
+   "scripts": {
+-    "dev": "next dev",
+     "build": "next build",
+-    "start": "next start",
+-    "lint": "next lint"
++    "dev": "next dev",
++    "lint": "next lint",
++    "start": "next start"
+   },
+   "dependencies": {
+-    "next": "12.3.1",
++    "@tanstack/react-query": "^4.10.0",
++    "@trpc/client": "10.0.0-rc.4",
++    "@trpc/next": "10.0.0-rc.4",
++    "@trpc/react-query": "10.0.0-rc.4",
++    "@trpc/server": "10.0.0-rc.4",
++    "next": "13.0.2",
++    "next-auth": "^4.15.1",
+     "react": "18.2.0",
+     "react-dom": "18.2.0",
++    "superjson": "1.9.1",
+     "zod": "^3.18.0"
+   },
+   "devDependencies": {
+-    "@types/node": "18.0.0",
+-    "@types/react": "18.0.14",
+-    "@types/react-dom": "18.0.5",
++    "@types/node": "^18.0.0",
++    "@types/react": "^18.0.14",
++    "@types/react-dom": "^18.0.5",
+     "@typescript-eslint/eslint-plugin": "^5.33.0",
+     "@typescript-eslint/parser": "^5.33.0",
+-    "eslint": "8.22.0",
+-    "eslint-config-next": "12.3.1",
++    "autoprefixer": "^10.4.7",
++    "eslint": "^8.26.0",
++    "eslint-config-next": "13.0.2",
++    "postcss": "^8.4.14",
++    "prettier": "^2.7.1",
++    "prettier-plugin-tailwindcss": "^0.1.13",
++    "tailwindcss": "^3.2.0",
+     "typescript": "^4.8.4"
+   },
+   "ct3aMetadata": {
+-    "initVersion": "6.2.0"
++    "initVersion": "6.9.0"
+   }
+ }
+diff --git a/postcss.config.cjs b/postcss.config.cjs
+new file mode 100644
+index 0000000..12a703d
+--- /dev/null
++++ b/postcss.config.cjs
+@@ -0,0 +1,6 @@
++module.exports = {
++  plugins: {
++    tailwindcss: {},
++    autoprefixer: {},
++  },
++};
+diff --git a/prettier.config.cjs b/prettier.config.cjs
+new file mode 100644
+index 0000000..58b0aee
+--- /dev/null
++++ b/prettier.config.cjs
+@@ -0,0 +1,4 @@
++/** @type {import("prettier").Config} */
++module.exports = {
++  plugins: [require.resolve("prettier-plugin-tailwindcss")],
++};
+diff --git a/src/env/schema.mjs b/src/env/schema.mjs
+index c621d13..1a4d09f 100644
+--- a/src/env/schema.mjs
++++ b/src/env/schema.mjs
+@@ -7,6 +7,19 @@ import { z } from "zod";
+  */
+ export const serverSchema = z.object({
+   NODE_ENV: z.enum(["development", "test", "production"]),
++  NEXTAUTH_SECRET:
++    process.env.NODE_ENV === "production"
++      ? z.string().min(1)
++      : z.string().min(1).optional(),
++  NEXTAUTH_URL: z.preprocess(
++    // This makes Vercel deployments not fail if you don't set NEXTAUTH_URL
++    // Since NextAuth automatically uses the VERCEL_URL if present.
++    (str) => process.env.VERCEL_URL ?? str,
++    // VERCEL_URL doesnt include `https` so it cant be validated as a URL
++    process.env.VERCEL ? z.string() : z.string().url(),
++  ),
++  DISCORD_CLIENT_ID: z.string(),
++  DISCORD_CLIENT_SECRET: z.string(),
+ });
+ 
+ /**
+@@ -15,7 +28,7 @@ export const serverSchema = z.object({
+  * To expose them to the client, prefix them with `NEXT_PUBLIC_`.
+  */
+ export const clientSchema = z.object({
+-  // NEXT_PUBLIC_CLIENTVAR: z.string(),
++  // NEXT_PUBLIC_BAR: z.string(),
+ });
+ 
+ /**
+@@ -25,5 +38,5 @@ export const clientSchema = z.object({
+  * @type {{ [k in keyof z.infer<typeof clientSchema>]: z.infer<typeof clientSchema>[k] | undefined }}
+  */
+ export const clientEnv = {
+-  // NEXT_PUBLIC_CLIENTVAR: process.env.NEXT_PUBLIC_CLIENTVAR,
++  // NEXT_PUBLIC_BAR: process.env.NEXT_PUBLIC_BAR,
+ };
+diff --git a/src/pages/_app.tsx b/src/pages/_app.tsx
+index c1c9d2f..2e2d750 100644
+--- a/src/pages/_app.tsx
++++ b/src/pages/_app.tsx
+@@ -1,8 +1,20 @@
++import { type AppType } from "next/app";
++import { type Session } from "next-auth";
++import { SessionProvider } from "next-auth/react";
++
++import { trpc } from "../utils/trpc";
++
+ import "../styles/globals.css";
+-import type { AppType } from "next/dist/shared/lib/utils";
+ 
+-const MyApp: AppType = ({ Component, pageProps }) => {
+-  return <Component {...pageProps} />;
++const MyApp: AppType<{ session: Session | null }> = ({
++  Component,
++  pageProps: { session, ...pageProps },
++}) => {
++  return (
++    <SessionProvider session={session}>
++      <Component {...pageProps} />
++    </SessionProvider>
++  );
+ };
+ 
+-export default MyApp;
++export default trpc.withTRPC(MyApp);
+diff --git a/src/pages/api/auth/[...nextauth].ts b/src/pages/api/auth/[...nextauth].ts
+new file mode 100644
+index 0000000..396fc10
+--- /dev/null
++++ b/src/pages/api/auth/[...nextauth].ts
+@@ -0,0 +1,26 @@
++import NextAuth, { type NextAuthOptions } from "next-auth";
++import DiscordProvider from "next-auth/providers/discord";
++
++import { env } from "../../../env/server.mjs";
++
++export const authOptions: NextAuthOptions = {
++  // Include user.id on session
++  callbacks: {
++    session({ session, user }) {
++      if (session.user) {
++        session.user.id = user.id;
++      }
++      return session;
++    },
++  },
++  // Configure one or more authentication providers
++  providers: [
++    DiscordProvider({
++      clientId: env.DISCORD_CLIENT_ID,
++      clientSecret: env.DISCORD_CLIENT_SECRET,
++    }),
++    // ...add more providers here
++  ],
++};
++
++export default NextAuth(authOptions);
+diff --git a/src/pages/api/restricted.ts b/src/pages/api/restricted.ts
+new file mode 100644
+index 0000000..39d936d
+--- /dev/null
++++ b/src/pages/api/restricted.ts
+@@ -0,0 +1,21 @@
++import { type NextApiRequest, type NextApiResponse } from "next";
++
++import { getServerAuthSession } from "../../server/common/get-server-auth-session";
++
++const restricted = async (req: NextApiRequest, res: NextApiResponse) => {
++  const session = await getServerAuthSession({ req, res });
++
++  if (session) {
++    res.send({
++      content:
++        "This is protected content. You can access this content because you are signed in.",
++    });
++  } else {
++    res.send({
++      error:
++        "You must be signed in to view the protected content on this page.",
++    });
++  }
++};
++
++export default restricted;
+diff --git a/src/pages/api/trpc/[trpc].ts b/src/pages/api/trpc/[trpc].ts
+new file mode 100644
+index 0000000..f69201d
+--- /dev/null
++++ b/src/pages/api/trpc/[trpc].ts
+@@ -0,0 +1,17 @@
++import { createNextApiHandler } from "@trpc/server/adapters/next";
++
++import { env } from "../../../env/server.mjs";
++import { createContext } from "../../../server/trpc/context";
++import { appRouter } from "../../../server/trpc/router/_app";
++
++// export API handler
++export default createNextApiHandler({
++  router: appRouter,
++  createContext,
++  onError:
++    env.NODE_ENV === "development"
++      ? ({ path, error }) => {
++          console.error(`❌ tRPC failed on ${path}: ${error}`);
++        }
++      : undefined,
++});
+diff --git a/src/pages/index.module.css b/src/pages/index.module.css
+deleted file mode 100644
+index 4fc3217..0000000
+--- a/src/pages/index.module.css
++++ /dev/null
+@@ -1,196 +0,0 @@
+-.containerOuter {
+-  --color-gray-500: rgba(107, 114, 128, 100%);
+-  --color-gray-600: rgba(75, 85, 99, 100%);
+-  --color-gray-700: rgba(55, 65, 81, 100%);
+-  --color-purple-300: rgba(216, 180, 254, 100%);
+-  --color-blue-500: rgba(59, 130, 246, 100%);
+-  --color-violet-500: rgba(139, 92, 246, 100%);
+-  --tw-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1),
+-    0 8px 10px -6px rgb(0 0 0 / 0.1);
+-
+-  display: flex;
+-  align-items: center;
+-  justify-content: center;
+-  width: 100vw;
+-  min-height: 100vh;
+-}
+-
+-.containerInner {
+-  width: 100%;
+-  min-height: 100vh;
+-  padding: 16px;
+-  display: flex;
+-  flex-direction: column;
+-  align-items: center;
+-  justify-content: center;
+-  font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+-    "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif,
+-    "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+-}
+-
+-@media (min-width: 640px) {
+-  .containerInner {
+-    max-width: 640px;
+-  }
+-}
+-
+-@media (min-width: 768px) {
+-  .containerInner {
+-    max-width: 768px;
+-  }
+-}
+-
+-@media (min-width: 1024px) {
+-  .containerInner {
+-    max-width: 1024px;
+-  }
+-}
+-
+-@media (min-width: 1280px) {
+-  .containerInner {
+-    max-width: 1280px;
+-  }
+-}
+-
+-@media (min-width: 1536px) {
+-  .containerInner {
+-    max-width: 1536px;
+-  }
+-}
+-
+-.title {
+-  margin: 0;
+-  font-size: 3rem;
+-  font-weight: 800;
+-  line-height: 1.5;
+-  color: var(--color-gray-700);
+-}
+-
+-@media (min-width: 768px) {
+-  .title {
+-    font-size: 5rem;
+-  }
+-}
+-
+-.titlePink {
+-  color: var(--color-purple-300);
+-}
+-
+-.subtitle {
+-  margin: 0;
+-  color: var(--color-gray-700);
+-  font-weight: 400;
+-  font-size: 1.5rem;
+-  line-height: 2rem;
+-}
+-
+-.cardGrid {
+-  display: grid;
+-  gap: 0.75rem;
+-  padding-top: 0.75rem;
+-  margin-top: 0.75rem;
+-  text-align: center;
+-}
+-
+-@media (min-width: 768px) {
+-  .cardGrid {
+-    grid-template-columns: repeat(2, minmax(0, 1fr));
+-  }
+-}
+-
+-@media (min-width: 1024px) {
+-  .cardGrid {
+-    width: calc(200% / 3);
+-  }
+-}
+-
+-.card {
+-  display: flex;
+-  flex-direction: column;
+-  justify-content: center;
+-  padding: 1.5rem;
+-  transition-duration: 500ms;
+-  border: 2px solid var(--color-gray-500);
+-  border-radius: 0.25rem;
+-  box-shadow: var(--tw-shadow);
+-}
+-
+-.card:hover {
+-  transform: scale(1.05);
+-}
+-
+-@media (prefers-reduced-motion) {
+-  .card:hover {
+-    transform: none;
+-  }
+-}
+-
+-.cardTitle {
+-  margin: 0;
+-  font-size: 1.125rem;
+-  line-height: 1.75rem;
+-  font-weight: 400;
+-  color: var(--color-gray-500);
+-}
+-
+-.cardDescription {
+-  margin: 0;
+-  font-size: 0.875rem;
+-  line-height: 1.25rem;
+-  color: var(--color-gray-600);
+-}
+-
+-.cardDocumentation {
+-  margin-top: 0.75rem;
+-  font-size: 0.875rem;
+-  line-height: 1.25rem;
+-  text-decoration-line: underline;
+-  -webkit-text-decoration-line: underline;
+-  text-decoration-style: dotted;
+-  -webkit-text-decoration-style: dotted;
+-  text-underline-offset: 2px;
+-  color: var(--color-violet-500);
+-}
+-
+-.helloFrom {
+-  padding-top: 1.5rem;
+-  font-size: 1.5rem;
+-  line-height: 2rem;
+-  color: var(--color-blue-500);
+-  display: flex;
+-  align-items: center;
+-  justify-content: center;
+-  width: 100%;
+-}
+-
+-.helloFrom p {
+-  margin: 0;
+-}
+-
+-.authShowcase {
+-  margin: 2rem;
+-  display: flex;
+-  flex-direction: column;
+-  align-items: center;
+-  gap: 16px;
+-}
+-
+-.loginInfo {
+-  color: var(--color-blue-500);
+-  font-size: 1.5rem;
+-  line-height: 2rem;
+-}
+-
+-.signInButton {
+-  padding: 0.5rem 1rem;
+-  border: 1px solid black;
+-  background-color: rgba(245, 243, 255, 100%);
+-  font-size: 1.25rem;
+-  line-height: 1.75rem;
+-  border-radius: 0.375rem;
+-  box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+-}
+-
+-.signInButton:hover {
+-  background-color: rgba(237, 233, 254, 100%);
+-}
+diff --git a/src/pages/index.tsx b/src/pages/index.tsx
+index 173337b..c77b44e 100644
+--- a/src/pages/index.tsx
++++ b/src/pages/index.tsx
+@@ -1,8 +1,13 @@
+-import type { NextPage } from "next";
++import { type NextPage } from "next";
+ import Head from "next/head";
+-import styles from "./index.module.css";
++import Link from "next/link";
++import { signIn, signOut, useSession } from "next-auth/react";
++
++import { trpc } from "../utils/trpc";
+ 
+ const Home: NextPage = () => {
++  const hello = trpc.example.hello.useQuery({ text: "from tRPC" });
++
+   return (
+     <>
+       <Head>
+@@ -10,76 +15,105 @@ const Home: NextPage = () => {
+         <meta name="description" content="Generated by create-t3-app" />
+         <link rel="icon" href="/favicon.ico" />
+       </Head>
+-      <div className={styles.containerOuter}>
+-        <div className={styles.containerInner}>
+-          <h1 className={styles.title}>
+-            Create <span className={styles.titlePink}>T3</span> App
+-          </h1>
+-
+-          <h3 className={styles.subtitle}>This stack uses:</h3>
+-          <div className={styles.cardGrid}>
+-            <TechnologyCard
+-              name="NextJS"
+-              description="The React framework for production"
+-              documentation="https://nextjs.org/"
+-            />
+-            <TechnologyCard
+-              name="TypeScript"
+-              description="Strongly typed programming language that builds on JavaScript, giving you better tooling at any scale"
+-              documentation="https://www.typescriptlang.org/"
+-            />
+-            <TechnologyCard
+-              name="TailwindCSS"
+-              description="Rapidly build modern websites without ever leaving your HTML"
+-              documentation="https://tailwindcss.com/"
+-            />
+-            <TechnologyCard
+-              name="tRPC"
+-              description="End-to-end typesafe APIs made easy"
+-              documentation="https://trpc.io/"
+-            />
+-            <TechnologyCard
+-              name="Next-Auth"
+-              description="Authentication for Next.js"
+-              documentation="https://next-auth.js.org/"
+-            />
+-            <TechnologyCard
+-              name="Prisma"
+-              description="Build data-driven JavaScript & TypeScript apps in less time"
+-              documentation="https://www.prisma.io/docs/"
+-            />
+-          </div>
++      <main className="container mx-auto flex min-h-screen flex-col items-center justify-center p-4">
++        <h1 className="text-5xl font-extrabold leading-normal text-gray-700 md:text-[5rem]">
++          Create <span className="text-purple-300">T3</span> App
++        </h1>
++        <p className="text-2xl text-gray-700">This stack uses:</p>
++        <div className="mt-3 grid gap-3 pt-3 text-center md:grid-cols-3 lg:w-2/3">
++          <TechnologyCard
++            name="NextJS"
++            description="The React framework for production"
++            documentation="https://nextjs.org/"
++          />
++          <TechnologyCard
++            name="TypeScript"
++            description="Strongly typed programming language that builds on JavaScript, giving you better tooling at any scale"
++            documentation="https://www.typescriptlang.org/"
++          />
++          <TechnologyCard
++            name="TailwindCSS"
++            description="Rapidly build modern websites without ever leaving your HTML"
++            documentation="https://tailwindcss.com/"
++          />
++          <TechnologyCard
++            name="tRPC"
++            description="End-to-end typesafe APIs made easy"
++            documentation="https://trpc.io/"
++          />
++          <TechnologyCard
++            name="Next-Auth"
++            description="Authentication for Next.js"
++            documentation="https://next-auth.js.org/"
++          />
++          <TechnologyCard
++            name="Prisma"
++            description="Build data-driven JavaScript & TypeScript apps in less time"
++            documentation="https://www.prisma.io/docs/"
++          />
+         </div>
+-      </div>
++        <div className="flex w-full items-center justify-center pt-6 text-2xl text-blue-500">
++          {hello.data ? <p>{hello.data.greeting}</p> : <p>Loading..</p>}
++        </div>
++        <AuthShowcase />
++      </main>
+     </>
+   );
+ };
+ 
+ export default Home;
+ 
++const AuthShowcase: React.FC = () => {
++  const { data: sessionData } = useSession();
++
++  const { data: secretMessage } = trpc.auth.getSecretMessage.useQuery(
++    undefined, // no input
++    { enabled: sessionData?.user !== undefined },
++  );
++
++  return (
++    <div className="flex flex-col items-center justify-center gap-2">
++      {sessionData && (
++        <p className="text-2xl text-blue-500">
++          Logged in as {sessionData?.user?.name}
++        </p>
++      )}
++      {secretMessage && (
++        <p className="text-2xl text-blue-500">{secretMessage}</p>
++      )}
++      <button
++        className="rounded-md border border-black bg-violet-50 px-4 py-2 text-xl shadow-lg hover:bg-violet-100"
++        onClick={sessionData ? () => signOut() : () => signIn()}
++      >
++        {sessionData ? "Sign out" : "Sign in"}
++      </button>
++    </div>
++  );
++};
++
+ type TechnologyCardProps = {
+   name: string;
+   description: string;
+   documentation: string;
+ };
+ 
+-const TechnologyCard = ({
++const TechnologyCard: React.FC<TechnologyCardProps> = ({
+   name,
+   description,
+   documentation,
+-}: TechnologyCardProps) => {
++}) => {
+   return (
+-    <section className={styles.card}>
+-      <h2 className={styles.cardTitle}>{name}</h2>
+-      <p className={styles.cardDescription}>{description}</p>
+-      <a
+-        className={styles.cardDocumentation}
++    <section className="flex flex-col justify-center rounded border-2 border-gray-500 p-6 shadow-xl duration-500 motion-safe:hover:scale-105">
++      <h2 className="text-lg text-gray-700">{name}</h2>
++      <p className="text-sm text-gray-600">{description}</p>
++      <Link
++        className="m-auto mt-3 w-fit text-sm text-violet-500 underline decoration-dotted underline-offset-2"
+         href={documentation}
+         target="_blank"
+         rel="noreferrer"
+       >
+         Documentation
+-      </a>
++      </Link>
+     </section>
+   );
+ };
+diff --git a/src/server/common/get-server-auth-session.ts b/src/server/common/get-server-auth-session.ts
+new file mode 100644
+index 0000000..8323ff2
+--- /dev/null
++++ b/src/server/common/get-server-auth-session.ts
+@@ -0,0 +1,14 @@
++import { type GetServerSidePropsContext } from "next";
++import { unstable_getServerSession } from "next-auth";
++import { authOptions } from "../../pages/api/auth/[...nextauth]";
++
++/**
++ * Wrapper for unstable_getServerSession https://next-auth.js.org/configuration/nextjs
++ * See example usage in trpc createContext or the restricted API route
++ */
++export const getServerAuthSession = async (ctx: {
++  req: GetServerSidePropsContext["req"];
++  res: GetServerSidePropsContext["res"];
++}) => {
++  return await unstable_getServerSession(ctx.req, ctx.res, authOptions);
++};
+diff --git a/src/server/trpc/context.ts b/src/server/trpc/context.ts
+new file mode 100644
+index 0000000..96a3c1d
+--- /dev/null
++++ b/src/server/trpc/context.ts
+@@ -0,0 +1,37 @@
++import { type inferAsyncReturnType } from "@trpc/server";
++import { type CreateNextContextOptions } from "@trpc/server/adapters/next";
++import { type Session } from "next-auth";
++
++import { getServerAuthSession } from "../common/get-server-auth-session";
++
++type CreateContextOptions = {
++  session: Session | null;
++};
++
++/** Use this helper for:
++ * - testing, so we dont have to mock Next.js' req/res
++ * - trpc's `createSSGHelpers` where we don't have req/res
++ * @see https://beta.create.t3.gg/en/usage/trpc#-servertrpccontextts
++ **/
++export const createContextInner = async (opts: CreateContextOptions) => {
++  return {
++    session: opts.session,
++  };
++};
++
++/**
++ * This is the actual context you'll use in your router
++ * @link https://trpc.io/docs/context
++ **/
++export const createContext = async (opts: CreateNextContextOptions) => {
++  const { req, res } = opts;
++
++  // Get the session from the server using the unstable_getServerSession wrapper function
++  const session = await getServerAuthSession({ req, res });
++
++  return await createContextInner({
++    session,
++  });
++};
++
++export type Context = inferAsyncReturnType<typeof createContext>;
+diff --git a/src/server/trpc/router/_app.ts b/src/server/trpc/router/_app.ts
+new file mode 100644
+index 0000000..0316694
+--- /dev/null
++++ b/src/server/trpc/router/_app.ts
+@@ -0,0 +1,11 @@
++import { router } from "../trpc";
++import { authRouter } from "./auth";
++import { exampleRouter } from "./example";
++
++export const appRouter = router({
++  example: exampleRouter,
++  auth: authRouter,
++});
++
++// export type definition of API
++export type AppRouter = typeof appRouter;
+diff --git a/src/server/trpc/router/auth.ts b/src/server/trpc/router/auth.ts
+new file mode 100644
+index 0000000..cb56bea
+--- /dev/null
++++ b/src/server/trpc/router/auth.ts
+@@ -0,0 +1,10 @@
++import { router, publicProcedure, protectedProcedure } from "../trpc";
++
++export const authRouter = router({
++  getSession: publicProcedure.query(({ ctx }) => {
++    return ctx.session;
++  }),
++  getSecretMessage: protectedProcedure.query(() => {
++    return "You are logged in and can see this secret message!";
++  }),
++});
+diff --git a/src/server/trpc/router/example.ts b/src/server/trpc/router/example.ts
+new file mode 100644
+index 0000000..086a723
+--- /dev/null
++++ b/src/server/trpc/router/example.ts
+@@ -0,0 +1,13 @@
++import { z } from "zod";
++
++import { router, publicProcedure } from "../trpc";
++
++export const exampleRouter = router({
++  hello: publicProcedure
++    .input(z.object({ text: z.string().nullish() }).nullish())
++    .query(({ input }) => {
++      return {
++        greeting: `Hello ${input?.text ?? "world"}`,
++      };
++    }),
++});
+diff --git a/src/server/trpc/trpc.ts b/src/server/trpc/trpc.ts
+new file mode 100644
+index 0000000..7c80f44
+--- /dev/null
++++ b/src/server/trpc/trpc.ts
+@@ -0,0 +1,39 @@
++import { initTRPC, TRPCError } from "@trpc/server";
++import superjson from "superjson";
++
++import { type Context } from "./context";
++
++const t = initTRPC.context<Context>().create({
++  transformer: superjson,
++  errorFormatter({ shape }) {
++    return shape;
++  },
++});
++
++export const router = t.router;
++
++/**
++ * Unprotected procedure
++ **/
++export const publicProcedure = t.procedure;
++
++/**
++ * Reusable middleware to ensure
++ * users are logged in
++ */
++const isAuthed = t.middleware(({ ctx, next }) => {
++  if (!ctx.session || !ctx.session.user) {
++    throw new TRPCError({ code: "UNAUTHORIZED" });
++  }
++  return next({
++    ctx: {
++      // infers the `session` as non-nullable
++      session: { ...ctx.session, user: ctx.session.user },
++    },
++  });
++});
++
++/**
++ * Protected procedure
++ **/
++export const protectedProcedure = t.procedure.use(isAuthed);
+diff --git a/src/styles/globals.css b/src/styles/globals.css
+index e5e2dcc..b5c61c9 100644
+--- a/src/styles/globals.css
++++ b/src/styles/globals.css
+@@ -1,16 +1,3 @@
+-html,
+-body {
+-  padding: 0;
+-  margin: 0;
+-  font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Oxygen,
+-    Ubuntu, Cantarell, Fira Sans, Droid Sans, Helvetica Neue, sans-serif;
+-}
+-
+-a {
+-  color: inherit;
+-  text-decoration: none;
+-}
+-
+-* {
+-  box-sizing: border-box;
+-}
++@tailwind base;
++@tailwind components;
++@tailwind utilities;
+diff --git a/src/types/next-auth.d.ts b/src/types/next-auth.d.ts
+new file mode 100644
+index 0000000..fc41716
+--- /dev/null
++++ b/src/types/next-auth.d.ts
+@@ -0,0 +1,12 @@
++import { type DefaultSession } from "next-auth";
++
++declare module "next-auth" {
++  /**
++   * Returned by `useSession`, `getSession` and received as a prop on the `SessionProvider` React Context
++   */
++  interface Session {
++    user?: {
++      id: string;
++    } & DefaultSession["user"];
++  }
++}
+diff --git a/src/utils/trpc.ts b/src/utils/trpc.ts
+new file mode 100644
+index 0000000..2391cbc
+--- /dev/null
++++ b/src/utils/trpc.ts
+@@ -0,0 +1,42 @@
++import { httpBatchLink, loggerLink } from "@trpc/client";
++import { createTRPCNext } from "@trpc/next";
++import { type inferRouterInputs, type inferRouterOutputs } from "@trpc/server";
++import superjson from "superjson";
++
++import { type AppRouter } from "../server/trpc/router/_app";
++
++const getBaseUrl = () => {
++  if (typeof window !== "undefined") return ""; // browser should use relative url
++  if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}`; // SSR should use vercel url
++  return `http://localhost:${process.env.PORT ?? 3000}`; // dev SSR should use localhost
++};
++
++export const trpc = createTRPCNext<AppRouter>({
++  config() {
++    return {
++      transformer: superjson,
++      links: [
++        loggerLink({
++          enabled: (opts) =>
++            process.env.NODE_ENV === "development" ||
++            (opts.direction === "down" && opts.result instanceof Error),
++        }),
++        httpBatchLink({
++          url: `${getBaseUrl()}/api/trpc`,
++        }),
++      ],
++    };
++  },
++  ssr: false,
++});
++
++/**
++ * Inference helper for inputs
++ * @example type HelloInput = RouterInputs['example']['hello']
++ **/
++export type RouterInputs = inferRouterInputs<AppRouter>;
++/**
++ * Inference helper for outputs
++ * @example type HelloOutput = RouterOutputs['example']['hello']
++ **/
++export type RouterOutputs = inferRouterOutputs<AppRouter>;
+diff --git a/tailwind.config.cjs b/tailwind.config.cjs
+new file mode 100644
+index 0000000..54331dc
+--- /dev/null
++++ b/tailwind.config.cjs
+@@ -0,0 +1,8 @@
++/** @type {import('tailwindcss').Config} */
++module.exports = {
++  content: ["./src/**/*.{js,ts,jsx,tsx}"],
++  theme: {
++    extend: {},
++  },
++  plugins: [],
++};
+diff --git a/tsconfig.json b/tsconfig.json
+index 0608fd0..658068a 100644
+--- a/tsconfig.json
++++ b/tsconfig.json
+@@ -1,6 +1,6 @@
+ {
+   "compilerOptions": {
+-    "target": "es5",
++    "target": "es2017",
+     "lib": ["dom", "dom.iterable", "esnext"],
+     "allowJs": true,
+     "skipLibCheck": true,
