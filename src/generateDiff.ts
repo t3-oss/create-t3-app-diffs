@@ -66,12 +66,13 @@ export default async function generateDiff(params: unknown) {
 
   // check if the diff is ignored
   const ignoredDiffs = fs.readFileSync(IGNORED_DIFFS_PATH, "utf8");
+  const ignoredDiffsObject = JSON.parse(ignoredDiffs);
   if (
-    ignoredDiffs.includes(
+    ignoredDiffsObject[
       `${currentVersion}..${upgradeVersion}${
         featuresString ? `-${featuresString}` : ""
-      }}`,
-    )
+      }`
+    ]
   ) {
     return { differences: "", url };
   }

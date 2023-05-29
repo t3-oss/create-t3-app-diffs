@@ -1,9 +1,9 @@
 import fs from "fs";
 import path from "path";
 
-import { checkIfDiffIsEmpty } from "@/fileUtils";
+import { checkIfDiffIsEmpty, ignoreDiffs } from "@/fileUtils";
 import { extractVersionsAndFeatures, getFeaturesString } from "@/utils";
-import { DIFFS_PATH, IGNORED_DIFFS_PATH } from "./consts";
+import { DIFFS_PATH } from "./consts";
 
 export const purgeAllEmptyDiffs = async () => {
   const existingDiffs = fs.readdirSync(DIFFS_PATH);
@@ -32,8 +32,7 @@ export const purgeAllEmptyDiffs = async () => {
       }`;
     });
 
-  // write to diffs/ignored-diffs.txt
-  fs.appendFileSync(IGNORED_DIFFS_PATH, "\n" + emptyDiffsKeys.join("\n"));
+  await ignoreDiffs(emptyDiffsKeys);
 
   return emptyDiffs.length;
 };

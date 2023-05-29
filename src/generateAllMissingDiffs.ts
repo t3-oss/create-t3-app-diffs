@@ -1,9 +1,8 @@
 import fs from "fs";
 
-import { executeCommand, getMissingDiffs } from "@/fileUtils";
+import { executeCommand, getMissingDiffs, ignoreDiffs } from "@/fileUtils";
 import generateDiff from "@/generateDiff";
 import { extractVersionsAndFeatures } from "@/utils";
-import { IGNORED_DIFFS_PATH } from "./consts";
 
 export const generateAllMissingDiffs = async () => {
   console.log("Generating all missing diffs");
@@ -33,10 +32,7 @@ export const generateAllMissingDiffs = async () => {
       await Promise.all(promises);
       const emptyDiffs = await fs.promises.readdir("/tmp/emptyDiffs");
       if (emptyDiffs.length) {
-        await fs.promises.appendFile(
-          IGNORED_DIFFS_PATH,
-          "\n" + emptyDiffs.join("\n"),
-        );
+        await ignoreDiffs(emptyDiffs);
         await executeCommand("rm -rf /tmp/emptyDiffs/*");
       }
     } catch (error) {

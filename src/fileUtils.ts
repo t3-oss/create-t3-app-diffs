@@ -99,9 +99,61 @@ export const checkIfDiffIsEmpty = (diff: string) => {
   );
 };
 
+export const sortT3Versions = (t3Versions: string[]) => {
+  return t3Versions.sort((a, b) => {
+    const [aMajorStr, aMinorStr, aPatchStr] = a.split(".");
+    const aMajor = Number(aMajorStr);
+    const aMinor = Number(aMinorStr);
+    const aPatch = Number(aPatchStr);
+    const [bMajorStr, bMinorStr, bPatchStr] = b.split(".");
+    const bMajor = Number(bMajorStr);
+    const bMinor = Number(bMinorStr);
+    const bPatch = Number(bPatchStr);
+
+    if (aMajor > bMajor) {
+      return 1;
+    } else if (aMajor < bMajor) {
+      return -1;
+    }
+
+    if (aMinor > bMinor) {
+      return 1;
+    } else if (aMinor < bMinor) {
+      return -1;
+    }
+
+    if (aPatch > bPatch) {
+      return 1;
+    } else if (aPatch < bPatch) {
+      return -1;
+    }
+
+    return 0;
+  });
+};
+
+export const ignoreDiffs = async (diffs: string[]) => {
+  const ignoredDiffs = await fs.promises.readFile(IGNORED_DIFFS_PATH, "utf8");
+  const ignoredDiffsObject: Record<string, boolean> = JSON.parse(ignoredDiffs);
+  const ignoredDiffsArray = Object.keys(ignoredDiffsObject);
+  for (const diff of diffs) {
+    if (!ignoredDiffsArray.includes(diff)) {
+      ignoredDiffsArray.push(diff);
+    }
+  }
+
+  const sortedIgnoredDiffs = sortT3Versions(ignoredDiffsArray);
+
+  await fs.promises.writeFile(
+    IGNORED_DIFFS_PATH,
+    JSON.stringify(sortedIgnoredDiffs, null, 2),
+  );
+};
+
 export const getMissingDiffs = async (count: number) => {
   const t3Versions = await getT3Versions();
   const ignoredDiffs = await fs.promises.readFile(IGNORED_DIFFS_PATH, "utf8");
+  const ignoredDiffsObject: Record<string, boolean> = JSON.parse(ignoredDiffs);
   const sortedT3Versions = t3Versions.sort((a, b) => {
     const aParts = a.split(".").map(Number);
     const bParts = b.split(".").map(Number);
@@ -155,7 +207,7 @@ export const getMissingDiffs = async (count: number) => {
       const noFeaturesDiff = `${currentVersion}..${upgradeVersion}`;
       if (
         !existingDiffsMap[noFeaturesDiff] &&
-        !ignoredDiffs.includes(noFeaturesDiff)
+        !ignoredDiffsObject[noFeaturesDiff]
       ) {
         newDiffsMap[noFeaturesDiff] = true;
       }
@@ -172,7 +224,7 @@ export const getMissingDiffs = async (count: number) => {
           features,
         )}`;
 
-        if (existingDiffsMap[key] || ignoredDiffs.includes(key)) {
+        if (existingDiffsMap[key] || ignoredDiffsObject[key]) {
           continue;
         }
 
