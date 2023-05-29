@@ -6,11 +6,10 @@ import path from "path";
 import {
   Features,
   arrangements,
-  extractVersionsAndFeatures,
   getFeaturesString,
   getT3Versions,
 } from "@/utils";
-import { DIFFS_PATH, IGNORED_DIFFS_PATH } from "./consts";
+import { DIFFS_PATH, EXISTING_DIFFS_PATH, IGNORED_DIFFS_PATH } from "./consts";
 
 export interface DiffLocation {
   currentVersion: string;
@@ -49,31 +48,10 @@ export const getDiffPath = ({
 };
 
 export const getExistingDiffsMap = () => {
-  const existingDiffs = fs.readdirSync(DIFFS_PATH);
+  const existingDiffs = fs.readFileSync(EXISTING_DIFFS_PATH, "utf8");
+  const existingDiffsObject = JSON.parse(existingDiffs);
 
-  const diffsMap: { [key: string]: boolean } = existingDiffs.reduce(
-    (acc, diff) => {
-      const versionsAndFeatures = extractVersionsAndFeatures(diff);
-
-      if (!versionsAndFeatures) {
-        return acc;
-      }
-
-      const { currentVersion, upgradeVersion, features } = versionsAndFeatures;
-
-      const featuresString = getFeaturesString(features);
-
-      return {
-        ...acc,
-        [`${currentVersion}..${upgradeVersion}${
-          featuresString ? `-${featuresString}` : ""
-        }`]: true,
-      };
-    },
-    {},
-  );
-
-  return diffsMap;
+  return existingDiffsObject;
 };
 
 export const checkIfDiffIsEmpty = (diff: string) => {
@@ -143,10 +121,15 @@ export const ignoreDiffs = async (diffs: string[]) => {
   }
 
   const sortedIgnoredDiffs = sortT3Versions(ignoredDiffsArray);
+  const sortedIgnoredDiffsObject: Record<string, boolean> = {};
+
+  sortedIgnoredDiffs.forEach((element) => {
+    sortedIgnoredDiffsObject[element] = true;
+  });
 
   await fs.promises.writeFile(
     IGNORED_DIFFS_PATH,
-    JSON.stringify(sortedIgnoredDiffs, null, 2),
+    JSON.stringify(sortedIgnoredDiffsObject, null, 2),
   );
 };
 
