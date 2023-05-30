@@ -1,6 +1,7 @@
 import fs from "fs";
+import { rimraf } from "rimraf";
 
-import { executeCommand, getMissingDiffs, ignoreDiffs } from "@/fileUtils";
+import { getMissingDiffs, ignoreDiffs } from "@/fileUtils";
 import generateDiff from "@/generateDiff";
 import { extractVersionsAndFeatures } from "@/utils";
 
@@ -33,7 +34,7 @@ export const generateAllMissingDiffs = async () => {
       const emptyDiffs = await fs.promises.readdir("/tmp/emptyDiffs");
       if (emptyDiffs.length) {
         await ignoreDiffs(emptyDiffs);
-        await executeCommand("rm -rf /tmp/emptyDiffs/*");
+        await rimraf("/tmp/emptyDiffs/*");
       }
     } catch (error) {
       console.error(error);

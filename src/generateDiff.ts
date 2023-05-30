@@ -1,6 +1,7 @@
 import fs from "fs";
 import path from "path";
 import { z } from "zod";
+import { rimraf } from "rimraf";
 
 import { checkIfDiffIsEmpty, executeCommand, getDiffPath } from "@/fileUtils";
 import { getFeaturesString } from "@/utils";
@@ -42,8 +43,8 @@ export default async function generateDiff(params: unknown) {
   const upgradeProjectPath = path.join(diffDir, "upgrade");
 
   // Make sure the directories don't exist
-  await executeCommand(`rm -rf ${currentProjectPath}`);
-  await executeCommand(`rm -rf ${upgradeProjectPath}`);
+  await rimraf(currentProjectPath);
+  await rimraf(upgradeProjectPath);
 
   // Check if ~/.gitconfig exists
   const author = fs.existsSync(path.join(process.env.HOME ?? "", ".gitconfig"));
@@ -106,7 +107,7 @@ export default async function generateDiff(params: unknown) {
     // Read the diff
     const differences = fs.readFileSync(diffPath, "utf8");
 
-    await executeCommand(`rm -rf ${diffDir}`);
+    await rimraf(diffDir)
 
     console.log(
       `Generated diff: ${currentVersion}..${upgradeVersion}${
@@ -121,7 +122,7 @@ export default async function generateDiff(params: unknown) {
 
     if (checkIfDiffIsEmpty(differences)) {
       // Delete the diff if it's empty
-      await executeCommand(`rm -rf ${diffPath}`);
+      await rimraf(diffPath)
       // Create a file with the filename to indicate that the diff is empty
       fs.writeFileSync(
         `/tmp/emptyDiffs/${currentVersion}..${upgradeVersion}${
