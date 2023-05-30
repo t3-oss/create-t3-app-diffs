@@ -31,6 +31,9 @@ export const generateAllMissingDiffs = async () => {
     const timeStart = performance.now();
     try {
       await Promise.all(promises);
+      if (!fs.existsSync("/tmp/emptyDiffs")) {
+        fs.mkdirSync("/tmp/emptyDiffs");
+      }
       const emptyDiffs = await fs.promises.readdir("/tmp/emptyDiffs");
       if (emptyDiffs.length) {
         await ignoreDiffs(emptyDiffs);
