@@ -1,8 +1,3 @@
-// Steps:
-//   1. Read the diffs folder
-//   2. Generate a map of all the diffs
-//   3. Write the map to existing-diffs.json
-
 import fs from "fs";
 
 import { DIFFS_PATH, EXISTING_DIFFS_PATH } from "./consts";
