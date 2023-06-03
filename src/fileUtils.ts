@@ -162,30 +162,6 @@ export const ignoreDiffs = async (diffs: string[]) => {
   );
 };
 
-export const markAsExistingDiffs = async (diffs: string[]) => {
-  const existingDiffs = await fs.promises.readFile(EXISTING_DIFFS_PATH, "utf8");
-  const existingDiffsObject: Record<string, boolean> =
-    JSON.parse(existingDiffs);
-  const existingDiffsArray = Object.keys(existingDiffsObject);
-  for (const diff of diffs) {
-    if (!existingDiffsArray.includes(diff)) {
-      existingDiffsArray.push(diff);
-    }
-  }
-
-  const sortedExistingDiffs = sortT3Versions(existingDiffsArray);
-  const sortedExistingDiffsObject: Record<string, boolean> = {};
-
-  sortedExistingDiffs.forEach((element) => {
-    sortedExistingDiffsObject[element] = true;
-  });
-
-  await fs.promises.writeFile(
-    EXISTING_DIFFS_PATH,
-    JSON.stringify(sortedExistingDiffsObject, null, 2),
-  );
-};
-
 export const getMissingDiffs = async (count: number) => {
   const t3Versions = await getT3Versions();
   const ignoredDiffs = await fs.promises.readFile(IGNORED_DIFFS_PATH, "utf8");

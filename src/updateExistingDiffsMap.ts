@@ -6,6 +6,7 @@
 import fs from "fs";
 
 import { DIFFS_PATH, EXISTING_DIFFS_PATH } from "./consts";
+import { sortT3Versions } from "./fileUtils";
 import { extractVersionsAndFeatures, getFeaturesString } from "./utils";
 
 export const updateExistingDiffsMap = async () => {
@@ -25,5 +26,16 @@ export const updateExistingDiffsMap = async () => {
     ] = true;
   }
 
-  fs.writeFileSync(EXISTING_DIFFS_PATH, JSON.stringify(diffsMap, null, 2));
+  const diffsArray = Object.keys(diffsMap);
+  const sortedDiffs = sortT3Versions(diffsArray);
+  const sortedDiffsObject: Record<string, boolean> = {};
+
+  sortedDiffs.forEach((element) => {
+    sortedDiffsObject[element] = true;
+  });
+
+  fs.writeFileSync(
+    EXISTING_DIFFS_PATH,
+    JSON.stringify(sortedDiffsObject, null, 2),
+  );
 };

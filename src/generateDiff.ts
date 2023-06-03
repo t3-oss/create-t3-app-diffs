@@ -6,11 +6,7 @@ import { z } from "zod";
 
 import { checkIfDiffIsEmpty, executeCommand, getDiffPath } from "@/fileUtils";
 import { getFeaturesString } from "@/utils";
-import {
-  EMPTY_DIFFS_PATH,
-  GENERATED_DIFFS_PATH,
-  IGNORED_DIFFS_PATH,
-} from "./consts";
+import { EMPTY_DIFFS_PATH, IGNORED_DIFFS_PATH } from "./consts";
 
 const paramsSchema = z.object({
   currentVersion: z.string(),
@@ -155,14 +151,6 @@ export default async function generateDiff(params: unknown) {
       fs.writeFileSync(emptyDiffPath, "");
 
       return { differences: "", url };
-    } else {
-      const generatedDiffPath = path.join(
-        GENERATED_DIFFS_PATH,
-        `${currentVersion}..${upgradeVersion}${
-          featuresString ? `-${featuresString}` : ""
-        }`,
-      );
-      fs.writeFileSync(generatedDiffPath, "");
     }
 
     // Send the diff back to the client
