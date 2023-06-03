@@ -2,6 +2,7 @@ import fs from "fs";
 import path from "path";
 import { z } from "zod";
 import { rimraf } from "rimraf";
+import os from "os";
 
 import { checkIfDiffIsEmpty, executeCommand, getDiffPath } from "@/fileUtils";
 import { getFeaturesString } from "@/utils";
@@ -91,10 +92,20 @@ export default async function generateDiff(params: unknown) {
       cd ../
     `);
 
-    // Move the upgrade project over the current project
-    await executeCommand(
-      `rsync -a --delete --exclude=.git/ ${upgradeProjectPath}/ ${currentProjectPath}/`,
-    );
+    const isWindows = os.platform() === "win32";
+
+    // copy the upgrade project over the current project
+    if (isWindows) {
+      // Use robocopy on windows
+      await executeCommand(
+        `robocopy ${upgradeProjectPath} ${currentProjectPath} /MIR /XD .git`,
+      );
+    } else {
+      // Use rsync on linux
+      await executeCommand(
+        `rsync -a --delete --exclude=.git/ ${upgradeProjectPath}/ ${currentProjectPath}/`,
+      );
+    }
 
     // Generate the diff
     await executeCommand(`
