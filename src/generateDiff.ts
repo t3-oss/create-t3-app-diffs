@@ -47,6 +47,11 @@ export default async function generateDiff(params: unknown) {
   await rimraf(currentProjectPath);
   await rimraf(upgradeProjectPath);
 
+  // Create diffDir if it doesn't exist
+  if (!fs.existsSync(diffDir)) {
+    fs.mkdirSync(diffDir);
+  }
+
   // Check if ~/.gitconfig exists
   const author = fs.existsSync(path.join(process.env.HOME ?? "", ".gitconfig"));
   if (!author) {
@@ -57,8 +62,8 @@ export default async function generateDiff(params: unknown) {
     `);
   }
 
-  const getCommand = (version: string, path: string) =>
-    `pnpm create t3-app@${version} ${path} --CI ${featureFlags} --noInstall`;
+  const getCommand = (version: string, folderName: string) =>
+    `pnpm create t3-app@${version} ${folderName} --CI ${featureFlags} --noInstall`;
 
   if (fs.existsSync(diffPath)) {
     const differences = fs.readFileSync(diffPath, "utf8");
@@ -80,8 +85,8 @@ export default async function generateDiff(params: unknown) {
   }
 
   try {
-    await executeCommand(getCommand(currentVersion, currentProjectPath));
-    await executeCommand(getCommand(upgradeVersion, upgradeProjectPath));
+    await executeCommand(getCommand(currentVersion, 'current'), { cwd: diffDir });
+    await executeCommand(getCommand(upgradeVersion, 'upgrade'), { cwd: diffDir });
 
     await executeCommand(`git add .`, { cwd: currentProjectPath });
     await executeCommand(`git commit -m "Initial commit"`, { cwd: currentProjectPath });
@@ -94,6 +99,7 @@ export default async function generateDiff(params: unknown) {
       try {
         await executeCommand(
           `robocopy ${upgradeProjectPath} ${currentProjectPath} /MIR /XD .git`,
+          { silent: true }
         );
       } catch (error: any) {
         if ((error?.code as number) > 8) {

@@ -1,4 +1,4 @@
-import { exec } from "child_process";
+import { ExecException, exec } from "child_process";
 import fs from "fs";
 import gitdiffParser from "gitdiff-parser";
 import path from "path";
@@ -18,7 +18,14 @@ export interface DiffLocation {
   features: Features;
 }
 
-export const executeCommand = (command: string, options?: { cwd?: string }) => {
+interface ExecuteCommandOptions {
+  cwd?: string;
+  onError?: (error: ExecException) => void;
+  onSucess?: (stdout: string) => void;
+  silent?: boolean;
+}
+
+export const executeCommand = (command: string, options?: ExecuteCommandOptions) => {
   const isWindows = os.platform() === "win32";
   let updatedCommand = command;
   if (options?.cwd) {
@@ -32,9 +39,16 @@ export const executeCommand = (command: string, options?: { cwd?: string }) => {
   return new Promise((resolve, reject) => {
     exec(updatedCommand, { shell: isWindows ? 'powershell.exe' : '/bin/sh' }, (error, stdout) => {
       if (error) {
-        console.error(error);
+        if (options?.onError) {
+          options.onError(error);
+        } else if (!options?.silent) {
+          console.error(error);
+        }
         reject(error);
         return;
+      }
+      if (options?.onSucess) {
+        options.onSucess(stdout);
       }
       resolve(stdout);
     });
