@@ -83,23 +83,25 @@ export default async function generateDiff(params: unknown) {
     await executeCommand(getCommand(currentVersion, currentProjectPath));
     await executeCommand(getCommand(upgradeVersion, upgradeProjectPath));
 
-    // Git init the current project
-    await executeCommand(`
-      cd ${currentProjectPath} &&
-      git init &&
-      git add . &&
-      git commit -m "Initial commit" &&
-      cd ../
-    `);
+    await executeCommand(`git add .`, { cwd: currentProjectPath });
+    await executeCommand(`git commit -m "Initial commit"`, { cwd: currentProjectPath });
 
     const isWindows = os.platform() === "win32";
 
     // copy the upgrade project over the current project
     if (isWindows) {
       // Use robocopy on windows
-      await executeCommand(
-        `robocopy ${upgradeProjectPath} ${currentProjectPath} /MIR /XD .git`,
-      );
+      try {
+        await executeCommand(
+          `robocopy ${upgradeProjectPath} ${currentProjectPath} /MIR /XD .git`,
+        );
+      } catch (error: any) {
+        if ((error?.code as number) > 8) {
+          // if error code is < 8, it means the command was successful so we can ignore the error
+          // https://ss64.com/nt/robocopy-exit.html
+          throw error;
+        }
+      }
     } else {
       // Use rsync on linux
       await executeCommand(
@@ -108,12 +110,8 @@ export default async function generateDiff(params: unknown) {
     }
 
     // Generate the diff
-    await executeCommand(`
-      cd ${currentProjectPath} &&
-      git add . &&
-      git diff --staged > ${diffPath} &&
-      cd ../
-    `);
+    await executeCommand(`git add .`, { cwd: currentProjectPath });
+    await executeCommand(`git diff --staged > ${diffPath}`, { cwd: currentProjectPath });
 
     // Read the diff
     const differences = fs.readFileSync(diffPath, "utf8");
