@@ -1,8 +1,8 @@
 import { ExecException, exec } from "child_process";
 import fs from "fs";
 import gitdiffParser from "gitdiff-parser";
+import os from "os";
 import path from "path";
-import os from "os"
 
 import {
   Features,
@@ -25,7 +25,10 @@ interface ExecuteCommandOptions {
   silent?: boolean;
 }
 
-export const executeCommand = (command: string, options?: ExecuteCommandOptions) => {
+export const executeCommand = (
+  command: string,
+  options?: ExecuteCommandOptions,
+) => {
   const isWindows = os.platform() === "win32";
   let updatedCommand = command;
   if (options?.cwd) {
@@ -37,21 +40,25 @@ export const executeCommand = (command: string, options?: ExecuteCommandOptions)
     }
   }
   return new Promise((resolve, reject) => {
-    exec(updatedCommand, { shell: isWindows ? 'powershell.exe' : '/bin/sh' }, (error, stdout) => {
-      if (error) {
-        if (options?.onError) {
-          options.onError(error);
-        } else if (!options?.silent) {
-          console.error(error);
+    exec(
+      updatedCommand,
+      { shell: isWindows ? "powershell.exe" : "/bin/sh" },
+      (error, stdout) => {
+        if (error) {
+          if (options?.onError) {
+            options.onError(error);
+          } else if (!options?.silent) {
+            console.error(error);
+          }
+          reject(error);
+          return;
         }
-        reject(error);
-        return;
-      }
-      if (options?.onSucess) {
-        options.onSucess(stdout);
-      }
-      resolve(stdout);
-    });
+        if (options?.onSucess) {
+          options.onSucess(stdout);
+        }
+        resolve(stdout);
+      },
+    );
   });
 };
 
@@ -63,7 +70,8 @@ export const getDiffPath = ({
   const featuresString = getFeaturesString(features);
   return path.join(
     DIFFS_PATH,
-    `diff-${currentVersion}-${upgradeVersion}${featuresString ? `-${featuresString}` : ""
+    `diff-${currentVersion}-${upgradeVersion}${
+      featuresString ? `-${featuresString}` : ""
     }.patch`,
   );
 };
@@ -151,6 +159,30 @@ export const ignoreDiffs = async (diffs: string[]) => {
   await fs.promises.writeFile(
     IGNORED_DIFFS_PATH,
     JSON.stringify(sortedIgnoredDiffsObject, null, 2),
+  );
+};
+
+export const markAsExistingDiffs = async (diffs: string[]) => {
+  const existingDiffs = await fs.promises.readFile(EXISTING_DIFFS_PATH, "utf8");
+  const existingDiffsObject: Record<string, boolean> =
+    JSON.parse(existingDiffs);
+  const existingDiffsArray = Object.keys(existingDiffsObject);
+  for (const diff of diffs) {
+    if (!existingDiffsArray.includes(diff)) {
+      existingDiffsArray.push(diff);
+    }
+  }
+
+  const sortedExistingDiffs = sortT3Versions(existingDiffsArray);
+  const sortedExistingDiffsObject: Record<string, boolean> = {};
+
+  sortedExistingDiffs.forEach((element) => {
+    sortedExistingDiffsObject[element] = true;
+  });
+
+  await fs.promises.writeFile(
+    EXISTING_DIFFS_PATH,
+    JSON.stringify(sortedExistingDiffsObject, null, 2),
   );
 };
 

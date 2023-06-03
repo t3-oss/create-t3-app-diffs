@@ -1,9 +1,10 @@
 import fs from "fs";
 import { rimraf } from "rimraf";
 
-import { getMissingDiffs, ignoreDiffs } from "@/fileUtils";
+import { getMissingDiffs, ignoreDiffs, markAsExistingDiffs } from "@/fileUtils";
 import generateDiff from "@/generateDiff";
 import { extractVersionsAndFeatures } from "@/utils";
+import { EMPTY_DIFFS_PATH, GENERATED_DIFFS_PATH } from "./consts";
 
 export const generateAllMissingDiffs = async () => {
   console.log("Generating all missing diffs");
@@ -31,13 +32,19 @@ export const generateAllMissingDiffs = async () => {
     const timeStart = performance.now();
     try {
       await Promise.all(promises);
-      if (!fs.existsSync("/tmp/emptyDiffs")) {
-        fs.mkdirSync("/tmp/emptyDiffs");
+      if (!fs.existsSync(EMPTY_DIFFS_PATH)) {
+        fs.mkdirSync(EMPTY_DIFFS_PATH);
       }
-      const emptyDiffs = await fs.promises.readdir("/tmp/emptyDiffs");
+      const emptyDiffs = await fs.promises.readdir(EMPTY_DIFFS_PATH);
       if (emptyDiffs.length) {
         await ignoreDiffs(emptyDiffs);
-        await rimraf("/tmp/emptyDiffs/*");
+        await rimraf(EMPTY_DIFFS_PATH);
+      }
+
+      const generatedDiffs = await fs.promises.readdir(GENERATED_DIFFS_PATH);
+      if (generatedDiffs.length) {
+        await markAsExistingDiffs(generatedDiffs);
+        await rimraf(GENERATED_DIFFS_PATH);
       }
     } catch (error) {
       console.error(error);
