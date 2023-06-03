@@ -6,6 +6,7 @@
   "scripts": {
     "generate-all-missing-diffs": "tsx src/runGenerateAllScript.ts",
     "purge-empty-diffs": "tsx src/runPurgeAllEmptyScript.ts",
+    "update-existing-diffs": "tsx src/runUpdateExistingDiffsMap.ts",
     "format": "pnpm format:check --write",
     "format:check": "prettier --check **/*.{cjs,mjs,ts,tsx,json} --ignore-path .gitignore --ignore-unknown --no-error-on-unmatched-pattern"
   },

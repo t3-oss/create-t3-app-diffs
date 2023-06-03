@@ -142,11 +142,6 @@ export default async function generateDiff(params: unknown) {
       }`,
     );
 
-    // create a directory for empty diffs
-    if (!fs.existsSync(EMPTY_DIFFS_PATH)) {
-      fs.mkdirSync(EMPTY_DIFFS_PATH);
-    }
-
     if (checkIfDiffIsEmpty(differences)) {
       // Delete the diff if it's empty
       await rimraf(diffPath);

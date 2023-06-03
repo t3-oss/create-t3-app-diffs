@@ -41,6 +41,9 @@ export const generateAllMissingDiffs = async () => {
         await rimraf(EMPTY_DIFFS_PATH);
       }
 
+      if (!fs.existsSync(GENERATED_DIFFS_PATH)) {
+        fs.mkdirSync(GENERATED_DIFFS_PATH);
+      }
       const generatedDiffs = await fs.promises.readdir(GENERATED_DIFFS_PATH);
       if (generatedDiffs.length) {
         await markAsExistingDiffs(generatedDiffs);

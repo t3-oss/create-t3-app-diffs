@@ -10,12 +10,10 @@ import { extractVersionsAndFeatures, getFeaturesString } from "./utils";
 
 export const updateExistingDiffsMap = async () => {
   const diffs = await fs.promises.readdir(DIFFS_PATH);
-  console.log(diffs.length);
   const diffsMap: Record<string, boolean> = {};
   for (const diff of diffs) {
     const versionsAndFeatures = extractVersionsAndFeatures(diff);
     if (!versionsAndFeatures) {
-      console.log(`Invalid diff location: ${diff}`);
       continue;
     }
     const { currentVersion, upgradeVersion } = versionsAndFeatures;
