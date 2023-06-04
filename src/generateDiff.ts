@@ -1,6 +1,8 @@
 import fs from "fs";
 import path from "path";
 import { z } from "zod";
+import { rimraf } from "rimraf";
+import os from "os";
 
 import { checkIfDiffIsEmpty, executeCommand, getDiffPath } from "@/fileUtils";
 import { getFeaturesString } from "@/utils";
@@ -42,8 +44,13 @@ export default async function generateDiff(params: unknown) {
   const upgradeProjectPath = path.join(diffDir, "upgrade");
 
   // Make sure the directories don't exist
-  await executeCommand(`rm -rf ${currentProjectPath}`);
-  await executeCommand(`rm -rf ${upgradeProjectPath}`);
+  await rimraf(currentProjectPath);
+  await rimraf(upgradeProjectPath);
+
+  // Create diffDir if it doesn't exist
+  if (!fs.existsSync(diffDir)) {
+    fs.mkdirSync(diffDir);
+  }
 
   // Check if ~/.gitconfig exists
   const author = fs.existsSync(path.join(process.env.HOME ?? "", ".gitconfig"));
@@ -55,8 +62,8 @@ export default async function generateDiff(params: unknown) {
     `);
   }
 
-  const getCommand = (version: string, path: string) =>
-    `pnpm create t3-app@${version} ${path} --CI ${featureFlags} --noInstall`;
+  const getCommand = (version: string, folderName: string) =>
+    `pnpm create t3-app@${version} ${folderName} --CI ${featureFlags} --noInstall`;
 
   if (fs.existsSync(diffPath)) {
     const differences = fs.readFileSync(diffPath, "utf8");
@@ -78,35 +85,44 @@ export default async function generateDiff(params: unknown) {
   }
 
   try {
-    await executeCommand(getCommand(currentVersion, currentProjectPath));
-    await executeCommand(getCommand(upgradeVersion, upgradeProjectPath));
+    await executeCommand(getCommand(currentVersion, 'current'), { cwd: diffDir });
+    await executeCommand(getCommand(upgradeVersion, 'upgrade'), { cwd: diffDir });
 
-    // Git init the current project
-    await executeCommand(`
-      cd ${currentProjectPath} &&
-      git init &&
-      git add . &&
-      git commit -m "Initial commit" &&
-      cd ../
-    `);
+    await executeCommand(`git add .`, { cwd: currentProjectPath });
+    await executeCommand(`git commit -m "Initial commit"`, { cwd: currentProjectPath });
 
-    // Move the upgrade project over the current project
-    await executeCommand(
-      `rsync -a --delete --exclude=.git/ ${upgradeProjectPath}/ ${currentProjectPath}/`,
-    );
+    const isWindows = os.platform() === "win32";
+
+    // copy the upgrade project over the current project
+    if (isWindows) {
+      // Use robocopy on windows
+      try {
+        await executeCommand(
+          `robocopy ${upgradeProjectPath} ${currentProjectPath} /MIR /XD .git`,
+          { silent: true }
+        );
+      } catch (error: any) {
+        if ((error?.code as number) > 8) {
+          // if error code is < 8, it means the command was successful so we can ignore the error
+          // https://ss64.com/nt/robocopy-exit.html
+          throw error;
+        }
+      }
+    } else {
+      // Use rsync on linux
+      await executeCommand(
+        `rsync -a --delete --exclude=.git/ ${upgradeProjectPath}/ ${currentProjectPath}/`,
+      );
+    }
 
     // Generate the diff
-    await executeCommand(`
-      cd ${currentProjectPath} &&
-      git add . &&
-      git diff --staged > ${diffPath} &&
-      cd ../
-    `);
+    await executeCommand(`git add .`, { cwd: currentProjectPath });
+    await executeCommand(`git diff --staged > ${diffPath}`, { cwd: currentProjectPath });
 
     // Read the diff
     const differences = fs.readFileSync(diffPath, "utf8");
 
-    await executeCommand(`rm -rf ${diffDir}`);
+    await rimraf(diffDir)
 
     console.log(
       `Generated diff: ${currentVersion}..${upgradeVersion}${
@@ -121,7 +137,7 @@ export default async function generateDiff(params: unknown) {
 
     if (checkIfDiffIsEmpty(differences)) {
       // Delete the diff if it's empty
-      await executeCommand(`rm -rf ${diffPath}`);
+      await rimraf(diffPath)
       // Create a file with the filename to indicate that the diff is empty
       fs.writeFileSync(
         `/tmp/emptyDiffs/${currentVersion}..${upgradeVersion}${

@@ -1,7 +1,8 @@
-import { exec } from "child_process";
+import { ExecException, exec } from "child_process";
 import fs from "fs";
 import gitdiffParser from "gitdiff-parser";
 import path from "path";
+import os from "os"
 
 import {
   Features,
@@ -17,16 +18,37 @@ export interface DiffLocation {
   features: Features;
 }
 
-export const executeCommand = (command: string, options?: { cwd: string }) => {
+interface ExecuteCommandOptions {
+  cwd?: string;
+  onError?: (error: ExecException) => void;
+  onSucess?: (stdout: string) => void;
+  silent?: boolean;
+}
+
+export const executeCommand = (command: string, options?: ExecuteCommandOptions) => {
+  const isWindows = os.platform() === "win32";
+  let updatedCommand = command;
   if (options?.cwd) {
-    exec(`cd ${options.cwd}`);
+    const normalizedPath = path.normalize(options.cwd);
+    if (isWindows) {
+      updatedCommand = `cd ${normalizedPath}; ${command}`;
+    } else {
+      updatedCommand = `cd ${normalizedPath} && ${command}`;
+    }
   }
   return new Promise((resolve, reject) => {
-    exec(command, (error, stdout) => {
+    exec(updatedCommand, { shell: isWindows ? 'powershell.exe' : '/bin/sh' }, (error, stdout) => {
       if (error) {
-        console.error(error);
+        if (options?.onError) {
+          options.onError(error);
+        } else if (!options?.silent) {
+          console.error(error);
+        }
         reject(error);
         return;
+      }
+      if (options?.onSucess) {
+        options.onSucess(stdout);
       }
       resolve(stdout);
     });
@@ -41,8 +63,7 @@ export const getDiffPath = ({
   const featuresString = getFeaturesString(features);
   return path.join(
     DIFFS_PATH,
-    `diff-${currentVersion}-${upgradeVersion}${
-      featuresString ? `-${featuresString}` : ""
+    `diff-${currentVersion}-${upgradeVersion}${featuresString ? `-${featuresString}` : ""
     }.patch`,
   );
 };
