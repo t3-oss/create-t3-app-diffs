@@ -1,12 +1,12 @@
 import fs from "fs";
-import path from "path";
-import { z } from "zod";
-import { rimraf } from "rimraf";
 import os from "os";
+import path from "path";
+import { rimraf } from "rimraf";
+import { z } from "zod";
 
 import { checkIfDiffIsEmpty, executeCommand, getDiffPath } from "@/fileUtils";
 import { getFeaturesString } from "@/utils";
-import { IGNORED_DIFFS_PATH } from "./consts";
+import { EMPTY_DIFFS_PATH, IGNORED_DIFFS_PATH } from "./consts";
 
 const paramsSchema = z.object({
   currentVersion: z.string(),
@@ -85,11 +85,17 @@ export default async function generateDiff(params: unknown) {
   }
 
   try {
-    await executeCommand(getCommand(currentVersion, 'current'), { cwd: diffDir });
-    await executeCommand(getCommand(upgradeVersion, 'upgrade'), { cwd: diffDir });
+    await executeCommand(getCommand(currentVersion, "current"), {
+      cwd: diffDir,
+    });
+    await executeCommand(getCommand(upgradeVersion, "upgrade"), {
+      cwd: diffDir,
+    });
 
     await executeCommand(`git add .`, { cwd: currentProjectPath });
-    await executeCommand(`git commit -m "Initial commit"`, { cwd: currentProjectPath });
+    await executeCommand(`git commit -m "Initial commit"`, {
+      cwd: currentProjectPath,
+    });
 
     const isWindows = os.platform() === "win32";
 
@@ -99,7 +105,7 @@ export default async function generateDiff(params: unknown) {
       try {
         await executeCommand(
           `robocopy ${upgradeProjectPath} ${currentProjectPath} /MIR /XD .git`,
-          { silent: true }
+          { silent: true },
         );
       } catch (error: any) {
         if ((error?.code as number) > 8) {
@@ -117,12 +123,14 @@ export default async function generateDiff(params: unknown) {
 
     // Generate the diff
     await executeCommand(`git add .`, { cwd: currentProjectPath });
-    await executeCommand(`git diff --staged > ${diffPath}`, { cwd: currentProjectPath });
+    await executeCommand(`git diff --staged > ${diffPath}`, {
+      cwd: currentProjectPath,
+    });
 
     // Read the diff
     const differences = fs.readFileSync(diffPath, "utf8");
 
-    await rimraf(diffDir)
+    await rimraf(diffDir);
 
     console.log(
       `Generated diff: ${currentVersion}..${upgradeVersion}${
@@ -130,21 +138,17 @@ export default async function generateDiff(params: unknown) {
       }`,
     );
 
-    // create a directory for empty diffs
-    if (!fs.existsSync("/tmp/emptyDiffs")) {
-      fs.mkdirSync("/tmp/emptyDiffs");
-    }
-
     if (checkIfDiffIsEmpty(differences)) {
       // Delete the diff if it's empty
-      await rimraf(diffPath)
-      // Create a file with the filename to indicate that the diff is empty
-      fs.writeFileSync(
-        `/tmp/emptyDiffs/${currentVersion}..${upgradeVersion}${
+      await rimraf(diffPath);
+      const emptyDiffPath = path.join(
+        EMPTY_DIFFS_PATH,
+        `${currentVersion}..${upgradeVersion}${
           featuresString ? `-${featuresString}` : ""
         }`,
-        "",
       );
+      // Create a file with the filename to indicate that the diff is empty
+      fs.writeFileSync(emptyDiffPath, "");
 
       return { differences: "", url };
     }
