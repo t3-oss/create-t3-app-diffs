@@ -1,0 +1,41 @@
+diff --git a/package.json b/package.json
+index f231a2e..dbc6586 100644
+--- a/package.json
++++ b/package.json
+@@ -1,5 +1,5 @@
+ {
+-  "name": "current",
++  "name": "upgrade",
+   "version": "0.1.0",
+   "private": true,
+   "scripts": {
+@@ -33,6 +33,6 @@
+     "typescript": "^5.0.4"
+   },
+   "ct3aMetadata": {
+-    "initVersion": "7.13.1"
++    "initVersion": "7.13.2"
+   }
+ }
+diff --git a/src/pages/index.tsx b/src/pages/index.tsx
+index 5513c42..2b6a387 100644
+--- a/src/pages/index.tsx
++++ b/src/pages/index.tsx
+@@ -1,8 +1,7 @@
+-import { type NextPage } from "next";
+ import Head from "next/head";
+ import Link from "next/link";
+ 
+-const Home: NextPage = () => {
++export default function Home() {
+   return (
+     <>
+       <Head>
+@@ -43,6 +42,4 @@ const Home: NextPage = () => {
+       </main>
+     </>
+   );
+-};
+-
+-export default Home;
++}
