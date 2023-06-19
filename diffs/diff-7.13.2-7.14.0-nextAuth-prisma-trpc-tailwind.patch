@@ -1,0 +1,29 @@
+diff --git a/next.config.mjs b/next.config.mjs
+index d921057..654e725 100644
+--- a/next.config.mjs
++++ b/next.config.mjs
+@@ -19,4 +19,5 @@ const config = {
+     defaultLocale: "en",
+   },
+ };
++
+ export default config;
+diff --git a/package.json b/package.json
+index 1ed4852..0e0d12a 100644
+--- a/package.json
++++ b/package.json
+@@ -1,5 +1,5 @@
+ {
+-  "name": "current",
++  "name": "upgrade",
+   "version": "0.1.0",
+   "private": true,
+   "scripts": {
+@@ -44,6 +44,6 @@
+     "typescript": "^5.0.4"
+   },
+   "ct3aMetadata": {
+-    "initVersion": "7.13.2"
++    "initVersion": "7.14.0"
+   }
+ }
