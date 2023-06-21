@@ -1,0 +1,481 @@
+diff --git a/.eslintrc.cjs b/.eslintrc.cjs
+index 10756b8..8b7a0e8 100644
+--- a/.eslintrc.cjs
++++ b/.eslintrc.cjs
+@@ -1,3 +1,6 @@
++// eslint-disable-next-line @typescript-eslint/no-var-requires
++const path = require("path");
++
+ /** @type {import("eslint").Linter.Config} */
+ const config = {
+   overrides: [
+@@ -7,13 +10,13 @@ const config = {
+       ],
+       files: ["*.ts", "*.tsx"],
+       parserOptions: {
+-        project: "tsconfig.json",
++        project: path.join(__dirname, "tsconfig.json"),
+       },
+     },
+   ],
+   parser: "@typescript-eslint/parser",
+   parserOptions: {
+-    project: "./tsconfig.json",
++    project: path.join(__dirname, "tsconfig.json"),
+   },
+   plugins: ["@typescript-eslint"],
+   extends: ["next/core-web-vitals", "plugin:@typescript-eslint/recommended"],
+diff --git a/next.config.mjs b/next.config.mjs
+index d7dfb79..654e725 100644
+--- a/next.config.mjs
++++ b/next.config.mjs
+@@ -1,18 +1,16 @@
+-// @ts-check
+-
+ /**
+- * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation.
+- * This is especially useful for Docker builds.
++ * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation. This is especially useful
++ * for Docker builds.
+  */
+-!process.env.SKIP_ENV_VALIDATION && (await import("./src/env.mjs"));
++await import("./src/env.mjs");
+ 
+ /** @type {import("next").NextConfig} */
+ const config = {
+   reactStrictMode: true,
+ 
+   /**
+-   * If you have the "experimental: { appDir: true }" setting enabled, then you
+-   * must comment the below `i18n` config out.
++   * If you have `experimental: { appDir: true }` set, then you must comment the below `i18n` config
++   * out.
+    *
+    * @see https://github.com/vercel/next.js/issues/41980
+    */
+@@ -21,4 +19,5 @@ const config = {
+     defaultLocale: "en",
+   },
+ };
++
+ export default config;
+diff --git a/package.json b/package.json
+index 2578306..abe3046 100644
+--- a/package.json
++++ b/package.json
+@@ -1,5 +1,5 @@
+ {
+-  "name": "current",
++  "name": "upgrade",
+   "version": "0.1.0",
+   "private": true,
+   "scripts": {
+@@ -9,30 +9,31 @@
+     "start": "next start"
+   },
+   "dependencies": {
+-    "@tanstack/react-query": "^4.20.2",
+-    "@trpc/client": "^10.9.0",
+-    "@trpc/next": "^10.9.0",
+-    "@trpc/react-query": "^10.9.0",
+-    "@trpc/server": "^10.9.0",
+-    "next": "^13.2.1",
+-    "next-auth": "^4.19.0",
++    "@t3-oss/env-nextjs": "^0.3.1",
++    "@tanstack/react-query": "^4.29.7",
++    "@trpc/client": "^10.26.0",
++    "@trpc/next": "^10.26.0",
++    "@trpc/react-query": "^10.26.0",
++    "@trpc/server": "^10.26.0",
++    "next": "^13.4.2",
++    "next-auth": "^4.22.1",
+     "react": "18.2.0",
+     "react-dom": "18.2.0",
+-    "superjson": "1.9.1",
+-    "zod": "^3.20.6"
++    "superjson": "1.12.2",
++    "zod": "^3.21.4"
+   },
+   "devDependencies": {
+-    "@types/eslint": "^8.21.1",
+-    "@types/node": "^18.14.0",
+-    "@types/react": "^18.0.28",
+-    "@types/react-dom": "^18.0.11",
+-    "@typescript-eslint/eslint-plugin": "^5.53.0",
+-    "@typescript-eslint/parser": "^5.53.0",
+-    "eslint": "^8.34.0",
+-    "eslint-config-next": "^13.2.1",
+-    "typescript": "^4.9.5"
++    "@types/eslint": "^8.37.0",
++    "@types/node": "^18.16.0",
++    "@types/react": "^18.2.6",
++    "@types/react-dom": "^18.2.4",
++    "@typescript-eslint/eslint-plugin": "^5.59.6",
++    "@typescript-eslint/parser": "^5.59.6",
++    "eslint": "^8.40.0",
++    "eslint-config-next": "^13.4.2",
++    "typescript": "^5.0.4"
+   },
+   "ct3aMetadata": {
+-    "initVersion": "7.7.0"
++    "initVersion": "7.14.1"
+   }
+ }
+diff --git a/src/env.mjs b/src/env.mjs
+index 9f3d74a..8185315 100644
+--- a/src/env.mjs
++++ b/src/env.mjs
+@@ -1,92 +1,53 @@
++import { createEnv } from "@t3-oss/env-nextjs";
+ import { z } from "zod";
+ 
+-/**
+- * Specify your server-side environment variables schema here. This way you can ensure the app isn't
+- * built with invalid env vars.
+- */
+-const server = z.object({
+-  NODE_ENV: z.enum(["development", "test", "production"]),
+-  NEXTAUTH_SECRET:
+-    process.env.NODE_ENV === "production"
+-      ? z.string().min(1)
+-      : z.string().min(1).optional(),
+-  NEXTAUTH_URL: z.preprocess(
+-    // This makes Vercel deployments not fail if you don't set NEXTAUTH_URL
+-    // Since NextAuth.js automatically uses the VERCEL_URL if present.
+-    (str) => process.env.VERCEL_URL ?? str,
+-    // VERCEL_URL doesn't include `https` so it cant be validated as a URL
+-    process.env.VERCEL ? z.string().min(1) : z.string().url(),
+-  ),
+-  // Add `.min(1) on ID and SECRET if you want to make sure they're not empty
+-  DISCORD_CLIENT_ID: z.string(),
+-  DISCORD_CLIENT_SECRET: z.string(),
++export const env = createEnv({
++  /**
++   * Specify your server-side environment variables schema here. This way you can ensure the app
++   * isn't built with invalid env vars.
++   */
++  server: {
++    NODE_ENV: z.enum(["development", "test", "production"]),
++    NEXTAUTH_SECRET:
++      process.env.NODE_ENV === "production"
++        ? z.string().min(1)
++        : z.string().min(1).optional(),
++    NEXTAUTH_URL: z.preprocess(
++      // This makes Vercel deployments not fail if you don't set NEXTAUTH_URL
++      // Since NextAuth.js automatically uses the VERCEL_URL if present.
++      (str) => process.env.VERCEL_URL ?? str,
++      // VERCEL_URL doesn't include `https` so it cant be validated as a URL
++      process.env.VERCEL ? z.string().min(1) : z.string().url(),
++    ),
++    // Add `.min(1) on ID and SECRET if you want to make sure they're not empty
++    DISCORD_CLIENT_ID: z.string(),
++    DISCORD_CLIENT_SECRET: z.string(),
++  },
++
++  /**
++   * Specify your client-side environment variables schema here. This way you can ensure the app
++   * isn't built with invalid env vars. To expose them to the client, prefix them with
++   * `NEXT_PUBLIC_`.
++   */
++  client: {
++    // NEXT_PUBLIC_CLIENTVAR: z.string().min(1),
++  },
++
++  /**
++   * You can't destruct `process.env` as a regular object in the Next.js edge runtimes (e.g.
++   * middlewares) or client-side so we need to destruct manually.
++   */
++  runtimeEnv: {
++    NODE_ENV: process.env.NODE_ENV,
++    NEXTAUTH_SECRET: process.env.NEXTAUTH_SECRET,
++    NEXTAUTH_URL: process.env.NEXTAUTH_URL,
++    DISCORD_CLIENT_ID: process.env.DISCORD_CLIENT_ID,
++    DISCORD_CLIENT_SECRET: process.env.DISCORD_CLIENT_SECRET,
++    // NEXT_PUBLIC_CLIENTVAR: process.env.NEXT_PUBLIC_CLIENTVAR,
++  },
++  /**
++   * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation.
++   * This is especially useful for Docker builds.
++   */
++  skipValidation: !!process.env.SKIP_ENV_VALIDATION,
+ });
+-
+-/**
+- * Specify your client-side environment variables schema here. This way you can ensure the app isn't
+- * built with invalid env vars. To expose them to the client, prefix them with `NEXT_PUBLIC_`.
+- */
+-const client = z.object({
+-  // NEXT_PUBLIC_CLIENTVAR: z.string().min(1),
+-});
+-
+-/**
+- * You can't destruct `process.env` as a regular object in the Next.js edge runtimes (e.g.
+- * middlewares) or client-side so we need to destruct manually.
+- *
+- * @type {Record<keyof z.infer<typeof server> | keyof z.infer<typeof client>, string | undefined>}
+- */
+-const processEnv = {
+-  NODE_ENV: process.env.NODE_ENV,
+-  NEXTAUTH_SECRET: process.env.NEXTAUTH_SECRET,
+-  NEXTAUTH_URL: process.env.NEXTAUTH_URL,
+-  DISCORD_CLIENT_ID: process.env.DISCORD_CLIENT_ID,
+-  DISCORD_CLIENT_SECRET: process.env.DISCORD_CLIENT_SECRET,
+-  // NEXT_PUBLIC_CLIENTVAR: process.env.NEXT_PUBLIC_CLIENTVAR,
+-};
+-
+-// Don't touch the part below
+-// --------------------------
+-
+-const merged = server.merge(client);
+-
+-/** @typedef {z.input<typeof merged>} MergedInput */
+-/** @typedef {z.infer<typeof merged>} MergedOutput */
+-/** @typedef {z.SafeParseReturnType<MergedInput, MergedOutput>} MergedSafeParseReturn */
+-
+-let env = /** @type {MergedOutput} */ (process.env);
+-
+-if (!!process.env.SKIP_ENV_VALIDATION == false) {
+-  const isServer = typeof window === "undefined";
+-
+-  const parsed = /** @type {MergedSafeParseReturn} */ (
+-    isServer
+-      ? merged.safeParse(processEnv) // on server we can validate all env vars
+-      : client.safeParse(processEnv) // on client we can only validate the ones that are exposed
+-  );
+-
+-  if (parsed.success === false) {
+-    console.error(
+-      "❌ Invalid environment variables:",
+-      parsed.error.flatten().fieldErrors,
+-    );
+-    throw new Error("Invalid environment variables");
+-  }
+-
+-  env = new Proxy(parsed.data, {
+-    get(target, prop) {
+-      if (typeof prop !== "string") return undefined;
+-      // Throw a descriptive error if a server-side env var is accessed on the client
+-      // Otherwise it would just be returning `undefined` and be annoying to debug
+-      if (!isServer && !prop.startsWith("NEXT_PUBLIC_"))
+-        throw new Error(
+-          process.env.NODE_ENV === "production"
+-            ? "❌ Attempted to access a server-side environment variable on the client"
+-            : `❌ Attempted to access server-side environment variable '${prop}' on the client`,
+-        );
+-      return target[/** @type {keyof typeof target} */ (prop)];
+-    },
+-  });
+-}
+-
+-export { env };
+diff --git a/src/pages/_app.tsx b/src/pages/_app.tsx
+index 81e8bcc..e319df4 100644
+--- a/src/pages/_app.tsx
++++ b/src/pages/_app.tsx
+@@ -1,9 +1,7 @@
+-import { type AppType } from "next/app";
+ import { type Session } from "next-auth";
+ import { SessionProvider } from "next-auth/react";
+-
++import { type AppType } from "next/app";
+ import { api } from "~/utils/api";
+-
+ import "~/styles/globals.css";
+ 
+ const MyApp: AppType<{ session: Session | null }> = ({
+diff --git a/src/pages/api/trpc/[trpc].ts b/src/pages/api/trpc/[trpc].ts
+index 3c744a0..dc36ccf 100644
+--- a/src/pages/api/trpc/[trpc].ts
++++ b/src/pages/api/trpc/[trpc].ts
+@@ -1,8 +1,7 @@
+ import { createNextApiHandler } from "@trpc/server/adapters/next";
+-
+ import { env } from "~/env.mjs";
+-import { createTRPCContext } from "~/server/api/trpc";
+ import { appRouter } from "~/server/api/root";
++import { createTRPCContext } from "~/server/api/trpc";
+ 
+ // export API handler
+ export default createNextApiHandler({
+diff --git a/src/pages/index.tsx b/src/pages/index.tsx
+index c85095e..15fb69b 100644
+--- a/src/pages/index.tsx
++++ b/src/pages/index.tsx
+@@ -1,12 +1,10 @@
+ import styles from "./index.module.css";
+-import { type NextPage } from "next";
++import { signIn, signOut, useSession } from "next-auth/react";
+ import Head from "next/head";
+ import Link from "next/link";
+-import { signIn, signOut, useSession } from "next-auth/react";
+-
+ import { api } from "~/utils/api";
+ 
+-const Home: NextPage = () => {
++export default function Home() {
+   const hello = api.example.hello.useQuery({ text: "from tRPC" });
+ 
+   return (
+@@ -55,11 +53,9 @@ const Home: NextPage = () => {
+       </main>
+     </>
+   );
+-};
+-
+-export default Home;
++}
+ 
+-const AuthShowcase: React.FC = () => {
++function AuthShowcase() {
+   const { data: sessionData } = useSession();
+ 
+   const { data: secretMessage } = api.example.getSecretMessage.useQuery(
+@@ -81,4 +77,4 @@ const AuthShowcase: React.FC = () => {
+       </button>
+     </div>
+   );
+-};
++}
+diff --git a/src/server/api/root.ts b/src/server/api/root.ts
+index 93fba92..7caea0f 100644
+--- a/src/server/api/root.ts
++++ b/src/server/api/root.ts
+@@ -1,5 +1,5 @@
+-import { createTRPCRouter } from "~/server/api/trpc";
+ import { exampleRouter } from "~/server/api/routers/example";
++import { createTRPCRouter } from "~/server/api/trpc";
+ 
+ /**
+  * This is the primary router for your server.
+diff --git a/src/server/api/routers/example.ts b/src/server/api/routers/example.ts
+index 147aa68..cc24471 100644
+--- a/src/server/api/routers/example.ts
++++ b/src/server/api/routers/example.ts
+@@ -1,5 +1,4 @@
+ import { z } from "zod";
+-
+ import {
+   createTRPCRouter,
+   publicProcedure,
+diff --git a/src/server/api/trpc.ts b/src/server/api/trpc.ts
+index 10fd521..9f4a31f 100644
+--- a/src/server/api/trpc.ts
++++ b/src/server/api/trpc.ts
+@@ -6,6 +6,12 @@
+  * TL;DR - This is where all the tRPC server stuff is created and plugged in. The pieces you will
+  * need to use are documented accordingly near the end.
+  */
++import { initTRPC, TRPCError } from "@trpc/server";
++import { type CreateNextContextOptions } from "@trpc/server/adapters/next";
++import { type Session } from "next-auth";
++import superjson from "superjson";
++import { ZodError } from "zod";
++import { getServerAuthSession } from "~/server/auth";
+ 
+ /**
+  * 1. CONTEXT
+@@ -14,10 +20,6 @@
+  *
+  * These allow you to access things when processing a request, like the database, the session, etc.
+  */
+-import { type CreateNextContextOptions } from "@trpc/server/adapters/next";
+-import { type Session } from "next-auth";
+-
+-import { getServerAuthSession } from "~/server/auth";
+ 
+ type CreateContextOptions = {
+   session: Session | null;
+@@ -31,11 +33,11 @@ type CreateContextOptions = {
+  * - testing, so we don't have to mock Next.js' req/res
+  * - tRPC's `createSSGHelpers`, where we don't have req/res
+  *
+- * @see https://create.t3.gg/en/usage/trpc#-servertrpccontextts
++ * @see https://create.t3.gg/en/usage/trpc#-serverapitrpcts
+  */
+-const createInnerTRPCContext = (opts: CreateContextOptions) => {
++const createInnerTRPCContext = ({ session }: CreateContextOptions) => {
+   return {
+-    session: opts.session,
++    session,
+   };
+ };
+ 
+@@ -45,9 +47,10 @@ const createInnerTRPCContext = (opts: CreateContextOptions) => {
+  *
+  * @see https://trpc.io/docs/context
+  */
+-export const createTRPCContext = async (opts: CreateNextContextOptions) => {
+-  const { req, res } = opts;
+-
++export const createTRPCContext = async ({
++  req,
++  res,
++}: CreateNextContextOptions) => {
+   // Get the session from the server using the getServerSession wrapper function
+   const session = await getServerAuthSession({ req, res });
+ 
+@@ -59,15 +62,22 @@ export const createTRPCContext = async (opts: CreateNextContextOptions) => {
+ /**
+  * 2. INITIALIZATION
+  *
+- * This is where the tRPC API is initialized, connecting the context and transformer.
++ * This is where the tRPC API is initialized, connecting the context and transformer. We also parse
++ * ZodErrors so that you get typesafety on the frontend if your procedure fails due to validation
++ * errors on the backend.
+  */
+-import { initTRPC, TRPCError } from "@trpc/server";
+-import superjson from "superjson";
+ 
+ const t = initTRPC.context<typeof createTRPCContext>().create({
+   transformer: superjson,
+-  errorFormatter({ shape }) {
+-    return shape;
++  errorFormatter({ shape, error }) {
++    return {
++      ...shape,
++      data: {
++        ...shape.data,
++        zodError:
++          error.cause instanceof ZodError ? error.cause.flatten() : null,
++      },
++    };
+   },
+ });
+ 
+diff --git a/src/server/auth.ts b/src/server/auth.ts
+index 0b69401..1113ac3 100644
+--- a/src/server/auth.ts
++++ b/src/server/auth.ts
+@@ -35,13 +35,13 @@ declare module "next-auth" {
+  */
+ export const authOptions: NextAuthOptions = {
+   callbacks: {
+-    session({ session, user }) {
+-      if (session.user) {
+-        session.user.id = user.id;
+-        // session.user.role = user.role; <-- put other properties on the session here
+-      }
+-      return session;
+-    },
++    session: ({ session, token }) => ({
++      ...session,
++      user: {
++        ...session.user,
++        id: token.sub,
++      },
++    }),
+   },
+   providers: [
+     DiscordProvider({
+diff --git a/src/utils/api.ts b/src/utils/api.ts
+index f4f4ad5..b2d5afd 100644
+--- a/src/utils/api.ts
++++ b/src/utils/api.ts
+@@ -8,7 +8,6 @@ import { httpBatchLink, loggerLink } from "@trpc/client";
+ import { createTRPCNext } from "@trpc/next";
+ import { type inferRouterInputs, type inferRouterOutputs } from "@trpc/server";
+ import superjson from "superjson";
+-
+ import { type AppRouter } from "~/server/api/root";
+ 
+ const getBaseUrl = () => {
