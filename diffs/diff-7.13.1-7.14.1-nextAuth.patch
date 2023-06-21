@@ -1,0 +1,52 @@
+diff --git a/next.config.mjs b/next.config.mjs
+index d921057..654e725 100644
+--- a/next.config.mjs
++++ b/next.config.mjs
+@@ -19,4 +19,5 @@ const config = {
+     defaultLocale: "en",
+   },
+ };
++
+ export default config;
+diff --git a/package.json b/package.json
+index ef83fe2..202ed3d 100644
+--- a/package.json
++++ b/package.json
+@@ -1,5 +1,5 @@
+ {
+-  "name": "current",
++  "name": "upgrade",
+   "version": "0.1.0",
+   "private": true,
+   "scripts": {
+@@ -28,6 +28,6 @@
+     "typescript": "^5.0.4"
+   },
+   "ct3aMetadata": {
+-    "initVersion": "7.13.1"
++    "initVersion": "7.14.1"
+   }
+ }
+diff --git a/src/pages/index.tsx b/src/pages/index.tsx
+index 35f4e30..8af8ec8 100644
+--- a/src/pages/index.tsx
++++ b/src/pages/index.tsx
+@@ -1,9 +1,8 @@
+ import styles from "./index.module.css";
+-import { type NextPage } from "next";
+ import Head from "next/head";
+ import Link from "next/link";
+ 
+-const Home: NextPage = () => {
++export default function Home() {
+   return (
+     <>
+       <Head>
+@@ -44,6 +43,4 @@ const Home: NextPage = () => {
+       </main>
+     </>
+   );
+-};
+-
+-export default Home;
++}
