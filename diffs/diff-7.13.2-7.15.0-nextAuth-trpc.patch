@@ -1,0 +1,68 @@
+diff --git a/next.config.mjs b/next.config.mjs
+index d921057..654e725 100644
+--- a/next.config.mjs
++++ b/next.config.mjs
+@@ -19,4 +19,5 @@ const config = {
+     defaultLocale: "en",
+   },
+ };
++
+ export default config;
+diff --git a/package.json b/package.json
+index ce087d1..10d8d1c 100644
+--- a/package.json
++++ b/package.json
+@@ -1,5 +1,5 @@
+ {
+-  "name": "current",
++  "name": "upgrade",
+   "version": "0.1.0",
+   "private": true,
+   "scripts": {
+@@ -34,6 +34,6 @@
+     "typescript": "^5.0.4"
+   },
+   "ct3aMetadata": {
+-    "initVersion": "7.13.2"
++    "initVersion": "7.15.0"
+   }
+ }
+diff --git a/src/env.mjs b/src/env.mjs
+index 8185315..7180893 100644
+--- a/src/env.mjs
++++ b/src/env.mjs
+@@ -17,7 +17,7 @@ export const env = createEnv({
+       // Since NextAuth.js automatically uses the VERCEL_URL if present.
+       (str) => process.env.VERCEL_URL ?? str,
+       // VERCEL_URL doesn't include `https` so it cant be validated as a URL
+-      process.env.VERCEL ? z.string().min(1) : z.string().url(),
++      process.env.VERCEL ? z.string().min(1) : z.string().url()
+     ),
+     // Add `.min(1) on ID and SECRET if you want to make sure they're not empty
+     DISCORD_CLIENT_ID: z.string(),
+diff --git a/src/pages/api/trpc/[trpc].ts b/src/pages/api/trpc/[trpc].ts
+index dc36ccf..6c53746 100644
+--- a/src/pages/api/trpc/[trpc].ts
++++ b/src/pages/api/trpc/[trpc].ts
+@@ -11,7 +11,7 @@ export default createNextApiHandler({
+     env.NODE_ENV === "development"
+       ? ({ path, error }) => {
+           console.error(
+-            `❌ tRPC failed on ${path ?? "<no-path>"}: ${error.message}`,
++            `❌ tRPC failed on ${path ?? "<no-path>"}: ${error.message}`
+           );
+         }
+       : undefined,
+diff --git a/src/pages/index.tsx b/src/pages/index.tsx
+index 15fb69b..a6bc542 100644
+--- a/src/pages/index.tsx
++++ b/src/pages/index.tsx
+@@ -60,7 +60,7 @@ function AuthShowcase() {
+ 
+   const { data: secretMessage } = api.example.getSecretMessage.useQuery(
+     undefined, // no input
+-    { enabled: sessionData?.user !== undefined },
++    { enabled: sessionData?.user !== undefined }
+   );
+ 
+   return (
