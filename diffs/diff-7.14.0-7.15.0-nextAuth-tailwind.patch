@@ -1,0 +1,32 @@
+diff --git a/package.json b/package.json
+index 05dbf57..002d13e 100644
+--- a/package.json
++++ b/package.json
+@@ -1,5 +1,5 @@
+ {
+-  "name": "current",
++  "name": "upgrade",
+   "version": "0.1.0",
+   "private": true,
+   "scripts": {
+@@ -34,6 +34,6 @@
+     "typescript": "^5.0.4"
+   },
+   "ct3aMetadata": {
+-    "initVersion": "7.14.0"
++    "initVersion": "7.15.0"
+   }
+ }
+diff --git a/src/env.mjs b/src/env.mjs
+index 8185315..7180893 100644
+--- a/src/env.mjs
++++ b/src/env.mjs
+@@ -17,7 +17,7 @@ export const env = createEnv({
+       // Since NextAuth.js automatically uses the VERCEL_URL if present.
+       (str) => process.env.VERCEL_URL ?? str,
+       // VERCEL_URL doesn't include `https` so it cant be validated as a URL
+-      process.env.VERCEL ? z.string().min(1) : z.string().url(),
++      process.env.VERCEL ? z.string().min(1) : z.string().url()
+     ),
+     // Add `.min(1) on ID and SECRET if you want to make sure they're not empty
+     DISCORD_CLIENT_ID: z.string(),

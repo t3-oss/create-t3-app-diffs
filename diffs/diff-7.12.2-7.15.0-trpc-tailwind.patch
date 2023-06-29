@@ -1,0 +1,226 @@
+diff --git a/next.config.mjs b/next.config.mjs
+index d921057..654e725 100644
+--- a/next.config.mjs
++++ b/next.config.mjs
+@@ -19,4 +19,5 @@ const config = {
+     defaultLocale: "en",
+   },
+ };
++
+ export default config;
+diff --git a/package.json b/package.json
+index 8578d8f..81f741c 100644
+--- a/package.json
++++ b/package.json
+@@ -1,5 +1,5 @@
+ {
+-  "name": "current",
++  "name": "upgrade",
+   "version": "0.1.0",
+   "private": true,
+   "scripts": {
+@@ -9,36 +9,36 @@
+     "start": "next start"
+   },
+   "dependencies": {
+-    "@t3-oss/env-nextjs": "^0.2.1",
+-    "@tanstack/react-query": "^4.28.0",
+-    "@trpc/client": "^10.18.0",
+-    "@trpc/next": "^10.18.0",
+-    "@trpc/react-query": "^10.18.0",
+-    "@trpc/server": "^10.18.0",
+-    "next": "13.3.4",
++    "@t3-oss/env-nextjs": "^0.3.1",
++    "@tanstack/react-query": "^4.29.7",
++    "@trpc/client": "^10.26.0",
++    "@trpc/next": "^10.26.0",
++    "@trpc/react-query": "^10.26.0",
++    "@trpc/server": "^10.26.0",
++    "next": "^13.4.2",
+     "react": "18.2.0",
+     "react-dom": "18.2.0",
+     "superjson": "1.12.2",
+     "zod": "^3.21.4"
+   },
+   "devDependencies": {
+-    "@types/eslint": "^8.21.3",
+-    "@types/node": "^18.15.5",
++    "@types/eslint": "^8.37.0",
++    "@types/node": "^18.16.0",
+     "@types/prettier": "^2.7.2",
+-    "@types/react": "^18.0.28",
+-    "@types/react-dom": "^18.0.11",
+-    "@typescript-eslint/eslint-plugin": "^5.56.0",
+-    "@typescript-eslint/parser": "^5.56.0",
++    "@types/react": "^18.2.6",
++    "@types/react-dom": "^18.2.4",
++    "@typescript-eslint/eslint-plugin": "^5.59.6",
++    "@typescript-eslint/parser": "^5.59.6",
+     "autoprefixer": "^10.4.14",
+-    "eslint": "^8.36.0",
+-    "eslint-config-next": "^13.2.4",
++    "eslint": "^8.40.0",
++    "eslint-config-next": "^13.4.2",
+     "postcss": "^8.4.21",
+-    "prettier": "^2.8.6",
+-    "prettier-plugin-tailwindcss": "^0.2.6",
++    "prettier": "^2.8.8",
++    "prettier-plugin-tailwindcss": "^0.2.8",
+     "tailwindcss": "^3.3.0",
+-    "typescript": "^5.0.2"
++    "typescript": "^5.0.4"
+   },
+   "ct3aMetadata": {
+-    "initVersion": "7.12.2"
++    "initVersion": "7.15.0"
+   }
+ }
+diff --git a/src/env.mjs b/src/env.mjs
+index be65c66..c82c36d 100644
+--- a/src/env.mjs
++++ b/src/env.mjs
+@@ -1,5 +1,5 @@
+-import { z } from "zod";
+ import { createEnv } from "@t3-oss/env-nextjs";
++import { z } from "zod";
+ 
+ export const env = createEnv({
+   /**
+@@ -27,4 +27,9 @@ export const env = createEnv({
+     NODE_ENV: process.env.NODE_ENV,
+     // NEXT_PUBLIC_CLIENTVAR: process.env.NEXT_PUBLIC_CLIENTVAR,
+   },
++  /**
++   * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation.
++   * This is especially useful for Docker builds.
++   */
++  skipValidation: !!process.env.SKIP_ENV_VALIDATION,
+ });
+diff --git a/src/pages/_app.tsx b/src/pages/_app.tsx
+index 1831917..279d218 100644
+--- a/src/pages/_app.tsx
++++ b/src/pages/_app.tsx
+@@ -1,7 +1,5 @@
+ import { type AppType } from "next/app";
+-
+ import { api } from "~/utils/api";
+-
+ import "~/styles/globals.css";
+ 
+ const MyApp: AppType = ({ Component, pageProps }) => {
+diff --git a/src/pages/api/trpc/[trpc].ts b/src/pages/api/trpc/[trpc].ts
+index 3c744a0..6c53746 100644
+--- a/src/pages/api/trpc/[trpc].ts
++++ b/src/pages/api/trpc/[trpc].ts
+@@ -1,8 +1,7 @@
+ import { createNextApiHandler } from "@trpc/server/adapters/next";
+-
+ import { env } from "~/env.mjs";
+-import { createTRPCContext } from "~/server/api/trpc";
+ import { appRouter } from "~/server/api/root";
++import { createTRPCContext } from "~/server/api/trpc";
+ 
+ // export API handler
+ export default createNextApiHandler({
+@@ -12,7 +11,7 @@ export default createNextApiHandler({
+     env.NODE_ENV === "development"
+       ? ({ path, error }) => {
+           console.error(
+-            `❌ tRPC failed on ${path ?? "<no-path>"}: ${error.message}`,
++            `❌ tRPC failed on ${path ?? "<no-path>"}: ${error.message}`
+           );
+         }
+       : undefined,
+diff --git a/src/pages/index.tsx b/src/pages/index.tsx
+index bf665c8..83d9f79 100644
+--- a/src/pages/index.tsx
++++ b/src/pages/index.tsx
+@@ -1,10 +1,8 @@
+-import { type NextPage } from "next";
+ import Head from "next/head";
+ import Link from "next/link";
+-
+ import { api } from "~/utils/api";
+ 
+-const Home: NextPage = () => {
++export default function Home() {
+   const hello = api.example.hello.useQuery({ text: "from tRPC" });
+ 
+   return (
+@@ -50,6 +48,4 @@ const Home: NextPage = () => {
+       </main>
+     </>
+   );
+-};
+-
+-export default Home;
++}
+diff --git a/src/server/api/root.ts b/src/server/api/root.ts
+index 93fba92..7caea0f 100644
+--- a/src/server/api/root.ts
++++ b/src/server/api/root.ts
+@@ -1,5 +1,5 @@
+-import { createTRPCRouter } from "~/server/api/trpc";
+ import { exampleRouter } from "~/server/api/routers/example";
++import { createTRPCRouter } from "~/server/api/trpc";
+ 
+ /**
+  * This is the primary router for your server.
+diff --git a/src/server/api/routers/example.ts b/src/server/api/routers/example.ts
+index 1c70bb2..df73278 100644
+--- a/src/server/api/routers/example.ts
++++ b/src/server/api/routers/example.ts
+@@ -1,5 +1,4 @@
+ import { z } from "zod";
+-
+ import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
+ 
+ export const exampleRouter = createTRPCRouter({
+diff --git a/src/server/api/trpc.ts b/src/server/api/trpc.ts
+index 5d1335a..3bda296 100644
+--- a/src/server/api/trpc.ts
++++ b/src/server/api/trpc.ts
+@@ -7,6 +7,11 @@
+  * need to use are documented accordingly near the end.
+  */
+ 
++import { initTRPC } from "@trpc/server";
++import { type CreateNextContextOptions } from "@trpc/server/adapters/next";
++import superjson from "superjson";
++import { ZodError } from "zod";
++
+ /**
+  * 1. CONTEXT
+  *
+@@ -14,9 +19,7 @@
+  *
+  * These allow you to access things when processing a request, like the database, the session, etc.
+  */
+-import { type CreateNextContextOptions } from "@trpc/server/adapters/next";
+ 
+-/** Replace this with an object if you want to pass things to `createContextInner`. */
+ type CreateContextOptions = Record<string, never>;
+ 
+ /**
+@@ -50,9 +53,6 @@ export const createTRPCContext = (_opts: CreateNextContextOptions) => {
+  * ZodErrors so that you get typesafety on the frontend if your procedure fails due to validation
+  * errors on the backend.
+  */
+-import { initTRPC } from "@trpc/server";
+-import superjson from "superjson";
+-import { ZodError } from "zod";
+ 
+ const t = initTRPC.context<typeof createTRPCContext>().create({
+   transformer: superjson,
+diff --git a/src/utils/api.ts b/src/utils/api.ts
+index f4f4ad5..b2d5afd 100644
+--- a/src/utils/api.ts
++++ b/src/utils/api.ts
+@@ -8,7 +8,6 @@ import { httpBatchLink, loggerLink } from "@trpc/client";
+ import { createTRPCNext } from "@trpc/next";
+ import { type inferRouterInputs, type inferRouterOutputs } from "@trpc/server";
+ import superjson from "superjson";
+-
+ import { type AppRouter } from "~/server/api/root";
+ 
+ const getBaseUrl = () => {
