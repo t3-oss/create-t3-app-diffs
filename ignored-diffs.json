@@ -688,5 +688,9 @@
   "7.14.0..7.15.0": true,
   "7.14.0..7.15.0-prisma": true,
   "7.14.0..7.15.0-prisma-tailwind": true,
-  "7.14.0..7.15.0-tailwind": true
+  "7.14.0..7.15.0-tailwind": true,
+  "7.14.1..7.15.0": true,
+  "7.14.1..7.15.0-prisma": true,
+  "7.14.1..7.15.0-prisma-tailwind": true,
+  "7.14.1..7.15.0-tailwind": true
 }
