@@ -1,0 +1,200 @@
+diff --git a/.eslintrc.cjs b/.eslintrc.cjs
+index 8b7a0e8..f15a4d5 100644
+--- a/.eslintrc.cjs
++++ b/.eslintrc.cjs
+@@ -1,26 +1,21 @@
+-// eslint-disable-next-line @typescript-eslint/no-var-requires
+-const path = require("path");
+-
+ /** @type {import("eslint").Linter.Config} */
+ const config = {
+-  overrides: [
+-    {
+-      extends: [
+-        "plugin:@typescript-eslint/recommended-requiring-type-checking",
+-      ],
+-      files: ["*.ts", "*.tsx"],
+-      parserOptions: {
+-        project: path.join(__dirname, "tsconfig.json"),
+-      },
+-    },
+-  ],
+   parser: "@typescript-eslint/parser",
+   parserOptions: {
+-    project: path.join(__dirname, "tsconfig.json"),
++    project: true,
+   },
+   plugins: ["@typescript-eslint"],
+-  extends: ["next/core-web-vitals", "plugin:@typescript-eslint/recommended"],
++  extends: [
++    "next/core-web-vitals",
++    "plugin:@typescript-eslint/recommended-type-checked",
++    "plugin:@typescript-eslint/stylistic-type-checked",
++  ],
+   rules: {
++    // These opinionated rules are enabled in stylistic-type-checked above.
++    // Feel free to reconfigure them to your own preference.
++    "@typescript-eslint/array-type": "off",
++    "@typescript-eslint/consistent-type-definitions": "off",
++
+     "@typescript-eslint/consistent-type-imports": [
+       "warn",
+       {
+diff --git a/next.config.mjs b/next.config.mjs
+index d921057..654e725 100644
+--- a/next.config.mjs
++++ b/next.config.mjs
+@@ -19,4 +19,5 @@ const config = {
+     defaultLocale: "en",
+   },
+ };
++
+ export default config;
+diff --git a/package.json b/package.json
+index 166c9aa..a1c93dc 100644
+--- a/package.json
++++ b/package.json
+@@ -1,5 +1,5 @@
+ {
+-  "name": "current",
++  "name": "upgrade",
+   "version": "0.1.0",
+   "private": true,
+   "scripts": {
+@@ -9,25 +9,25 @@
+     "start": "next start"
+   },
+   "dependencies": {
+-    "@t3-oss/env-nextjs": "^0.2.1",
+-    "next": "13.3.4",
+-    "next-auth": "^4.21.0",
++    "@t3-oss/env-nextjs": "^0.3.1",
++    "next": "^13.4.2",
++    "next-auth": "^4.22.1",
+     "react": "18.2.0",
+     "react-dom": "18.2.0",
+     "zod": "^3.21.4"
+   },
+   "devDependencies": {
+-    "@types/eslint": "^8.21.3",
+-    "@types/node": "^18.15.5",
+-    "@types/react": "^18.0.28",
+-    "@types/react-dom": "^18.0.11",
+-    "@typescript-eslint/eslint-plugin": "^5.56.0",
+-    "@typescript-eslint/parser": "^5.56.0",
+-    "eslint": "^8.36.0",
+-    "eslint-config-next": "^13.2.4",
+-    "typescript": "^5.0.2"
++    "@types/eslint": "^8.37.0",
++    "@types/node": "^18.16.0",
++    "@types/react": "^18.2.6",
++    "@types/react-dom": "^18.2.4",
++    "@typescript-eslint/eslint-plugin": "6.0.0",
++    "@typescript-eslint/parser": "6.0.0",
++    "eslint": "^8.40.0",
++    "eslint-config-next": "^13.4.2",
++    "typescript": "^5.0.4"
+   },
+   "ct3aMetadata": {
+-    "initVersion": "7.12.2"
++    "initVersion": "7.17.0"
+   }
+ }
+diff --git a/src/env.mjs b/src/env.mjs
+index bf80c67..7180893 100644
+--- a/src/env.mjs
++++ b/src/env.mjs
+@@ -1,5 +1,5 @@
+-import { z } from "zod";
+ import { createEnv } from "@t3-oss/env-nextjs";
++import { z } from "zod";
+ 
+ export const env = createEnv({
+   /**
+@@ -17,7 +17,7 @@ export const env = createEnv({
+       // Since NextAuth.js automatically uses the VERCEL_URL if present.
+       (str) => process.env.VERCEL_URL ?? str,
+       // VERCEL_URL doesn't include `https` so it cant be validated as a URL
+-      process.env.VERCEL ? z.string().min(1) : z.string().url(),
++      process.env.VERCEL ? z.string().min(1) : z.string().url()
+     ),
+     // Add `.min(1) on ID and SECRET if you want to make sure they're not empty
+     DISCORD_CLIENT_ID: z.string(),
+@@ -45,4 +45,9 @@ export const env = createEnv({
+     DISCORD_CLIENT_SECRET: process.env.DISCORD_CLIENT_SECRET,
+     // NEXT_PUBLIC_CLIENTVAR: process.env.NEXT_PUBLIC_CLIENTVAR,
+   },
++  /**
++   * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation.
++   * This is especially useful for Docker builds.
++   */
++  skipValidation: !!process.env.SKIP_ENV_VALIDATION,
+ });
+diff --git a/src/pages/_app.tsx b/src/pages/_app.tsx
+index 76a32df..fad7ab2 100644
+--- a/src/pages/_app.tsx
++++ b/src/pages/_app.tsx
+@@ -1,7 +1,6 @@
+-import { type AppType } from "next/app";
+ import { type Session } from "next-auth";
+ import { SessionProvider } from "next-auth/react";
+-
++import { type AppType } from "next/app";
+ import "~/styles/globals.css";
+ 
+ const MyApp: AppType<{ session: Session | null }> = ({
+diff --git a/src/pages/index.tsx b/src/pages/index.tsx
+index 35f4e30..8af8ec8 100644
+--- a/src/pages/index.tsx
++++ b/src/pages/index.tsx
+@@ -1,9 +1,8 @@
+ import styles from "./index.module.css";
+-import { type NextPage } from "next";
+ import Head from "next/head";
+ import Link from "next/link";
+ 
+-const Home: NextPage = () => {
++export default function Home() {
+   return (
+     <>
+       <Head>
+@@ -44,6 +43,4 @@ const Home: NextPage = () => {
+       </main>
+     </>
+   );
+-};
+-
+-export default Home;
++}
+diff --git a/src/server/auth.ts b/src/server/auth.ts
+index 67fc94b..18dc537 100644
+--- a/src/server/auth.ts
++++ b/src/server/auth.ts
+@@ -15,11 +15,11 @@ import { env } from "~/env.mjs";
+  */
+ declare module "next-auth" {
+   interface Session extends DefaultSession {
+-    user: {
++    user: DefaultSession["user"] & {
+       id: string;
+       // ...other properties
+       // role: UserRole;
+-    } & DefaultSession["user"];
++    };
+   }
+ 
+   // interface User {
+@@ -35,11 +35,11 @@ declare module "next-auth" {
+  */
+ export const authOptions: NextAuthOptions = {
+   callbacks: {
+-    session: ({ session, user }) => ({
++    session: ({ session, token }) => ({
+       ...session,
+       user: {
+         ...session.user,
+-        id: user.id,
++        id: token.sub,
+       },
+     }),
+   },

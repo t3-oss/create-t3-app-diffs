@@ -1,0 +1,35 @@
+diff --git a/.eslintrc.cjs b/.eslintrc.cjs
+index 2e6e541..f15a4d5 100644
+--- a/.eslintrc.cjs
++++ b/.eslintrc.cjs
+@@ -11,6 +11,11 @@ const config = {
+     "plugin:@typescript-eslint/stylistic-type-checked",
+   ],
+   rules: {
++    // These opinionated rules are enabled in stylistic-type-checked above.
++    // Feel free to reconfigure them to your own preference.
++    "@typescript-eslint/array-type": "off",
++    "@typescript-eslint/consistent-type-definitions": "off",
++
+     "@typescript-eslint/consistent-type-imports": [
+       "warn",
+       {
+diff --git a/package.json b/package.json
+index d1d8cf2..154abe4 100644
+--- a/package.json
++++ b/package.json
+@@ -1,5 +1,5 @@
+ {
+-  "name": "current",
++  "name": "upgrade",
+   "version": "0.1.0",
+   "private": true,
+   "scripts": {
+@@ -36,6 +36,6 @@
+     "typescript": "^5.0.4"
+   },
+   "ct3aMetadata": {
+-    "initVersion": "7.16.0"
++    "initVersion": "7.17.0"
+   }
+ }
