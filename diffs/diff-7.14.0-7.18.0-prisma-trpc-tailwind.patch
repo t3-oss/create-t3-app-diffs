@@ -1,0 +1,143 @@
+diff --git a/.eslintrc.cjs b/.eslintrc.cjs
+index 8b7a0e8..f15a4d5 100644
+--- a/.eslintrc.cjs
++++ b/.eslintrc.cjs
+@@ -1,26 +1,21 @@
+-// eslint-disable-next-line @typescript-eslint/no-var-requires
+-const path = require("path");
+-
+ /** @type {import("eslint").Linter.Config} */
+ const config = {
+-  overrides: [
+-    {
+-      extends: [
+-        "plugin:@typescript-eslint/recommended-requiring-type-checking",
+-      ],
+-      files: ["*.ts", "*.tsx"],
+-      parserOptions: {
+-        project: path.join(__dirname, "tsconfig.json"),
+-      },
+-    },
+-  ],
+   parser: "@typescript-eslint/parser",
+   parserOptions: {
+-    project: path.join(__dirname, "tsconfig.json"),
++    project: true,
+   },
+   plugins: ["@typescript-eslint"],
+-  extends: ["next/core-web-vitals", "plugin:@typescript-eslint/recommended"],
++  extends: [
++    "next/core-web-vitals",
++    "plugin:@typescript-eslint/recommended-type-checked",
++    "plugin:@typescript-eslint/stylistic-type-checked",
++  ],
+   rules: {
++    // These opinionated rules are enabled in stylistic-type-checked above.
++    // Feel free to reconfigure them to your own preference.
++    "@typescript-eslint/array-type": "off",
++    "@typescript-eslint/consistent-type-definitions": "off",
++
+     "@typescript-eslint/consistent-type-imports": [
+       "warn",
+       {
+diff --git a/next.config.mjs b/next.config.mjs
+index 654e725..61964ea 100644
+--- a/next.config.mjs
++++ b/next.config.mjs
+@@ -9,8 +9,7 @@ const config = {
+   reactStrictMode: true,
+ 
+   /**
+-   * If you have `experimental: { appDir: true }` set, then you must comment the below `i18n` config
+-   * out.
++   * If you are using `appDir` then you must comment the below `i18n` config out.
+    *
+    * @see https://github.com/vercel/next.js/issues/41980
+    */
+diff --git a/package.json b/package.json
+index 213ab6e..fafc9ae 100644
+--- a/package.json
++++ b/package.json
+@@ -1,5 +1,5 @@
+ {
+-  "name": "current",
++  "name": "upgrade",
+   "version": "0.1.0",
+   "private": true,
+   "scripts": {
+@@ -10,17 +10,17 @@
+     "start": "next start"
+   },
+   "dependencies": {
+-    "@prisma/client": "^4.14.0",
++    "@prisma/client": "^5.1.1",
+     "@t3-oss/env-nextjs": "^0.3.1",
+-    "@tanstack/react-query": "^4.29.7",
+-    "@trpc/client": "^10.26.0",
+-    "@trpc/next": "^10.26.0",
+-    "@trpc/react-query": "^10.26.0",
+-    "@trpc/server": "^10.26.0",
++    "@tanstack/react-query": "^4.29.25",
++    "@trpc/client": "^10.34.0",
++    "@trpc/next": "^10.34.0",
++    "@trpc/react-query": "^10.34.0",
++    "@trpc/server": "^10.34.0",
+     "next": "^13.4.2",
+     "react": "18.2.0",
+     "react-dom": "18.2.0",
+-    "superjson": "1.12.2",
++    "superjson": "^1.13.1",
+     "zod": "^3.21.4"
+   },
+   "devDependencies": {
+@@ -29,19 +29,19 @@
+     "@types/prettier": "^2.7.2",
+     "@types/react": "^18.2.6",
+     "@types/react-dom": "^18.2.4",
+-    "@typescript-eslint/eslint-plugin": "^5.59.6",
+-    "@typescript-eslint/parser": "^5.59.6",
++    "@typescript-eslint/eslint-plugin": "6.0.0",
++    "@typescript-eslint/parser": "6.0.0",
+     "autoprefixer": "^10.4.14",
+     "eslint": "^8.40.0",
+     "eslint-config-next": "^13.4.2",
+-    "postcss": "^8.4.21",
++    "postcss": "^8.4.27",
+     "prettier": "^2.8.8",
+     "prettier-plugin-tailwindcss": "^0.2.8",
+-    "prisma": "^4.14.0",
+-    "tailwindcss": "^3.3.0",
++    "prisma": "^5.1.1",
++    "tailwindcss": "^3.3.3",
+     "typescript": "^5.0.4"
+   },
+   "ct3aMetadata": {
+-    "initVersion": "7.14.0"
++    "initVersion": "7.18.0"
+   }
+ }
+diff --git a/prisma/schema.prisma b/prisma/schema.prisma
+index a297407..6d43fd2 100644
+--- a/prisma/schema.prisma
++++ b/prisma/schema.prisma
+@@ -3,7 +3,6 @@
+ 
+ generator client {
+     provider = "prisma-client-js"
+-    previewFeatures = ["jsonProtocol"]
+ }
+ 
+ datasource db {
+diff --git a/src/pages/api/trpc/[trpc].ts b/src/pages/api/trpc/[trpc].ts
+index dc36ccf..6c53746 100644
+--- a/src/pages/api/trpc/[trpc].ts
++++ b/src/pages/api/trpc/[trpc].ts
+@@ -11,7 +11,7 @@ export default createNextApiHandler({
+     env.NODE_ENV === "development"
+       ? ({ path, error }) => {
+           console.error(
+-            `❌ tRPC failed on ${path ?? "<no-path>"}: ${error.message}`,
++            `❌ tRPC failed on ${path ?? "<no-path>"}: ${error.message}`
+           );
+         }
+       : undefined,

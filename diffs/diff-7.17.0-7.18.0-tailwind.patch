@@ -1,0 +1,42 @@
+diff --git a/next.config.mjs b/next.config.mjs
+index 654e725..61964ea 100644
+--- a/next.config.mjs
++++ b/next.config.mjs
+@@ -9,8 +9,7 @@ const config = {
+   reactStrictMode: true,
+ 
+   /**
+-   * If you have `experimental: { appDir: true }` set, then you must comment the below `i18n` config
+-   * out.
++   * If you are using `appDir` then you must comment the below `i18n` config out.
+    *
+    * @see https://github.com/vercel/next.js/issues/41980
+    */
+diff --git a/package.json b/package.json
+index 23071bf..559c4e7 100644
+--- a/package.json
++++ b/package.json
+@@ -1,5 +1,5 @@
+ {
+-  "name": "current",
++  "name": "upgrade",
+   "version": "0.1.0",
+   "private": true,
+   "scripts": {
+@@ -26,13 +26,13 @@
+     "autoprefixer": "^10.4.14",
+     "eslint": "^8.40.0",
+     "eslint-config-next": "^13.4.2",
+-    "postcss": "^8.4.21",
++    "postcss": "^8.4.27",
+     "prettier": "^2.8.8",
+     "prettier-plugin-tailwindcss": "^0.2.8",
+-    "tailwindcss": "^3.3.0",
++    "tailwindcss": "^3.3.3",
+     "typescript": "^5.0.4"
+   },
+   "ct3aMetadata": {
+-    "initVersion": "7.17.0"
++    "initVersion": "7.18.0"
+   }
+ }
