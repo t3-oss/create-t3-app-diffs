@@ -1,0 +1,67 @@
+diff --git a/.eslintrc.cjs b/.eslintrc.cjs
+index 2e6e541..f15a4d5 100644
+--- a/.eslintrc.cjs
++++ b/.eslintrc.cjs
+@@ -11,6 +11,11 @@ const config = {
+     "plugin:@typescript-eslint/stylistic-type-checked",
+   ],
+   rules: {
++    // These opinionated rules are enabled in stylistic-type-checked above.
++    // Feel free to reconfigure them to your own preference.
++    "@typescript-eslint/array-type": "off",
++    "@typescript-eslint/consistent-type-definitions": "off",
++
+     "@typescript-eslint/consistent-type-imports": [
+       "warn",
+       {
+diff --git a/next.config.mjs b/next.config.mjs
+index 654e725..61964ea 100644
+--- a/next.config.mjs
++++ b/next.config.mjs
+@@ -9,8 +9,7 @@ const config = {
+   reactStrictMode: true,
+ 
+   /**
+-   * If you have `experimental: { appDir: true }` set, then you must comment the below `i18n` config
+-   * out.
++   * If you are using `appDir` then you must comment the below `i18n` config out.
+    *
+    * @see https://github.com/vercel/next.js/issues/41980
+    */
+diff --git a/package.json b/package.json
+index 5d176e7..d91ca03 100644
+--- a/package.json
++++ b/package.json
+@@ -1,5 +1,5 @@
+ {
+-  "name": "current",
++  "name": "upgrade",
+   "version": "0.1.0",
+   "private": true,
+   "scripts": {
+@@ -11,7 +11,7 @@
+   "dependencies": {
+     "@t3-oss/env-nextjs": "^0.3.1",
+     "next": "^13.4.2",
+-    "next-auth": "^4.22.1",
++    "next-auth": "^4.22.4",
+     "react": "18.2.0",
+     "react-dom": "18.2.0",
+     "zod": "^3.21.4"
+@@ -27,13 +27,13 @@
+     "autoprefixer": "^10.4.14",
+     "eslint": "^8.40.0",
+     "eslint-config-next": "^13.4.2",
+-    "postcss": "^8.4.21",
++    "postcss": "^8.4.27",
+     "prettier": "^2.8.8",
+     "prettier-plugin-tailwindcss": "^0.2.8",
+-    "tailwindcss": "^3.3.0",
++    "tailwindcss": "^3.3.3",
+     "typescript": "^5.0.4"
+   },
+   "ct3aMetadata": {
+-    "initVersion": "7.16.0"
++    "initVersion": "7.18.0"
+   }
+ }
