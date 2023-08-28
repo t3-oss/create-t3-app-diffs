@@ -1,0 +1,201 @@
+diff --git a/.eslintrc.cjs b/.eslintrc.cjs
+index 8b7a0e8..f15a4d5 100644
+--- a/.eslintrc.cjs
++++ b/.eslintrc.cjs
+@@ -1,26 +1,21 @@
+-// eslint-disable-next-line @typescript-eslint/no-var-requires
+-const path = require("path");
+-
+ /** @type {import("eslint").Linter.Config} */
+ const config = {
+-  overrides: [
+-    {
+-      extends: [
+-        "plugin:@typescript-eslint/recommended-requiring-type-checking",
+-      ],
+-      files: ["*.ts", "*.tsx"],
+-      parserOptions: {
+-        project: path.join(__dirname, "tsconfig.json"),
+-      },
+-    },
+-  ],
+   parser: "@typescript-eslint/parser",
+   parserOptions: {
+-    project: path.join(__dirname, "tsconfig.json"),
++    project: true,
+   },
+   plugins: ["@typescript-eslint"],
+-  extends: ["next/core-web-vitals", "plugin:@typescript-eslint/recommended"],
++  extends: [
++    "next/core-web-vitals",
++    "plugin:@typescript-eslint/recommended-type-checked",
++    "plugin:@typescript-eslint/stylistic-type-checked",
++  ],
+   rules: {
++    // These opinionated rules are enabled in stylistic-type-checked above.
++    // Feel free to reconfigure them to your own preference.
++    "@typescript-eslint/array-type": "off",
++    "@typescript-eslint/consistent-type-definitions": "off",
++
+     "@typescript-eslint/consistent-type-imports": [
+       "warn",
+       {
+diff --git a/next.config.mjs b/next.config.mjs
+index d921057..61964ea 100644
+--- a/next.config.mjs
++++ b/next.config.mjs
+@@ -9,8 +9,7 @@ const config = {
+   reactStrictMode: true,
+ 
+   /**
+-   * If you have `experimental: { appDir: true }` set, then you must comment the below `i18n` config
+-   * out.
++   * If you are using `appDir` then you must comment the below `i18n` config out.
+    *
+    * @see https://github.com/vercel/next.js/issues/41980
+    */
+@@ -19,4 +18,5 @@ const config = {
+     defaultLocale: "en",
+   },
+ };
++
+ export default config;
+diff --git a/package.json b/package.json
+index 1fcb922..cb8edc6 100644
+--- a/package.json
++++ b/package.json
+@@ -1,5 +1,5 @@
+ {
+-  "name": "current",
++  "name": "upgrade",
+   "version": "0.1.0",
+   "private": true,
+   "scripts": {
+@@ -10,32 +10,31 @@
+     "start": "next start"
+   },
+   "dependencies": {
+-    "@prisma/client": "^4.14.0",
+-    "@t3-oss/env-nextjs": "^0.3.1",
+-    "next": "^13.4.2",
++    "@prisma/client": "^5.1.1",
++    "@t3-oss/env-nextjs": "^0.6.0",
++    "next": "^13.4.13",
+     "react": "18.2.0",
+     "react-dom": "18.2.0",
+     "zod": "^3.21.4"
+   },
+   "devDependencies": {
+-    "@types/eslint": "^8.37.0",
++    "@types/eslint": "^8.44.2",
+     "@types/node": "^18.16.0",
+-    "@types/prettier": "^2.7.2",
+-    "@types/react": "^18.2.6",
+-    "@types/react-dom": "^18.2.4",
+-    "@typescript-eslint/eslint-plugin": "^5.59.6",
+-    "@typescript-eslint/parser": "^5.59.6",
++    "@types/react": "^18.2.20",
++    "@types/react-dom": "^18.2.7",
++    "@typescript-eslint/eslint-plugin": "^6.3.0",
++    "@typescript-eslint/parser": "^6.3.0",
+     "autoprefixer": "^10.4.14",
+-    "eslint": "^8.40.0",
+-    "eslint-config-next": "^13.4.2",
+-    "postcss": "^8.4.21",
+-    "prettier": "^2.8.8",
+-    "prettier-plugin-tailwindcss": "^0.2.8",
+-    "prisma": "^4.14.0",
+-    "tailwindcss": "^3.3.0",
+-    "typescript": "^5.0.4"
++    "eslint": "^8.47.0",
++    "eslint-config-next": "^13.4.13",
++    "postcss": "^8.4.27",
++    "prettier": "^3.0.0",
++    "prettier-plugin-tailwindcss": "^0.5.1",
++    "prisma": "^5.1.1",
++    "tailwindcss": "^3.3.3",
++    "typescript": "^5.1.6"
+   },
+   "ct3aMetadata": {
+-    "initVersion": "7.13.1"
++    "initVersion": "7.19.0"
+   }
+ }
+diff --git a/prettier.config.cjs b/prettier.config.cjs
+deleted file mode 100644
+index ca28ed9..0000000
+--- a/prettier.config.cjs
++++ /dev/null
+@@ -1,6 +0,0 @@
+-/** @type {import("prettier").Config} */
+-const config = {
+-  plugins: [require.resolve("prettier-plugin-tailwindcss")],
+-};
+-
+-module.exports = config;
+diff --git a/prettier.config.mjs b/prettier.config.mjs
+new file mode 100644
+index 0000000..2d2fa4c
+--- /dev/null
++++ b/prettier.config.mjs
+@@ -0,0 +1,6 @@
++/** @type {import('prettier').Config & import('prettier-plugin-tailwindcss').options} */
++const config = {
++  plugins: ["prettier-plugin-tailwindcss"],
++};
++
++export default config;
+diff --git a/prisma/schema.prisma b/prisma/schema.prisma
+index a297407..6d43fd2 100644
+--- a/prisma/schema.prisma
++++ b/prisma/schema.prisma
+@@ -3,7 +3,6 @@
+ 
+ generator client {
+     provider = "prisma-client-js"
+-    previewFeatures = ["jsonProtocol"]
+ }
+ 
+ datasource db {
+diff --git a/src/pages/_app.tsx b/src/pages/_app.tsx
+index 5d4858e..d280cbd 100644
+--- a/src/pages/_app.tsx
++++ b/src/pages/_app.tsx
+@@ -1,4 +1,5 @@
+ import { type AppType } from "next/dist/shared/lib/utils";
++
+ import "~/styles/globals.css";
+ 
+ const MyApp: AppType = ({ Component, pageProps }) => {
+diff --git a/src/pages/index.tsx b/src/pages/index.tsx
+index 5513c42..2b6a387 100644
+--- a/src/pages/index.tsx
++++ b/src/pages/index.tsx
+@@ -1,8 +1,7 @@
+-import { type NextPage } from "next";
+ import Head from "next/head";
+ import Link from "next/link";
+ 
+-const Home: NextPage = () => {
++export default function Home() {
+   return (
+     <>
+       <Head>
+@@ -43,6 +42,4 @@ const Home: NextPage = () => {
+       </main>
+     </>
+   );
+-};
+-
+-export default Home;
++}
+diff --git a/src/server/db.ts b/src/server/db.ts
+index 87ece8b..861093d 100644
+--- a/src/server/db.ts
++++ b/src/server/db.ts
+@@ -1,4 +1,5 @@
+ import { PrismaClient } from "@prisma/client";
++
+ import { env } from "~/env.mjs";
+ 
+ const globalForPrisma = globalThis as unknown as {
