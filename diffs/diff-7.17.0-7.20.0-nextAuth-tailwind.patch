@@ -1,0 +1,151 @@
+diff --git a/next.config.mjs b/next.config.mjs
+index 654e725..61964ea 100644
+--- a/next.config.mjs
++++ b/next.config.mjs
+@@ -9,8 +9,7 @@ const config = {
+   reactStrictMode: true,
+ 
+   /**
+-   * If you have `experimental: { appDir: true }` set, then you must comment the below `i18n` config
+-   * out.
++   * If you are using `appDir` then you must comment the below `i18n` config out.
+    *
+    * @see https://github.com/vercel/next.js/issues/41980
+    */
+diff --git a/package.json b/package.json
+index 52c556d..801cc67 100644
+--- a/package.json
++++ b/package.json
+@@ -1,5 +1,5 @@
+ {
+-  "name": "current",
++  "name": "upgrade",
+   "version": "0.1.0",
+   "private": true,
+   "scripts": {
+@@ -9,31 +9,30 @@
+     "start": "next start"
+   },
+   "dependencies": {
+-    "@t3-oss/env-nextjs": "^0.3.1",
+-    "next": "^13.4.2",
+-    "next-auth": "^4.22.1",
++    "@t3-oss/env-nextjs": "^0.6.0",
++    "next": "^13.4.19",
++    "next-auth": "^4.23.0",
+     "react": "18.2.0",
+     "react-dom": "18.2.0",
+     "zod": "^3.21.4"
+   },
+   "devDependencies": {
+-    "@types/eslint": "^8.37.0",
++    "@types/eslint": "^8.44.2",
+     "@types/node": "^18.16.0",
+-    "@types/prettier": "^2.7.2",
+-    "@types/react": "^18.2.6",
+-    "@types/react-dom": "^18.2.4",
+-    "@typescript-eslint/eslint-plugin": "6.0.0",
+-    "@typescript-eslint/parser": "6.0.0",
++    "@types/react": "^18.2.20",
++    "@types/react-dom": "^18.2.7",
++    "@typescript-eslint/eslint-plugin": "^6.3.0",
++    "@typescript-eslint/parser": "^6.3.0",
+     "autoprefixer": "^10.4.14",
+-    "eslint": "^8.40.0",
+-    "eslint-config-next": "^13.4.2",
+-    "postcss": "^8.4.21",
+-    "prettier": "^2.8.8",
+-    "prettier-plugin-tailwindcss": "^0.2.8",
+-    "tailwindcss": "^3.3.0",
+-    "typescript": "^5.0.4"
++    "eslint": "^8.47.0",
++    "eslint-config-next": "^13.4.19",
++    "postcss": "^8.4.27",
++    "prettier": "^3.0.0",
++    "prettier-plugin-tailwindcss": "^0.5.1",
++    "tailwindcss": "^3.3.3",
++    "typescript": "^5.1.6"
+   },
+   "ct3aMetadata": {
+-    "initVersion": "7.17.0"
++    "initVersion": "7.20.0"
+   }
+ }
+diff --git a/prettier.config.cjs b/prettier.config.cjs
+deleted file mode 100644
+index ca28ed9..0000000
+--- a/prettier.config.cjs
++++ /dev/null
+@@ -1,6 +0,0 @@
+-/** @type {import("prettier").Config} */
+-const config = {
+-  plugins: [require.resolve("prettier-plugin-tailwindcss")],
+-};
+-
+-module.exports = config;
+diff --git a/prettier.config.mjs b/prettier.config.mjs
+new file mode 100644
+index 0000000..2d2fa4c
+--- /dev/null
++++ b/prettier.config.mjs
+@@ -0,0 +1,6 @@
++/** @type {import('prettier').Config & import('prettier-plugin-tailwindcss').options} */
++const config = {
++  plugins: ["prettier-plugin-tailwindcss"],
++};
++
++export default config;
+diff --git a/src/env.mjs b/src/env.mjs
+index 7180893..da17aef 100644
+--- a/src/env.mjs
++++ b/src/env.mjs
+@@ -7,7 +7,9 @@ export const env = createEnv({
+    * isn't built with invalid env vars.
+    */
+   server: {
+-    NODE_ENV: z.enum(["development", "test", "production"]),
++    NODE_ENV: z
++      .enum(["development", "test", "production"])
++      .default("development"),
+     NEXTAUTH_SECRET:
+       process.env.NODE_ENV === "production"
+         ? z.string().min(1)
+diff --git a/src/pages/_app.tsx b/src/pages/_app.tsx
+index fad7ab2..be9989c 100644
+--- a/src/pages/_app.tsx
++++ b/src/pages/_app.tsx
+@@ -1,6 +1,7 @@
+ import { type Session } from "next-auth";
+ import { SessionProvider } from "next-auth/react";
+ import { type AppType } from "next/app";
++
+ import "~/styles/globals.css";
+ 
+ const MyApp: AppType<{ session: Session | null }> = ({
+diff --git a/src/pages/api/auth/[...nextauth].ts b/src/pages/api/auth/[...nextauth].ts
+index 8aefbb6..8739530 100644
+--- a/src/pages/api/auth/[...nextauth].ts
++++ b/src/pages/api/auth/[...nextauth].ts
+@@ -1,4 +1,5 @@
+ import NextAuth from "next-auth";
++
+ import { authOptions } from "~/server/auth";
+ 
+ export default NextAuth(authOptions);
+diff --git a/src/server/auth.ts b/src/server/auth.ts
+index 18dc537..09e2c90 100644
+--- a/src/server/auth.ts
++++ b/src/server/auth.ts
+@@ -1,10 +1,11 @@
+ import { type GetServerSidePropsContext } from "next";
+ import {
+   getServerSession,
+-  type NextAuthOptions,
+   type DefaultSession,
++  type NextAuthOptions,
+ } from "next-auth";
+ import DiscordProvider from "next-auth/providers/discord";
++
+ import { env } from "~/env.mjs";
+ 
+ /**
