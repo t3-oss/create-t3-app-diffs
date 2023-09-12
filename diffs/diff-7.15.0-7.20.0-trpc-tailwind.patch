@@ -1,0 +1,204 @@
+diff --git a/.eslintrc.cjs b/.eslintrc.cjs
+index 8b7a0e8..f15a4d5 100644
+--- a/.eslintrc.cjs
++++ b/.eslintrc.cjs
+@@ -1,26 +1,21 @@
+-// eslint-disable-next-line @typescript-eslint/no-var-requires
+-const path = require("path");
+-
+ /** @type {import("eslint").Linter.Config} */
+ const config = {
+-  overrides: [
+-    {
+-      extends: [
+-        "plugin:@typescript-eslint/recommended-requiring-type-checking",
+-      ],
+-      files: ["*.ts", "*.tsx"],
+-      parserOptions: {
+-        project: path.join(__dirname, "tsconfig.json"),
+-      },
+-    },
+-  ],
+   parser: "@typescript-eslint/parser",
+   parserOptions: {
+-    project: path.join(__dirname, "tsconfig.json"),
++    project: true,
+   },
+   plugins: ["@typescript-eslint"],
+-  extends: ["next/core-web-vitals", "plugin:@typescript-eslint/recommended"],
++  extends: [
++    "next/core-web-vitals",
++    "plugin:@typescript-eslint/recommended-type-checked",
++    "plugin:@typescript-eslint/stylistic-type-checked",
++  ],
+   rules: {
++    // These opinionated rules are enabled in stylistic-type-checked above.
++    // Feel free to reconfigure them to your own preference.
++    "@typescript-eslint/array-type": "off",
++    "@typescript-eslint/consistent-type-definitions": "off",
++
+     "@typescript-eslint/consistent-type-imports": [
+       "warn",
+       {
+diff --git a/next.config.mjs b/next.config.mjs
+index 654e725..61964ea 100644
+--- a/next.config.mjs
++++ b/next.config.mjs
+@@ -9,8 +9,7 @@ const config = {
+   reactStrictMode: true,
+ 
+   /**
+-   * If you have `experimental: { appDir: true }` set, then you must comment the below `i18n` config
+-   * out.
++   * If you are using `appDir` then you must comment the below `i18n` config out.
+    *
+    * @see https://github.com/vercel/next.js/issues/41980
+    */
+diff --git a/package.json b/package.json
+index 9172176..a6305c6 100644
+--- a/package.json
++++ b/package.json
+@@ -1,5 +1,5 @@
+ {
+-  "name": "current",
++  "name": "upgrade",
+   "version": "0.1.0",
+   "private": true,
+   "scripts": {
+@@ -9,36 +9,35 @@
+     "start": "next start"
+   },
+   "dependencies": {
+-    "@t3-oss/env-nextjs": "^0.3.1",
+-    "@tanstack/react-query": "^4.29.7",
+-    "@trpc/client": "^10.26.0",
+-    "@trpc/next": "^10.26.0",
+-    "@trpc/react-query": "^10.26.0",
+-    "@trpc/server": "^10.26.0",
+-    "next": "^13.4.2",
++    "@t3-oss/env-nextjs": "^0.6.0",
++    "@tanstack/react-query": "^4.32.6",
++    "@trpc/client": "^10.37.1",
++    "@trpc/next": "^10.37.1",
++    "@trpc/react-query": "^10.37.1",
++    "@trpc/server": "^10.37.1",
++    "next": "^13.4.19",
+     "react": "18.2.0",
+     "react-dom": "18.2.0",
+-    "superjson": "1.12.2",
++    "superjson": "^1.13.1",
+     "zod": "^3.21.4"
+   },
+   "devDependencies": {
+-    "@types/eslint": "^8.37.0",
++    "@types/eslint": "^8.44.2",
+     "@types/node": "^18.16.0",
+-    "@types/prettier": "^2.7.2",
+-    "@types/react": "^18.2.6",
+-    "@types/react-dom": "^18.2.4",
+-    "@typescript-eslint/eslint-plugin": "^5.59.6",
+-    "@typescript-eslint/parser": "^5.59.6",
++    "@types/react": "^18.2.20",
++    "@types/react-dom": "^18.2.7",
++    "@typescript-eslint/eslint-plugin": "^6.3.0",
++    "@typescript-eslint/parser": "^6.3.0",
+     "autoprefixer": "^10.4.14",
+-    "eslint": "^8.40.0",
+-    "eslint-config-next": "^13.4.2",
+-    "postcss": "^8.4.21",
+-    "prettier": "^2.8.8",
+-    "prettier-plugin-tailwindcss": "^0.2.8",
+-    "tailwindcss": "^3.3.0",
+-    "typescript": "^5.0.4"
++    "eslint": "^8.47.0",
++    "eslint-config-next": "^13.4.19",
++    "postcss": "^8.4.27",
++    "prettier": "^3.0.0",
++    "prettier-plugin-tailwindcss": "^0.5.1",
++    "tailwindcss": "^3.3.3",
++    "typescript": "^5.1.6"
+   },
+   "ct3aMetadata": {
+-    "initVersion": "7.15.0"
++    "initVersion": "7.20.0"
+   }
+ }
+diff --git a/prettier.config.cjs b/prettier.config.cjs
+deleted file mode 100644
+index ca28ed9..0000000
+--- a/prettier.config.cjs
++++ /dev/null
+@@ -1,6 +0,0 @@
+-/** @type {import("prettier").Config} */
+-const config = {
+-  plugins: [require.resolve("prettier-plugin-tailwindcss")],
+-};
+-
+-module.exports = config;
+diff --git a/prettier.config.mjs b/prettier.config.mjs
+new file mode 100644
+index 0000000..2d2fa4c
+--- /dev/null
++++ b/prettier.config.mjs
+@@ -0,0 +1,6 @@
++/** @type {import('prettier').Config & import('prettier-plugin-tailwindcss').options} */
++const config = {
++  plugins: ["prettier-plugin-tailwindcss"],
++};
++
++export default config;
+diff --git a/src/pages/_app.tsx b/src/pages/_app.tsx
+index 279d218..1831917 100644
+--- a/src/pages/_app.tsx
++++ b/src/pages/_app.tsx
+@@ -1,5 +1,7 @@
+ import { type AppType } from "next/app";
++
+ import { api } from "~/utils/api";
++
+ import "~/styles/globals.css";
+ 
+ const MyApp: AppType = ({ Component, pageProps }) => {
+diff --git a/src/pages/api/trpc/[trpc].ts b/src/pages/api/trpc/[trpc].ts
+index 6c53746..af81d92 100644
+--- a/src/pages/api/trpc/[trpc].ts
++++ b/src/pages/api/trpc/[trpc].ts
+@@ -1,4 +1,5 @@
+ import { createNextApiHandler } from "@trpc/server/adapters/next";
++
+ import { env } from "~/env.mjs";
+ import { appRouter } from "~/server/api/root";
+ import { createTRPCContext } from "~/server/api/trpc";
+diff --git a/src/pages/index.tsx b/src/pages/index.tsx
+index 83d9f79..8684e4b 100644
+--- a/src/pages/index.tsx
++++ b/src/pages/index.tsx
+@@ -1,5 +1,6 @@
+ import Head from "next/head";
+ import Link from "next/link";
++
+ import { api } from "~/utils/api";
+ 
+ export default function Home() {
+diff --git a/src/server/api/routers/example.ts b/src/server/api/routers/example.ts
+index df73278..1c70bb2 100644
+--- a/src/server/api/routers/example.ts
++++ b/src/server/api/routers/example.ts
+@@ -1,4 +1,5 @@
+ import { z } from "zod";
++
+ import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
+ 
+ export const exampleRouter = createTRPCRouter({
+diff --git a/src/utils/api.ts b/src/utils/api.ts
+index b2d5afd..f4f4ad5 100644
+--- a/src/utils/api.ts
++++ b/src/utils/api.ts
+@@ -8,6 +8,7 @@ import { httpBatchLink, loggerLink } from "@trpc/client";
+ import { createTRPCNext } from "@trpc/next";
+ import { type inferRouterInputs, type inferRouterOutputs } from "@trpc/server";
+ import superjson from "superjson";
++
+ import { type AppRouter } from "~/server/api/root";
+ 
+ const getBaseUrl = () => {
