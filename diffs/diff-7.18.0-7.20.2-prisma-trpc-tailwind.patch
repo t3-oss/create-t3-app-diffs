@@ -1,0 +1,257 @@
+diff --git a/package.json b/package.json
+index 010a914..2a984e1 100644
+--- a/package.json
++++ b/package.json
+@@ -1,9 +1,10 @@
+ {
+-  "name": "current",
++  "name": "upgrade",
+   "version": "0.1.0",
+   "private": true,
+   "scripts": {
+     "build": "next build",
++    "db:push": "prisma db push",
+     "dev": "next dev",
+     "postinstall": "prisma generate",
+     "lint": "next lint",
+@@ -11,37 +12,37 @@
+   },
+   "dependencies": {
+     "@prisma/client": "^5.1.1",
+-    "@t3-oss/env-nextjs": "^0.3.1",
+-    "@tanstack/react-query": "^4.29.25",
+-    "@trpc/client": "^10.34.0",
+-    "@trpc/next": "^10.34.0",
+-    "@trpc/react-query": "^10.34.0",
+-    "@trpc/server": "^10.34.0",
+-    "next": "^13.4.2",
++    "@t3-oss/env-nextjs": "^0.6.0",
++    "@tanstack/react-query": "^4.32.6",
++    "@trpc/client": "^10.37.1",
++    "@trpc/next": "^10.37.1",
++    "@trpc/react-query": "^10.37.1",
++    "@trpc/server": "^10.37.1",
++    "next": "^13.4.19",
+     "react": "18.2.0",
+     "react-dom": "18.2.0",
+     "superjson": "^1.13.1",
+     "zod": "^3.21.4"
+   },
+   "devDependencies": {
+-    "@types/eslint": "^8.37.0",
++    "@types/eslint": "^8.44.2",
+     "@types/node": "^18.16.0",
+-    "@types/prettier": "^2.7.2",
+-    "@types/react": "^18.2.6",
+-    "@types/react-dom": "^18.2.4",
+-    "@typescript-eslint/eslint-plugin": "6.0.0",
+-    "@typescript-eslint/parser": "6.0.0",
++    "@types/react": "^18.2.20",
++    "@types/react-dom": "^18.2.7",
++    "@typescript-eslint/eslint-plugin": "^6.3.0",
++    "@typescript-eslint/parser": "^6.3.0",
+     "autoprefixer": "^10.4.14",
+-    "eslint": "^8.40.0",
+-    "eslint-config-next": "^13.4.2",
++    "eslint": "^8.47.0",
++    "eslint-config-next": "^13.4.19",
+     "postcss": "^8.4.27",
+-    "prettier": "^2.8.8",
+-    "prettier-plugin-tailwindcss": "^0.2.8",
++    "prettier": "^3.0.0",
++    "prettier-plugin-tailwindcss": "^0.5.1",
+     "prisma": "^5.1.1",
+     "tailwindcss": "^3.3.3",
+-    "typescript": "^5.0.4"
++    "typescript": "^5.1.6"
+   },
+   "ct3aMetadata": {
+-    "initVersion": "7.18.0"
+-  }
++    "initVersion": "7.20.2"
++  },
++  "packageManager": "pnpm@8.5.1"
+ }
+diff --git a/prettier.config.cjs b/prettier.config.cjs
+deleted file mode 100644
+index ca28ed9..0000000
+--- a/prettier.config.cjs
++++ /dev/null
+@@ -1,6 +0,0 @@
+-/** @type {import("prettier").Config} */
+-const config = {
+-  plugins: [require.resolve("prettier-plugin-tailwindcss")],
+-};
+-
+-module.exports = config;
+diff --git a/prettier.config.mjs b/prettier.config.mjs
+new file mode 100644
+index 0000000..2d2fa4c
+--- /dev/null
++++ b/prettier.config.mjs
+@@ -0,0 +1,6 @@
++/** @type {import('prettier').Config & import('prettier-plugin-tailwindcss').options} */
++const config = {
++  plugins: ["prettier-plugin-tailwindcss"],
++};
++
++export default config;
+diff --git a/prisma/schema.prisma b/prisma/schema.prisma
+index 6d43fd2..c229b41 100644
+--- a/prisma/schema.prisma
++++ b/prisma/schema.prisma
+@@ -11,7 +11,10 @@ datasource db {
+ }
+ 
+ model Example {
+-    id        String   @id @default(cuid())
++    id        Int      @id @default(autoincrement())
++    name      String
+     createdAt DateTime @default(now())
+     updatedAt DateTime @updatedAt
++
++    @@index([name])
+ }
+diff --git a/src/env.mjs b/src/env.mjs
+index 67fa767..666d836 100644
+--- a/src/env.mjs
++++ b/src/env.mjs
+@@ -7,8 +7,16 @@ export const env = createEnv({
+    * isn't built with invalid env vars.
+    */
+   server: {
+-    DATABASE_URL: z.string().url(),
+-    NODE_ENV: z.enum(["development", "test", "production"]),
++    DATABASE_URL: z
++      .string()
++      .url()
++      .refine(
++        (str) => !str.includes("YOUR_MYSQL_URL_HERE"),
++        "You forgot to change the default URL"
++      ),
++    NODE_ENV: z
++      .enum(["development", "test", "production"])
++      .default("development"),
+   },
+ 
+   /**
+@@ -30,8 +38,8 @@ export const env = createEnv({
+     // NEXT_PUBLIC_CLIENTVAR: process.env.NEXT_PUBLIC_CLIENTVAR,
+   },
+   /**
+-   * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation.
+-   * This is especially useful for Docker builds.
++   * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation. This is especially
++   * useful for Docker builds.
+    */
+   skipValidation: !!process.env.SKIP_ENV_VALIDATION,
+ });
+diff --git a/src/pages/_app.tsx b/src/pages/_app.tsx
+index 279d218..1831917 100644
+--- a/src/pages/_app.tsx
++++ b/src/pages/_app.tsx
+@@ -1,5 +1,7 @@
+ import { type AppType } from "next/app";
++
+ import { api } from "~/utils/api";
++
+ import "~/styles/globals.css";
+ 
+ const MyApp: AppType = ({ Component, pageProps }) => {
+diff --git a/src/pages/api/trpc/[trpc].ts b/src/pages/api/trpc/[trpc].ts
+index 6c53746..af81d92 100644
+--- a/src/pages/api/trpc/[trpc].ts
++++ b/src/pages/api/trpc/[trpc].ts
+@@ -1,4 +1,5 @@
+ import { createNextApiHandler } from "@trpc/server/adapters/next";
++
+ import { env } from "~/env.mjs";
+ import { appRouter } from "~/server/api/root";
+ import { createTRPCContext } from "~/server/api/trpc";
+diff --git a/src/pages/index.tsx b/src/pages/index.tsx
+index 83d9f79..8684e4b 100644
+--- a/src/pages/index.tsx
++++ b/src/pages/index.tsx
+@@ -1,5 +1,6 @@
+ import Head from "next/head";
+ import Link from "next/link";
++
+ import { api } from "~/utils/api";
+ 
+ export default function Home() {
+diff --git a/src/server/api/routers/example.ts b/src/server/api/routers/example.ts
+index 50c47c6..de5d5c5 100644
+--- a/src/server/api/routers/example.ts
++++ b/src/server/api/routers/example.ts
+@@ -1,4 +1,5 @@
+ import { z } from "zod";
++
+ import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
+ 
+ export const exampleRouter = createTRPCRouter({
+@@ -10,6 +11,6 @@ export const exampleRouter = createTRPCRouter({
+       };
+     }),
+   getAll: publicProcedure.query(({ ctx }) => {
+-    return ctx.prisma.example.findMany();
++    return ctx.db.example.findMany();
+   }),
+ });
+diff --git a/src/server/api/trpc.ts b/src/server/api/trpc.ts
+index ff19e2b..dc3b40b 100644
+--- a/src/server/api/trpc.ts
++++ b/src/server/api/trpc.ts
+@@ -10,7 +10,8 @@ import { initTRPC } from "@trpc/server";
+ import { type CreateNextContextOptions } from "@trpc/server/adapters/next";
+ import superjson from "superjson";
+ import { ZodError } from "zod";
+-import { prisma } from "~/server/db";
++
++import { db } from "~/server/db";
+ 
+ /**
+  * 1. CONTEXT
+@@ -34,7 +35,7 @@ type CreateContextOptions = Record<string, never>;
+  */
+ const createInnerTRPCContext = (_opts: CreateContextOptions) => {
+   return {
+-    prisma,
++    db,
+   };
+ };
+ 
+diff --git a/src/server/db.ts b/src/server/db.ts
+index 87ece8b..a4753ca 100644
+--- a/src/server/db.ts
++++ b/src/server/db.ts
+@@ -1,15 +1,16 @@
+ import { PrismaClient } from "@prisma/client";
++
+ import { env } from "~/env.mjs";
+ 
+ const globalForPrisma = globalThis as unknown as {
+   prisma: PrismaClient | undefined;
+ };
+ 
+-export const prisma =
++export const db =
+   globalForPrisma.prisma ??
+   new PrismaClient({
+     log:
+       env.NODE_ENV === "development" ? ["query", "error", "warn"] : ["error"],
+   });
+ 
+-if (env.NODE_ENV !== "production") globalForPrisma.prisma = prisma;
++if (env.NODE_ENV !== "production") globalForPrisma.prisma = db;
+diff --git a/src/utils/api.ts b/src/utils/api.ts
+index b2d5afd..f4f4ad5 100644
+--- a/src/utils/api.ts
++++ b/src/utils/api.ts
+@@ -8,6 +8,7 @@ import { httpBatchLink, loggerLink } from "@trpc/client";
+ import { createTRPCNext } from "@trpc/next";
+ import { type inferRouterInputs, type inferRouterOutputs } from "@trpc/server";
+ import superjson from "superjson";
++
+ import { type AppRouter } from "~/server/api/root";
+ 
+ const getBaseUrl = () => {

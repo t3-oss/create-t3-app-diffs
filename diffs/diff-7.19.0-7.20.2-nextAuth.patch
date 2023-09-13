@@ -1,0 +1,52 @@
+diff --git a/package.json b/package.json
+index 8ec1a66..1f63144 100644
+--- a/package.json
++++ b/package.json
+@@ -1,5 +1,5 @@
+ {
+-  "name": "current",
++  "name": "upgrade",
+   "version": "0.1.0",
+   "private": true,
+   "scripts": {
+@@ -10,8 +10,8 @@
+   },
+   "dependencies": {
+     "@t3-oss/env-nextjs": "^0.6.0",
+-    "next": "^13.4.13",
+-    "next-auth": "^4.22.4",
++    "next": "^13.4.19",
++    "next-auth": "^4.23.0",
+     "react": "18.2.0",
+     "react-dom": "18.2.0",
+     "zod": "^3.21.4"
+@@ -24,10 +24,11 @@
+     "@typescript-eslint/eslint-plugin": "^6.3.0",
+     "@typescript-eslint/parser": "^6.3.0",
+     "eslint": "^8.47.0",
+-    "eslint-config-next": "^13.4.13",
++    "eslint-config-next": "^13.4.19",
+     "typescript": "^5.1.6"
+   },
+   "ct3aMetadata": {
+-    "initVersion": "7.19.0"
+-  }
++    "initVersion": "7.20.2"
++  },
++  "packageManager": "pnpm@8.5.1"
+ }
+diff --git a/src/env.mjs b/src/env.mjs
+index 7180893..da17aef 100644
+--- a/src/env.mjs
++++ b/src/env.mjs
+@@ -7,7 +7,9 @@ export const env = createEnv({
+    * isn't built with invalid env vars.
+    */
+   server: {
+-    NODE_ENV: z.enum(["development", "test", "production"]),
++    NODE_ENV: z
++      .enum(["development", "test", "production"])
++      .default("development"),
+     NEXTAUTH_SECRET:
+       process.env.NODE_ENV === "production"
+         ? z.string().min(1)
