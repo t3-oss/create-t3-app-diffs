@@ -1,0 +1,129 @@
+diff --git a/.eslintrc.cjs b/.eslintrc.cjs
+index 8b7a0e8..f15a4d5 100644
+--- a/.eslintrc.cjs
++++ b/.eslintrc.cjs
+@@ -1,26 +1,21 @@
+-// eslint-disable-next-line @typescript-eslint/no-var-requires
+-const path = require("path");
+-
+ /** @type {import("eslint").Linter.Config} */
+ const config = {
+-  overrides: [
+-    {
+-      extends: [
+-        "plugin:@typescript-eslint/recommended-requiring-type-checking",
+-      ],
+-      files: ["*.ts", "*.tsx"],
+-      parserOptions: {
+-        project: path.join(__dirname, "tsconfig.json"),
+-      },
+-    },
+-  ],
+   parser: "@typescript-eslint/parser",
+   parserOptions: {
+-    project: path.join(__dirname, "tsconfig.json"),
++    project: true,
+   },
+   plugins: ["@typescript-eslint"],
+-  extends: ["next/core-web-vitals", "plugin:@typescript-eslint/recommended"],
++  extends: [
++    "next/core-web-vitals",
++    "plugin:@typescript-eslint/recommended-type-checked",
++    "plugin:@typescript-eslint/stylistic-type-checked",
++  ],
+   rules: {
++    // These opinionated rules are enabled in stylistic-type-checked above.
++    // Feel free to reconfigure them to your own preference.
++    "@typescript-eslint/array-type": "off",
++    "@typescript-eslint/consistent-type-definitions": "off",
++
+     "@typescript-eslint/consistent-type-imports": [
+       "warn",
+       {
+diff --git a/next.config.mjs b/next.config.mjs
+index 654e725..61964ea 100644
+--- a/next.config.mjs
++++ b/next.config.mjs
+@@ -9,8 +9,7 @@ const config = {
+   reactStrictMode: true,
+ 
+   /**
+-   * If you have `experimental: { appDir: true }` set, then you must comment the below `i18n` config
+-   * out.
++   * If you are using `appDir` then you must comment the below `i18n` config out.
+    *
+    * @see https://github.com/vercel/next.js/issues/41980
+    */
+diff --git a/package.json b/package.json
+index af25af2..9481dfa 100644
+--- a/package.json
++++ b/package.json
+@@ -1,5 +1,5 @@
+ {
+-  "name": "current",
++  "name": "upgrade",
+   "version": "0.1.0",
+   "private": true,
+   "scripts": {
+@@ -9,24 +9,25 @@
+     "lint": "next lint"
+   },
+   "dependencies": {
+-    "@t3-oss/env-nextjs": "^0.3.1",
+-    "next": "^13.4.2",
++    "@t3-oss/env-nextjs": "^0.6.0",
++    "next": "^13.4.19",
+     "react": "18.2.0",
+     "react-dom": "18.2.0",
+     "zod": "^3.21.4"
+   },
+   "devDependencies": {
+-    "@types/eslint": "^8.37.0",
++    "@types/eslint": "^8.44.2",
+     "@types/node": "^18.16.0",
+-    "@types/react": "^18.2.6",
+-    "@types/react-dom": "^18.2.4",
+-    "@typescript-eslint/eslint-plugin": "^5.59.6",
+-    "@typescript-eslint/parser": "^5.59.6",
+-    "eslint": "^8.40.0",
+-    "eslint-config-next": "^13.4.2",
+-    "typescript": "^5.0.4"
++    "@types/react": "^18.2.20",
++    "@types/react-dom": "^18.2.7",
++    "@typescript-eslint/eslint-plugin": "^6.3.0",
++    "@typescript-eslint/parser": "^6.3.0",
++    "eslint": "^8.47.0",
++    "eslint-config-next": "^13.4.19",
++    "typescript": "^5.1.6"
+   },
+   "ct3aMetadata": {
+-    "initVersion": "7.14.1"
+-  }
++    "initVersion": "7.20.1"
++  },
++  "packageManager": "pnpm@8.5.1"
+ }
+diff --git a/src/pages/_app.tsx b/src/pages/_app.tsx
+index 5d4858e..d280cbd 100644
+--- a/src/pages/_app.tsx
++++ b/src/pages/_app.tsx
+@@ -1,4 +1,5 @@
+ import { type AppType } from "next/dist/shared/lib/utils";
++
+ import "~/styles/globals.css";
+ 
+ const MyApp: AppType = ({ Component, pageProps }) => {
+diff --git a/src/pages/index.tsx b/src/pages/index.tsx
+index 8af8ec8..23c59c5 100644
+--- a/src/pages/index.tsx
++++ b/src/pages/index.tsx
+@@ -1,7 +1,8 @@
+-import styles from "./index.module.css";
+ import Head from "next/head";
+ import Link from "next/link";
+ 
++import styles from "./index.module.css";
++
+ export default function Home() {
+   return (
+     <>

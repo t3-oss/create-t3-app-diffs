@@ -1,0 +1,111 @@
+diff --git a/package.json b/package.json
+index 11da420..76bf326 100644
+--- a/package.json
++++ b/package.json
+@@ -1,5 +1,5 @@
+ {
+-  "name": "current",
++  "name": "upgrade",
+   "version": "0.1.0",
+   "private": true,
+   "scripts": {
+@@ -7,12 +7,13 @@
+     "dev": "next dev",
+     "lint": "next lint",
+     "start": "next start",
+-    "postinstall": "prisma generate"
++    "postinstall": "prisma generate",
++    "db:push": "prisma db push"
+   },
+   "dependencies": {
+     "@prisma/client": "^5.1.1",
+     "@t3-oss/env-nextjs": "^0.6.0",
+-    "next": "^13.4.13",
++    "next": "^13.4.19",
+     "react": "18.2.0",
+     "react-dom": "18.2.0",
+     "zod": "^3.21.4"
+@@ -25,11 +26,12 @@
+     "@typescript-eslint/eslint-plugin": "^6.3.0",
+     "@typescript-eslint/parser": "^6.3.0",
+     "eslint": "^8.47.0",
+-    "eslint-config-next": "^13.4.13",
++    "eslint-config-next": "^13.4.19",
+     "prisma": "^5.1.1",
+     "typescript": "^5.1.6"
+   },
+   "ct3aMetadata": {
+-    "initVersion": "7.19.0"
+-  }
++    "initVersion": "7.20.2"
++  },
++  "packageManager": "pnpm@8.5.1"
+ }
+diff --git a/prisma/schema.prisma b/prisma/schema.prisma
+index 6d43fd2..c229b41 100644
+--- a/prisma/schema.prisma
++++ b/prisma/schema.prisma
+@@ -11,7 +11,10 @@ datasource db {
+ }
+ 
+ model Example {
+-    id        String   @id @default(cuid())
++    id        Int      @id @default(autoincrement())
++    name      String
+     createdAt DateTime @default(now())
+     updatedAt DateTime @updatedAt
++
++    @@index([name])
+ }
+diff --git a/src/env.mjs b/src/env.mjs
+index 67fa767..666d836 100644
+--- a/src/env.mjs
++++ b/src/env.mjs
+@@ -7,8 +7,16 @@ export const env = createEnv({
+    * isn't built with invalid env vars.
+    */
+   server: {
+-    DATABASE_URL: z.string().url(),
+-    NODE_ENV: z.enum(["development", "test", "production"]),
++    DATABASE_URL: z
++      .string()
++      .url()
++      .refine(
++        (str) => !str.includes("YOUR_MYSQL_URL_HERE"),
++        "You forgot to change the default URL"
++      ),
++    NODE_ENV: z
++      .enum(["development", "test", "production"])
++      .default("development"),
+   },
+ 
+   /**
+@@ -30,8 +38,8 @@ export const env = createEnv({
+     // NEXT_PUBLIC_CLIENTVAR: process.env.NEXT_PUBLIC_CLIENTVAR,
+   },
+   /**
+-   * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation.
+-   * This is especially useful for Docker builds.
++   * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation. This is especially
++   * useful for Docker builds.
+    */
+   skipValidation: !!process.env.SKIP_ENV_VALIDATION,
+ });
+diff --git a/src/server/db.ts b/src/server/db.ts
+index 861093d..a4753ca 100644
+--- a/src/server/db.ts
++++ b/src/server/db.ts
+@@ -6,11 +6,11 @@ const globalForPrisma = globalThis as unknown as {
+   prisma: PrismaClient | undefined;
+ };
+ 
+-export const prisma =
++export const db =
+   globalForPrisma.prisma ??
+   new PrismaClient({
+     log:
+       env.NODE_ENV === "development" ? ["query", "error", "warn"] : ["error"],
+   });
+ 
+-if (env.NODE_ENV !== "production") globalForPrisma.prisma = prisma;
++if (env.NODE_ENV !== "production") globalForPrisma.prisma = db;
