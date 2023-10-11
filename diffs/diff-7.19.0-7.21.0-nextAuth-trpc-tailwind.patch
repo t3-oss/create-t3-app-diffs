@@ -1,0 +1,108 @@
+diff --git a/package.json b/package.json
+index e82e217..adbea18 100644
+--- a/package.json
++++ b/package.json
+@@ -1,5 +1,5 @@
+ {
+-  "name": "current",
++  "name": "upgrade",
+   "version": "0.1.0",
+   "private": true,
+   "scripts": {
+@@ -9,18 +9,18 @@
+     "start": "next start"
+   },
+   "dependencies": {
+-    "@t3-oss/env-nextjs": "^0.6.0",
+-    "@tanstack/react-query": "^4.29.25",
+-    "@trpc/client": "^10.34.0",
+-    "@trpc/next": "^10.34.0",
+-    "@trpc/react-query": "^10.34.0",
+-    "@trpc/server": "^10.34.0",
+-    "next": "^13.4.13",
+-    "next-auth": "^4.22.4",
++    "@t3-oss/env-nextjs": "^0.7.0",
++    "@tanstack/react-query": "^4.32.6",
++    "@trpc/client": "^10.37.1",
++    "@trpc/next": "^10.37.1",
++    "@trpc/react-query": "^10.37.1",
++    "@trpc/server": "^10.37.1",
++    "next": "^13.5.4",
++    "next-auth": "^4.23.0",
+     "react": "18.2.0",
+     "react-dom": "18.2.0",
+     "superjson": "^1.13.1",
+-    "zod": "^3.21.4"
++    "zod": "^3.22.4"
+   },
+   "devDependencies": {
+     "@types/eslint": "^8.44.2",
+@@ -31,7 +31,7 @@
+     "@typescript-eslint/parser": "^6.3.0",
+     "autoprefixer": "^10.4.14",
+     "eslint": "^8.47.0",
+-    "eslint-config-next": "^13.4.13",
++    "eslint-config-next": "^13.5.4",
+     "postcss": "^8.4.27",
+     "prettier": "^3.0.0",
+     "prettier-plugin-tailwindcss": "^0.5.1",
+@@ -39,6 +39,7 @@
+     "typescript": "^5.1.6"
+   },
+   "ct3aMetadata": {
+-    "initVersion": "7.19.0"
+-  }
++    "initVersion": "7.21.0"
++  },
++  "packageManager": "pnpm@8.5.1"
+ }
+diff --git a/src/env.mjs b/src/env.mjs
+index 7180893..d9e9b7c 100644
+--- a/src/env.mjs
++++ b/src/env.mjs
+@@ -7,19 +7,21 @@ export const env = createEnv({
+    * isn't built with invalid env vars.
+    */
+   server: {
+-    NODE_ENV: z.enum(["development", "test", "production"]),
++    NODE_ENV: z
++      .enum(["development", "test", "production"])
++      .default("development"),
+     NEXTAUTH_SECRET:
+       process.env.NODE_ENV === "production"
+-        ? z.string().min(1)
+-        : z.string().min(1).optional(),
++        ? z.string()
++        : z.string().optional(),
+     NEXTAUTH_URL: z.preprocess(
+       // This makes Vercel deployments not fail if you don't set NEXTAUTH_URL
+       // Since NextAuth.js automatically uses the VERCEL_URL if present.
+       (str) => process.env.VERCEL_URL ?? str,
+       // VERCEL_URL doesn't include `https` so it cant be validated as a URL
+-      process.env.VERCEL ? z.string().min(1) : z.string().url()
++      process.env.VERCEL ? z.string() : z.string().url()
+     ),
+-    // Add `.min(1) on ID and SECRET if you want to make sure they're not empty
++    // Add ` on ID and SECRET if you want to make sure they're not empty
+     DISCORD_CLIENT_ID: z.string(),
+     DISCORD_CLIENT_SECRET: z.string(),
+   },
+@@ -30,7 +32,7 @@ export const env = createEnv({
+    * `NEXT_PUBLIC_`.
+    */
+   client: {
+-    // NEXT_PUBLIC_CLIENTVAR: z.string().min(1),
++    // NEXT_PUBLIC_CLIENTVAR: z.string(),
+   },
+ 
+   /**
+@@ -50,4 +52,9 @@ export const env = createEnv({
+    * This is especially useful for Docker builds.
+    */
+   skipValidation: !!process.env.SKIP_ENV_VALIDATION,
++  /**
++   * Makes it so that empty strings are treated as undefined.
++   * `SOME_VAR: z.string()` and `SOME_VAR=''` will throw an error.
++   */
++  emptyStringAsUndefined: true,
+ });

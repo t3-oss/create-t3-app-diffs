@@ -1,0 +1,86 @@
+diff --git a/package.json b/package.json
+index 92e37ab..82c0ae8 100644
+--- a/package.json
++++ b/package.json
+@@ -1,5 +1,5 @@
+ {
+-  "name": "current",
++  "name": "upgrade",
+   "version": "0.1.0",
+   "private": true,
+   "scripts": {
+@@ -12,17 +12,17 @@
+   },
+   "dependencies": {
+     "@prisma/client": "^5.1.1",
+-    "@t3-oss/env-nextjs": "^0.6.0",
++    "@t3-oss/env-nextjs": "^0.7.0",
+     "@tanstack/react-query": "^4.32.6",
+     "@trpc/client": "^10.37.1",
+     "@trpc/next": "^10.37.1",
+     "@trpc/react-query": "^10.37.1",
+     "@trpc/server": "^10.37.1",
+-    "next": "^13.4.19",
++    "next": "^13.5.4",
+     "react": "18.2.0",
+     "react-dom": "18.2.0",
+     "superjson": "^1.13.1",
+-    "zod": "^3.21.4"
++    "zod": "^3.22.4"
+   },
+   "devDependencies": {
+     "@types/eslint": "^8.44.2",
+@@ -32,11 +32,12 @@
+     "@typescript-eslint/eslint-plugin": "^6.3.0",
+     "@typescript-eslint/parser": "^6.3.0",
+     "eslint": "^8.47.0",
+-    "eslint-config-next": "^13.4.19",
++    "eslint-config-next": "^13.5.4",
+     "prisma": "^5.1.1",
+     "typescript": "^5.1.6"
+   },
+   "ct3aMetadata": {
+-    "initVersion": "7.20.0"
+-  }
++    "initVersion": "7.21.0"
++  },
++  "packageManager": "pnpm@8.5.1"
+ }
+diff --git a/src/env.mjs b/src/env.mjs
+index d96eb5c..1107bd0 100644
+--- a/src/env.mjs
++++ b/src/env.mjs
+@@ -7,7 +7,13 @@ export const env = createEnv({
+    * isn't built with invalid env vars.
+    */
+   server: {
+-    DATABASE_URL: z.string().url(),
++    DATABASE_URL: z
++      .string()
++      .url()
++      .refine(
++        (str) => !str.includes("YOUR_MYSQL_URL_HERE"),
++        "You forgot to change the default URL"
++      ),
+     NODE_ENV: z
+       .enum(["development", "test", "production"])
+       .default("development"),
+@@ -19,7 +25,7 @@ export const env = createEnv({
+    * `NEXT_PUBLIC_`.
+    */
+   client: {
+-    // NEXT_PUBLIC_CLIENTVAR: z.string().min(1),
++    // NEXT_PUBLIC_CLIENTVAR: z.string(),
+   },
+ 
+   /**
+@@ -36,4 +42,9 @@ export const env = createEnv({
+    * useful for Docker builds.
+    */
+   skipValidation: !!process.env.SKIP_ENV_VALIDATION,
++  /**
++   * Makes it so that empty strings are treated as undefined.
++   * `SOME_VAR: z.string()` and `SOME_VAR=''` will throw an error.
++   */
++  emptyStringAsUndefined: true,
+ });
