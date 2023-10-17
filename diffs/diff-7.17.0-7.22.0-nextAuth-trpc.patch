@@ -1,0 +1,399 @@
+diff --git a/.eslintrc.cjs b/.eslintrc.cjs
+index f15a4d5..79cb511 100644
+--- a/.eslintrc.cjs
++++ b/.eslintrc.cjs
+@@ -24,6 +24,12 @@ const config = {
+       },
+     ],
+     "@typescript-eslint/no-unused-vars": ["warn", { argsIgnorePattern: "^_" }],
++    "@typescript-eslint/no-misused-promises": [
++      2,
++      {
++        checksVoidReturn: { attributes: false },
++      },
++    ],
+   },
+ };
+ 
+diff --git a/next.config.mjs b/next.config.mjs
+index 654e725..61964ea 100644
+--- a/next.config.mjs
++++ b/next.config.mjs
+@@ -9,8 +9,7 @@ const config = {
+   reactStrictMode: true,
+ 
+   /**
+-   * If you have `experimental: { appDir: true }` set, then you must comment the below `i18n` config
+-   * out.
++   * If you are using `appDir` then you must comment the below `i18n` config out.
+    *
+    * @see https://github.com/vercel/next.js/issues/41980
+    */
+diff --git a/package.json b/package.json
+index 4cfe5ec..84160e8 100644
+--- a/package.json
++++ b/package.json
+@@ -1,5 +1,5 @@
+ {
+-  "name": "current",
++  "name": "upgrade",
+   "version": "0.1.0",
+   "private": true,
+   "scripts": {
+@@ -9,31 +9,32 @@
+     "start": "next start"
+   },
+   "dependencies": {
+-    "@t3-oss/env-nextjs": "^0.3.1",
+-    "@tanstack/react-query": "^4.29.7",
+-    "@trpc/client": "^10.26.0",
+-    "@trpc/next": "^10.26.0",
+-    "@trpc/react-query": "^10.26.0",
+-    "@trpc/server": "^10.26.0",
+-    "next": "^13.4.2",
+-    "next-auth": "^4.22.1",
++    "@t3-oss/env-nextjs": "^0.7.0",
++    "@tanstack/react-query": "^4.32.6",
++    "@trpc/client": "^10.37.1",
++    "@trpc/next": "^10.37.1",
++    "@trpc/react-query": "^10.37.1",
++    "@trpc/server": "^10.37.1",
++    "next": "^13.5.4",
++    "next-auth": "^4.23.0",
+     "react": "18.2.0",
+     "react-dom": "18.2.0",
+-    "superjson": "1.12.2",
+-    "zod": "^3.21.4"
++    "superjson": "^1.13.1",
++    "zod": "^3.22.4"
+   },
+   "devDependencies": {
+-    "@types/eslint": "^8.37.0",
++    "@types/eslint": "^8.44.2",
+     "@types/node": "^18.16.0",
+-    "@types/react": "^18.2.6",
+-    "@types/react-dom": "^18.2.4",
+-    "@typescript-eslint/eslint-plugin": "6.0.0",
+-    "@typescript-eslint/parser": "6.0.0",
+-    "eslint": "^8.40.0",
+-    "eslint-config-next": "^13.4.2",
+-    "typescript": "^5.0.4"
++    "@types/react": "^18.2.20",
++    "@types/react-dom": "^18.2.7",
++    "@typescript-eslint/eslint-plugin": "^6.3.0",
++    "@typescript-eslint/parser": "^6.3.0",
++    "eslint": "^8.47.0",
++    "eslint-config-next": "^13.5.4",
++    "typescript": "^5.1.6"
+   },
+   "ct3aMetadata": {
+-    "initVersion": "7.17.0"
+-  }
++    "initVersion": "7.22.0"
++  },
++  "packageManager": "pnpm@8.5.1"
+ }
+diff --git a/src/env.mjs b/src/env.mjs
+index 7180893..d9e9b7c 100644
+--- a/src/env.mjs
++++ b/src/env.mjs
+@@ -7,19 +7,21 @@ export const env = createEnv({
+    * isn't built with invalid env vars.
+    */
+   server: {
+-    NODE_ENV: z.enum(["development", "test", "production"]),
++    NODE_ENV: z
++      .enum(["development", "test", "production"])
++      .default("development"),
+     NEXTAUTH_SECRET:
+       process.env.NODE_ENV === "production"
+-        ? z.string().min(1)
+-        : z.string().min(1).optional(),
++        ? z.string()
++        : z.string().optional(),
+     NEXTAUTH_URL: z.preprocess(
+       // This makes Vercel deployments not fail if you don't set NEXTAUTH_URL
+       // Since NextAuth.js automatically uses the VERCEL_URL if present.
+       (str) => process.env.VERCEL_URL ?? str,
+       // VERCEL_URL doesn't include `https` so it cant be validated as a URL
+-      process.env.VERCEL ? z.string().min(1) : z.string().url()
++      process.env.VERCEL ? z.string() : z.string().url()
+     ),
+-    // Add `.min(1) on ID and SECRET if you want to make sure they're not empty
++    // Add ` on ID and SECRET if you want to make sure they're not empty
+     DISCORD_CLIENT_ID: z.string(),
+     DISCORD_CLIENT_SECRET: z.string(),
+   },
+@@ -30,7 +32,7 @@ export const env = createEnv({
+    * `NEXT_PUBLIC_`.
+    */
+   client: {
+-    // NEXT_PUBLIC_CLIENTVAR: z.string().min(1),
++    // NEXT_PUBLIC_CLIENTVAR: z.string(),
+   },
+ 
+   /**
+@@ -50,4 +52,9 @@ export const env = createEnv({
+    * This is especially useful for Docker builds.
+    */
+   skipValidation: !!process.env.SKIP_ENV_VALIDATION,
++  /**
++   * Makes it so that empty strings are treated as undefined.
++   * `SOME_VAR: z.string()` and `SOME_VAR=''` will throw an error.
++   */
++  emptyStringAsUndefined: true,
+ });
+diff --git a/src/pages/_app.tsx b/src/pages/_app.tsx
+index e319df4..af22fb4 100644
+--- a/src/pages/_app.tsx
++++ b/src/pages/_app.tsx
+@@ -1,7 +1,9 @@
+ import { type Session } from "next-auth";
+ import { SessionProvider } from "next-auth/react";
+ import { type AppType } from "next/app";
++
+ import { api } from "~/utils/api";
++
+ import "~/styles/globals.css";
+ 
+ const MyApp: AppType<{ session: Session | null }> = ({
+diff --git a/src/pages/api/auth/[...nextauth].ts b/src/pages/api/auth/[...nextauth].ts
+index 8aefbb6..8739530 100644
+--- a/src/pages/api/auth/[...nextauth].ts
++++ b/src/pages/api/auth/[...nextauth].ts
+@@ -1,4 +1,5 @@
+ import NextAuth from "next-auth";
++
+ import { authOptions } from "~/server/auth";
+ 
+ export default NextAuth(authOptions);
+diff --git a/src/pages/api/trpc/[trpc].ts b/src/pages/api/trpc/[trpc].ts
+index 6c53746..af81d92 100644
+--- a/src/pages/api/trpc/[trpc].ts
++++ b/src/pages/api/trpc/[trpc].ts
+@@ -1,4 +1,5 @@
+ import { createNextApiHandler } from "@trpc/server/adapters/next";
++
+ import { env } from "~/env.mjs";
+ import { appRouter } from "~/server/api/root";
+ import { createTRPCContext } from "~/server/api/trpc";
+diff --git a/src/pages/index.module.css b/src/pages/index.module.css
+index d9caeea..fac9982 100644
+--- a/src/pages/index.module.css
++++ b/src/pages/index.module.css
+@@ -147,3 +147,31 @@
+ .loginButton:hover {
+   background-color: rgb(255 255 255 / 0.2);
+ }
++
++.form {
++  display: flex;
++  flex-direction: column;
++  gap: 0.5rem;
++}
++
++.input {
++  width: 100%;
++  border-radius: 9999px;
++  padding: 0.5rem 1rem;
++  color: black;
++}
++
++.submitButton {
++  all: unset;
++  border-radius: 9999px;
++  background-color: rgb(255 255 255 / 0.1);
++  padding: 0.75rem 2.5rem;
++  font-weight: 600;
++  color: white;
++  text-align: center;
++  transition: background-color 150ms cubic-bezier(0.5, 0, 0.2, 1);
++}
++
++.submitButton:hover {
++  background-color: rgb(255 255 255 / 0.2);
++}
+diff --git a/src/pages/index.tsx b/src/pages/index.tsx
+index a6bc542..6902f95 100644
+--- a/src/pages/index.tsx
++++ b/src/pages/index.tsx
+@@ -1,11 +1,12 @@
+-import styles from "./index.module.css";
+ import { signIn, signOut, useSession } from "next-auth/react";
+ import Head from "next/head";
+ import Link from "next/link";
++
+ import { api } from "~/utils/api";
++import styles from "./index.module.css";
+ 
+ export default function Home() {
+-  const hello = api.example.hello.useQuery({ text: "from tRPC" });
++  const hello = api.post.hello.useQuery({ text: "from tRPC" });
+ 
+   return (
+     <>
+@@ -58,7 +59,7 @@ export default function Home() {
+ function AuthShowcase() {
+   const { data: sessionData } = useSession();
+ 
+-  const { data: secretMessage } = api.example.getSecretMessage.useQuery(
++  const { data: secretMessage } = api.post.getSecretMessage.useQuery(
+     undefined, // no input
+     { enabled: sessionData?.user !== undefined }
+   );
+diff --git a/src/server/api/root.ts b/src/server/api/root.ts
+index 7caea0f..3d629a7 100644
+--- a/src/server/api/root.ts
++++ b/src/server/api/root.ts
+@@ -1,4 +1,4 @@
+-import { exampleRouter } from "~/server/api/routers/example";
++import { postRouter } from "~/server/api/routers/post";
+ import { createTRPCRouter } from "~/server/api/trpc";
+ 
+ /**
+@@ -7,7 +7,7 @@ import { createTRPCRouter } from "~/server/api/trpc";
+  * All routers added in /api/routers should be manually added here.
+  */
+ export const appRouter = createTRPCRouter({
+-  example: exampleRouter,
++  post: postRouter,
+ });
+ 
+ // export type definition of API
+diff --git a/src/server/api/routers/example.ts b/src/server/api/routers/example.ts
+deleted file mode 100644
+index cc24471..0000000
+--- a/src/server/api/routers/example.ts
++++ /dev/null
+@@ -1,20 +0,0 @@
+-import { z } from "zod";
+-import {
+-  createTRPCRouter,
+-  publicProcedure,
+-  protectedProcedure,
+-} from "~/server/api/trpc";
+-
+-export const exampleRouter = createTRPCRouter({
+-  hello: publicProcedure
+-    .input(z.object({ text: z.string() }))
+-    .query(({ input }) => {
+-      return {
+-        greeting: `Hello ${input.text}`,
+-      };
+-    }),
+-
+-  getSecretMessage: protectedProcedure.query(() => {
+-    return "you can now see this secret message!";
+-  }),
+-});
+diff --git a/src/server/api/routers/post.ts b/src/server/api/routers/post.ts
+new file mode 100644
+index 0000000..a2072d3
+--- /dev/null
++++ b/src/server/api/routers/post.ts
+@@ -0,0 +1,40 @@
++import { z } from "zod";
++
++import {
++  createTRPCRouter,
++  protectedProcedure,
++  publicProcedure,
++} from "~/server/api/trpc";
++
++let post = {
++  id: 1,
++  name: "Hello World",
++};
++
++export const postRouter = createTRPCRouter({
++  hello: publicProcedure
++    .input(z.object({ text: z.string() }))
++    .query(({ input }) => {
++      return {
++        greeting: `Hello ${input.text}`,
++      };
++    }),
++
++  create: protectedProcedure
++    .input(z.object({ name: z.string().min(1) }))
++    .mutation(async ({ input }) => {
++      // simulate a slow db call
++      await new Promise((resolve) => setTimeout(resolve, 1000));
++
++      post = { id: post.id + 1, name: input.name };
++      return post;
++    }),
++
++  getLatest: protectedProcedure.query(() => {
++    return post;
++  }),
++
++  getSecretMessage: protectedProcedure.query(() => {
++    return "you can now see this secret message!";
++  }),
++});
+diff --git a/src/server/api/trpc.ts b/src/server/api/trpc.ts
+index bb4776b..4c0612b 100644
+--- a/src/server/api/trpc.ts
++++ b/src/server/api/trpc.ts
+@@ -11,6 +11,7 @@ import { type CreateNextContextOptions } from "@trpc/server/adapters/next";
+ import { type Session } from "next-auth";
+ import superjson from "superjson";
+ import { ZodError } from "zod";
++
+ import { getServerAuthSession } from "~/server/auth";
+ 
+ /**
+diff --git a/src/server/auth.ts b/src/server/auth.ts
+index 18dc537..09e2c90 100644
+--- a/src/server/auth.ts
++++ b/src/server/auth.ts
+@@ -1,10 +1,11 @@
+ import { type GetServerSidePropsContext } from "next";
+ import {
+   getServerSession,
+-  type NextAuthOptions,
+   type DefaultSession,
++  type NextAuthOptions,
+ } from "next-auth";
+ import DiscordProvider from "next-auth/providers/discord";
++
+ import { env } from "~/env.mjs";
+ 
+ /**
+diff --git a/src/utils/api.ts b/src/utils/api.ts
+index b2d5afd..f4f4ad5 100644
+--- a/src/utils/api.ts
++++ b/src/utils/api.ts
+@@ -8,6 +8,7 @@ import { httpBatchLink, loggerLink } from "@trpc/client";
+ import { createTRPCNext } from "@trpc/next";
+ import { type inferRouterInputs, type inferRouterOutputs } from "@trpc/server";
+ import superjson from "superjson";
++
+ import { type AppRouter } from "~/server/api/root";
+ 
+ const getBaseUrl = () => {
+diff --git a/tsconfig.json b/tsconfig.json
+index 03ebb74..1dfa3a8 100644
+--- a/tsconfig.json
++++ b/tsconfig.json
+@@ -19,7 +19,8 @@
+     "baseUrl": ".",
+     "paths": {
+       "~/*": ["./src/*"]
+-    }
++    },
++    "plugins": [{ "name": "next" }]
+   },
+   "include": [
+     ".eslintrc.cjs",
+@@ -27,7 +28,8 @@
+     "**/*.ts",
+     "**/*.tsx",
+     "**/*.cjs",
+-    "**/*.mjs"
++    "**/*.mjs",
++    ".next/types/**/*.ts"
+   ],
+   "exclude": ["node_modules"]
+ }
