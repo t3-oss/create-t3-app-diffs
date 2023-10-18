@@ -55035,6 +55035,7 @@
   "7.21.0..7.22.0-nextAuth-trpc": true,
   "7.21.0..7.22.0-nextAuth": true,
   "7.21.0..7.22.0-prisma-tailwind": true,
+  "7.21.0..7.22.0-prisma-trpc-tailwind": true,
   "7.21.0..7.22.0-prisma-trpc": true,
   "7.21.0..7.22.0-prisma": true,
   "7.21.0..7.22.0-tailwind": true,
