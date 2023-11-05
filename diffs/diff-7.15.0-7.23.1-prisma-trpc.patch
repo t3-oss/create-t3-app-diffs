@@ -1,0 +1,450 @@
+diff --git a/.eslintrc.cjs b/.eslintrc.cjs
+index 8b7a0e8..79cb511 100644
+--- a/.eslintrc.cjs
++++ b/.eslintrc.cjs
+@@ -1,26 +1,21 @@
+-// eslint-disable-next-line @typescript-eslint/no-var-requires
+-const path = require("path");
+-
+ /** @type {import("eslint").Linter.Config} */
+ const config = {
+-  overrides: [
+-    {
+-      extends: [
+-        "plugin:@typescript-eslint/recommended-requiring-type-checking",
+-      ],
+-      files: ["*.ts", "*.tsx"],
+-      parserOptions: {
+-        project: path.join(__dirname, "tsconfig.json"),
+-      },
+-    },
+-  ],
+   parser: "@typescript-eslint/parser",
+   parserOptions: {
+-    project: path.join(__dirname, "tsconfig.json"),
++    project: true,
+   },
+   plugins: ["@typescript-eslint"],
+-  extends: ["next/core-web-vitals", "plugin:@typescript-eslint/recommended"],
++  extends: [
++    "next/core-web-vitals",
++    "plugin:@typescript-eslint/recommended-type-checked",
++    "plugin:@typescript-eslint/stylistic-type-checked",
++  ],
+   rules: {
++    // These opinionated rules are enabled in stylistic-type-checked above.
++    // Feel free to reconfigure them to your own preference.
++    "@typescript-eslint/array-type": "off",
++    "@typescript-eslint/consistent-type-definitions": "off",
++
+     "@typescript-eslint/consistent-type-imports": [
+       "warn",
+       {
+@@ -29,6 +24,12 @@ const config = {
+       },
+     ],
+     "@typescript-eslint/no-unused-vars": ["warn", { argsIgnorePattern: "^_" }],
++    "@typescript-eslint/no-misused-promises": [
++      2,
++      {
++        checksVoidReturn: { attributes: false },
++      },
++    ],
+   },
+ };
+ 
+diff --git a/next.config.mjs b/next.config.mjs
+index 654e725..61964ea 100644
+--- a/next.config.mjs
++++ b/next.config.mjs
+@@ -9,8 +9,7 @@ const config = {
+   reactStrictMode: true,
+ 
+   /**
+-   * If you have `experimental: { appDir: true }` set, then you must comment the below `i18n` config
+-   * out.
++   * If you are using `appDir` then you must comment the below `i18n` config out.
+    *
+    * @see https://github.com/vercel/next.js/issues/41980
+    */
+diff --git a/package.json b/package.json
+index cb54f13..00a60d2 100644
+--- a/package.json
++++ b/package.json
+@@ -1,41 +1,44 @@
+ {
+-  "name": "current",
++  "name": "upgrade",
+   "version": "0.1.0",
+   "private": true,
+   "scripts": {
+     "build": "next build",
++    "db:push": "prisma db push",
++    "db:studio": "prisma studio",
+     "dev": "next dev",
+     "postinstall": "prisma generate",
+     "lint": "next lint",
+     "start": "next start"
+   },
+   "dependencies": {
+-    "@prisma/client": "^4.14.0",
+-    "@t3-oss/env-nextjs": "^0.3.1",
+-    "@tanstack/react-query": "^4.29.7",
+-    "@trpc/client": "^10.26.0",
+-    "@trpc/next": "^10.26.0",
+-    "@trpc/react-query": "^10.26.0",
+-    "@trpc/server": "^10.26.0",
+-    "next": "^13.4.2",
++    "@prisma/client": "^5.1.1",
++    "@t3-oss/env-nextjs": "^0.7.0",
++    "@tanstack/react-query": "^4.32.6",
++    "@trpc/client": "^10.37.1",
++    "@trpc/next": "^10.37.1",
++    "@trpc/react-query": "^10.37.1",
++    "@trpc/server": "^10.37.1",
++    "next": "^14.0.0",
+     "react": "18.2.0",
+     "react-dom": "18.2.0",
+-    "superjson": "1.12.2",
+-    "zod": "^3.21.4"
++    "superjson": "^1.13.1",
++    "zod": "^3.22.4"
+   },
+   "devDependencies": {
+-    "@types/eslint": "^8.37.0",
++    "@types/eslint": "^8.44.2",
+     "@types/node": "^18.16.0",
+-    "@types/react": "^18.2.6",
+-    "@types/react-dom": "^18.2.4",
+-    "@typescript-eslint/eslint-plugin": "^5.59.6",
+-    "@typescript-eslint/parser": "^5.59.6",
+-    "eslint": "^8.40.0",
+-    "eslint-config-next": "^13.4.2",
+-    "prisma": "^4.14.0",
+-    "typescript": "^5.0.4"
++    "@types/react": "^18.2.33",
++    "@types/react-dom": "^18.2.14",
++    "@typescript-eslint/eslint-plugin": "^6.3.0",
++    "@typescript-eslint/parser": "^6.3.0",
++    "eslint": "^8.47.0",
++    "eslint-config-next": "^14.0.0",
++    "prisma": "^5.1.1",
++    "typescript": "^5.1.6"
+   },
+   "ct3aMetadata": {
+-    "initVersion": "7.15.0"
+-  }
++    "initVersion": "7.23.1"
++  },
++  "packageManager": "pnpm@8.5.1"
+ }
+diff --git a/prisma/schema.prisma b/prisma/schema.prisma
+index a297407..ddb6e09 100644
+--- a/prisma/schema.prisma
++++ b/prisma/schema.prisma
+@@ -3,7 +3,6 @@
+ 
+ generator client {
+     provider = "prisma-client-js"
+-    previewFeatures = ["jsonProtocol"]
+ }
+ 
+ datasource db {
+@@ -11,8 +10,11 @@ datasource db {
+     url      = env("DATABASE_URL")
+ }
+ 
+-model Example {
+-    id        String   @id @default(cuid())
++model Post {
++    id        Int      @id @default(autoincrement())
++    name      String
+     createdAt DateTime @default(now())
+     updatedAt DateTime @updatedAt
++
++    @@index([name])
+ }
+diff --git a/src/env.mjs b/src/env.mjs
+index 67fa767..1107bd0 100644
+--- a/src/env.mjs
++++ b/src/env.mjs
+@@ -7,8 +7,16 @@ export const env = createEnv({
+    * isn't built with invalid env vars.
+    */
+   server: {
+-    DATABASE_URL: z.string().url(),
+-    NODE_ENV: z.enum(["development", "test", "production"]),
++    DATABASE_URL: z
++      .string()
++      .url()
++      .refine(
++        (str) => !str.includes("YOUR_MYSQL_URL_HERE"),
++        "You forgot to change the default URL"
++      ),
++    NODE_ENV: z
++      .enum(["development", "test", "production"])
++      .default("development"),
+   },
+ 
+   /**
+@@ -17,7 +25,7 @@ export const env = createEnv({
+    * `NEXT_PUBLIC_`.
+    */
+   client: {
+-    // NEXT_PUBLIC_CLIENTVAR: z.string().min(1),
++    // NEXT_PUBLIC_CLIENTVAR: z.string(),
+   },
+ 
+   /**
+@@ -30,8 +38,13 @@ export const env = createEnv({
+     // NEXT_PUBLIC_CLIENTVAR: process.env.NEXT_PUBLIC_CLIENTVAR,
+   },
+   /**
+-   * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation.
+-   * This is especially useful for Docker builds.
++   * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation. This is especially
++   * useful for Docker builds.
+    */
+   skipValidation: !!process.env.SKIP_ENV_VALIDATION,
++  /**
++   * Makes it so that empty strings are treated as undefined.
++   * `SOME_VAR: z.string()` and `SOME_VAR=''` will throw an error.
++   */
++  emptyStringAsUndefined: true,
+ });
+diff --git a/src/pages/_app.tsx b/src/pages/_app.tsx
+index 279d218..1831917 100644
+--- a/src/pages/_app.tsx
++++ b/src/pages/_app.tsx
+@@ -1,5 +1,7 @@
+ import { type AppType } from "next/app";
++
+ import { api } from "~/utils/api";
++
+ import "~/styles/globals.css";
+ 
+ const MyApp: AppType = ({ Component, pageProps }) => {
+diff --git a/src/pages/api/trpc/[trpc].ts b/src/pages/api/trpc/[trpc].ts
+index 6c53746..af81d92 100644
+--- a/src/pages/api/trpc/[trpc].ts
++++ b/src/pages/api/trpc/[trpc].ts
+@@ -1,4 +1,5 @@
+ import { createNextApiHandler } from "@trpc/server/adapters/next";
++
+ import { env } from "~/env.mjs";
+ import { appRouter } from "~/server/api/root";
+ import { createTRPCContext } from "~/server/api/trpc";
+diff --git a/src/pages/index.module.css b/src/pages/index.module.css
+index d9caeea..fac9982 100644
+--- a/src/pages/index.module.css
++++ b/src/pages/index.module.css
+@@ -147,3 +147,31 @@
+ .loginButton:hover {
+   background-color: rgb(255 255 255 / 0.2);
+ }
++
++.form {
++  display: flex;
++  flex-direction: column;
++  gap: 0.5rem;
++}
++
++.input {
++  width: 100%;
++  border-radius: 9999px;
++  padding: 0.5rem 1rem;
++  color: black;
++}
++
++.submitButton {
++  all: unset;
++  border-radius: 9999px;
++  background-color: rgb(255 255 255 / 0.1);
++  padding: 0.75rem 2.5rem;
++  font-weight: 600;
++  color: white;
++  text-align: center;
++  transition: background-color 150ms cubic-bezier(0.5, 0, 0.2, 1);
++}
++
++.submitButton:hover {
++  background-color: rgb(255 255 255 / 0.2);
++}
+diff --git a/src/pages/index.tsx b/src/pages/index.tsx
+index 2cda92c..a89dd17 100644
+--- a/src/pages/index.tsx
++++ b/src/pages/index.tsx
+@@ -1,10 +1,11 @@
+-import styles from "./index.module.css";
+ import Head from "next/head";
+ import Link from "next/link";
++
+ import { api } from "~/utils/api";
++import styles from "./index.module.css";
+ 
+ export default function Home() {
+-  const hello = api.example.hello.useQuery({ text: "from tRPC" });
++  const hello = api.post.hello.useQuery({ text: "from tRPC" });
+ 
+   return (
+     <>
+diff --git a/src/server/api/root.ts b/src/server/api/root.ts
+index 7caea0f..3d629a7 100644
+--- a/src/server/api/root.ts
++++ b/src/server/api/root.ts
+@@ -1,4 +1,4 @@
+-import { exampleRouter } from "~/server/api/routers/example";
++import { postRouter } from "~/server/api/routers/post";
+ import { createTRPCRouter } from "~/server/api/trpc";
+ 
+ /**
+@@ -7,7 +7,7 @@ import { createTRPCRouter } from "~/server/api/trpc";
+  * All routers added in /api/routers should be manually added here.
+  */
+ export const appRouter = createTRPCRouter({
+-  example: exampleRouter,
++  post: postRouter,
+ });
+ 
+ // export type definition of API
+diff --git a/src/server/api/routers/example.ts b/src/server/api/routers/example.ts
+deleted file mode 100644
+index 50c47c6..0000000
+--- a/src/server/api/routers/example.ts
++++ /dev/null
+@@ -1,15 +0,0 @@
+-import { z } from "zod";
+-import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
+-
+-export const exampleRouter = createTRPCRouter({
+-  hello: publicProcedure
+-    .input(z.object({ text: z.string() }))
+-    .query(({ input }) => {
+-      return {
+-        greeting: `Hello ${input.text}`,
+-      };
+-    }),
+-  getAll: publicProcedure.query(({ ctx }) => {
+-    return ctx.prisma.example.findMany();
+-  }),
+-});
+diff --git a/src/server/api/routers/post.ts b/src/server/api/routers/post.ts
+new file mode 100644
+index 0000000..68367a3
+--- /dev/null
++++ b/src/server/api/routers/post.ts
+@@ -0,0 +1,32 @@
++import { z } from "zod";
++
++import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
++
++export const postRouter = createTRPCRouter({
++  hello: publicProcedure
++    .input(z.object({ text: z.string() }))
++    .query(({ input }) => {
++      return {
++        greeting: `Hello ${input.text}`,
++      };
++    }),
++
++  create: publicProcedure
++    .input(z.object({ name: z.string().min(1) }))
++    .mutation(async ({ ctx, input }) => {
++      // simulate a slow db call
++      await new Promise((resolve) => setTimeout(resolve, 1000));
++
++      return ctx.db.post.create({
++        data: {
++          name: input.name,
++        },
++      });
++    }),
++
++  getLatest: publicProcedure.query(({ ctx }) => {
++    return ctx.db.post.findFirst({
++      orderBy: { createdAt: "desc" },
++    });
++  }),
++});
+diff --git a/src/server/api/trpc.ts b/src/server/api/trpc.ts
+index ff19e2b..dc3b40b 100644
+--- a/src/server/api/trpc.ts
++++ b/src/server/api/trpc.ts
+@@ -10,7 +10,8 @@ import { initTRPC } from "@trpc/server";
+ import { type CreateNextContextOptions } from "@trpc/server/adapters/next";
+ import superjson from "superjson";
+ import { ZodError } from "zod";
+-import { prisma } from "~/server/db";
++
++import { db } from "~/server/db";
+ 
+ /**
+  * 1. CONTEXT
+@@ -34,7 +35,7 @@ type CreateContextOptions = Record<string, never>;
+  */
+ const createInnerTRPCContext = (_opts: CreateContextOptions) => {
+   return {
+-    prisma,
++    db,
+   };
+ };
+ 
+diff --git a/src/server/db.ts b/src/server/db.ts
+index 87ece8b..a4753ca 100644
+--- a/src/server/db.ts
++++ b/src/server/db.ts
+@@ -1,15 +1,16 @@
+ import { PrismaClient } from "@prisma/client";
++
+ import { env } from "~/env.mjs";
+ 
+ const globalForPrisma = globalThis as unknown as {
+   prisma: PrismaClient | undefined;
+ };
+ 
+-export const prisma =
++export const db =
+   globalForPrisma.prisma ??
+   new PrismaClient({
+     log:
+       env.NODE_ENV === "development" ? ["query", "error", "warn"] : ["error"],
+   });
+ 
+-if (env.NODE_ENV !== "production") globalForPrisma.prisma = prisma;
++if (env.NODE_ENV !== "production") globalForPrisma.prisma = db;
+diff --git a/src/utils/api.ts b/src/utils/api.ts
+index b2d5afd..f4f4ad5 100644
+--- a/src/utils/api.ts
++++ b/src/utils/api.ts
+@@ -8,6 +8,7 @@ import { httpBatchLink, loggerLink } from "@trpc/client";
+ import { createTRPCNext } from "@trpc/next";
+ import { type inferRouterInputs, type inferRouterOutputs } from "@trpc/server";
+ import superjson from "superjson";
++
+ import { type AppRouter } from "~/server/api/root";
+ 
+ const getBaseUrl = () => {
+diff --git a/tsconfig.json b/tsconfig.json
+index 03ebb74..1dfa3a8 100644
+--- a/tsconfig.json
++++ b/tsconfig.json
+@@ -19,7 +19,8 @@
+     "baseUrl": ".",
+     "paths": {
+       "~/*": ["./src/*"]
+-    }
++    },
++    "plugins": [{ "name": "next" }]
+   },
+   "include": [
+     ".eslintrc.cjs",
+@@ -27,7 +28,8 @@
+     "**/*.ts",
+     "**/*.tsx",
+     "**/*.cjs",
+-    "**/*.mjs"
++    "**/*.mjs",
++    ".next/types/**/*.ts"
+   ],
+   "exclude": ["node_modules"]
+ }
