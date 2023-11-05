@@ -1,0 +1,299 @@
+diff --git a/.eslintrc.cjs b/.eslintrc.cjs
+index f15a4d5..79cb511 100644
+--- a/.eslintrc.cjs
++++ b/.eslintrc.cjs
+@@ -24,6 +24,12 @@ const config = {
+       },
+     ],
+     "@typescript-eslint/no-unused-vars": ["warn", { argsIgnorePattern: "^_" }],
++    "@typescript-eslint/no-misused-promises": [
++      2,
++      {
++        checksVoidReturn: { attributes: false },
++      },
++    ],
+   },
+ };
+ 
+diff --git a/package.json b/package.json
+index 86d2ba4..ad0d133 100644
+--- a/package.json
++++ b/package.json
+@@ -1,5 +1,5 @@
+ {
+-  "name": "current",
++  "name": "upgrade",
+   "version": "0.1.0",
+   "private": true,
+   "scripts": {
+@@ -9,31 +9,32 @@
+     "start": "next start"
+   },
+   "dependencies": {
+-    "@t3-oss/env-nextjs": "^0.6.0",
+-    "@tanstack/react-query": "^4.29.25",
+-    "@trpc/client": "^10.34.0",
+-    "@trpc/next": "^10.34.0",
+-    "@trpc/react-query": "^10.34.0",
+-    "@trpc/server": "^10.34.0",
+-    "next": "^13.4.13",
+-    "next-auth": "^4.22.4",
++    "@t3-oss/env-nextjs": "^0.7.0",
++    "@tanstack/react-query": "^4.32.6",
++    "@trpc/client": "^10.37.1",
++    "@trpc/next": "^10.37.1",
++    "@trpc/react-query": "^10.37.1",
++    "@trpc/server": "^10.37.1",
++    "next": "^14.0.0",
++    "next-auth": "^4.23.0",
+     "react": "18.2.0",
+     "react-dom": "18.2.0",
+     "superjson": "^1.13.1",
+-    "zod": "^3.21.4"
++    "zod": "^3.22.4"
+   },
+   "devDependencies": {
+     "@types/eslint": "^8.44.2",
+     "@types/node": "^18.16.0",
+-    "@types/react": "^18.2.20",
+-    "@types/react-dom": "^18.2.7",
++    "@types/react": "^18.2.33",
++    "@types/react-dom": "^18.2.14",
+     "@typescript-eslint/eslint-plugin": "^6.3.0",
+     "@typescript-eslint/parser": "^6.3.0",
+     "eslint": "^8.47.0",
+-    "eslint-config-next": "^13.4.13",
++    "eslint-config-next": "^14.0.0",
+     "typescript": "^5.1.6"
+   },
+   "ct3aMetadata": {
+-    "initVersion": "7.19.0"
+-  }
++    "initVersion": "7.23.1"
++  },
++  "packageManager": "pnpm@8.5.1"
+ }
+diff --git a/src/env.mjs b/src/env.mjs
+index 7180893..d9e9b7c 100644
+--- a/src/env.mjs
++++ b/src/env.mjs
+@@ -7,19 +7,21 @@ export const env = createEnv({
+    * isn't built with invalid env vars.
+    */
+   server: {
+-    NODE_ENV: z.enum(["development", "test", "production"]),
++    NODE_ENV: z
++      .enum(["development", "test", "production"])
++      .default("development"),
+     NEXTAUTH_SECRET:
+       process.env.NODE_ENV === "production"
+-        ? z.string().min(1)
+-        : z.string().min(1).optional(),
++        ? z.string()
++        : z.string().optional(),
+     NEXTAUTH_URL: z.preprocess(
+       // This makes Vercel deployments not fail if you don't set NEXTAUTH_URL
+       // Since NextAuth.js automatically uses the VERCEL_URL if present.
+       (str) => process.env.VERCEL_URL ?? str,
+       // VERCEL_URL doesn't include `https` so it cant be validated as a URL
+-      process.env.VERCEL ? z.string().min(1) : z.string().url()
++      process.env.VERCEL ? z.string() : z.string().url()
+     ),
+-    // Add `.min(1) on ID and SECRET if you want to make sure they're not empty
++    // Add ` on ID and SECRET if you want to make sure they're not empty
+     DISCORD_CLIENT_ID: z.string(),
+     DISCORD_CLIENT_SECRET: z.string(),
+   },
+@@ -30,7 +32,7 @@ export const env = createEnv({
+    * `NEXT_PUBLIC_`.
+    */
+   client: {
+-    // NEXT_PUBLIC_CLIENTVAR: z.string().min(1),
++    // NEXT_PUBLIC_CLIENTVAR: z.string(),
+   },
+ 
+   /**
+@@ -50,4 +52,9 @@ export const env = createEnv({
+    * This is especially useful for Docker builds.
+    */
+   skipValidation: !!process.env.SKIP_ENV_VALIDATION,
++  /**
++   * Makes it so that empty strings are treated as undefined.
++   * `SOME_VAR: z.string()` and `SOME_VAR=''` will throw an error.
++   */
++  emptyStringAsUndefined: true,
+ });
+diff --git a/src/pages/index.module.css b/src/pages/index.module.css
+index d9caeea..fac9982 100644
+--- a/src/pages/index.module.css
++++ b/src/pages/index.module.css
+@@ -147,3 +147,31 @@
+ .loginButton:hover {
+   background-color: rgb(255 255 255 / 0.2);
+ }
++
++.form {
++  display: flex;
++  flex-direction: column;
++  gap: 0.5rem;
++}
++
++.input {
++  width: 100%;
++  border-radius: 9999px;
++  padding: 0.5rem 1rem;
++  color: black;
++}
++
++.submitButton {
++  all: unset;
++  border-radius: 9999px;
++  background-color: rgb(255 255 255 / 0.1);
++  padding: 0.75rem 2.5rem;
++  font-weight: 600;
++  color: white;
++  text-align: center;
++  transition: background-color 150ms cubic-bezier(0.5, 0, 0.2, 1);
++}
++
++.submitButton:hover {
++  background-color: rgb(255 255 255 / 0.2);
++}
+diff --git a/src/pages/index.tsx b/src/pages/index.tsx
+index a1f4dac..6902f95 100644
+--- a/src/pages/index.tsx
++++ b/src/pages/index.tsx
+@@ -6,7 +6,7 @@ import { api } from "~/utils/api";
+ import styles from "./index.module.css";
+ 
+ export default function Home() {
+-  const hello = api.example.hello.useQuery({ text: "from tRPC" });
++  const hello = api.post.hello.useQuery({ text: "from tRPC" });
+ 
+   return (
+     <>
+@@ -59,7 +59,7 @@ export default function Home() {
+ function AuthShowcase() {
+   const { data: sessionData } = useSession();
+ 
+-  const { data: secretMessage } = api.example.getSecretMessage.useQuery(
++  const { data: secretMessage } = api.post.getSecretMessage.useQuery(
+     undefined, // no input
+     { enabled: sessionData?.user !== undefined }
+   );
+diff --git a/src/server/api/root.ts b/src/server/api/root.ts
+index 7caea0f..3d629a7 100644
+--- a/src/server/api/root.ts
++++ b/src/server/api/root.ts
+@@ -1,4 +1,4 @@
+-import { exampleRouter } from "~/server/api/routers/example";
++import { postRouter } from "~/server/api/routers/post";
+ import { createTRPCRouter } from "~/server/api/trpc";
+ 
+ /**
+@@ -7,7 +7,7 @@ import { createTRPCRouter } from "~/server/api/trpc";
+  * All routers added in /api/routers should be manually added here.
+  */
+ export const appRouter = createTRPCRouter({
+-  example: exampleRouter,
++  post: postRouter,
+ });
+ 
+ // export type definition of API
+diff --git a/src/server/api/routers/example.ts b/src/server/api/routers/example.ts
+deleted file mode 100644
+index 035cd77..0000000
+--- a/src/server/api/routers/example.ts
++++ /dev/null
+@@ -1,21 +0,0 @@
+-import { z } from "zod";
+-
+-import {
+-  createTRPCRouter,
+-  protectedProcedure,
+-  publicProcedure,
+-} from "~/server/api/trpc";
+-
+-export const exampleRouter = createTRPCRouter({
+-  hello: publicProcedure
+-    .input(z.object({ text: z.string() }))
+-    .query(({ input }) => {
+-      return {
+-        greeting: `Hello ${input.text}`,
+-      };
+-    }),
+-
+-  getSecretMessage: protectedProcedure.query(() => {
+-    return "you can now see this secret message!";
+-  }),
+-});
+diff --git a/src/server/api/routers/post.ts b/src/server/api/routers/post.ts
+new file mode 100644
+index 0000000..a2072d3
+--- /dev/null
++++ b/src/server/api/routers/post.ts
+@@ -0,0 +1,40 @@
++import { z } from "zod";
++
++import {
++  createTRPCRouter,
++  protectedProcedure,
++  publicProcedure,
++} from "~/server/api/trpc";
++
++let post = {
++  id: 1,
++  name: "Hello World",
++};
++
++export const postRouter = createTRPCRouter({
++  hello: publicProcedure
++    .input(z.object({ text: z.string() }))
++    .query(({ input }) => {
++      return {
++        greeting: `Hello ${input.text}`,
++      };
++    }),
++
++  create: protectedProcedure
++    .input(z.object({ name: z.string().min(1) }))
++    .mutation(async ({ input }) => {
++      // simulate a slow db call
++      await new Promise((resolve) => setTimeout(resolve, 1000));
++
++      post = { id: post.id + 1, name: input.name };
++      return post;
++    }),
++
++  getLatest: protectedProcedure.query(() => {
++    return post;
++  }),
++
++  getSecretMessage: protectedProcedure.query(() => {
++    return "you can now see this secret message!";
++  }),
++});
+diff --git a/tsconfig.json b/tsconfig.json
+index 03ebb74..1dfa3a8 100644
+--- a/tsconfig.json
++++ b/tsconfig.json
+@@ -19,7 +19,8 @@
+     "baseUrl": ".",
+     "paths": {
+       "~/*": ["./src/*"]
+-    }
++    },
++    "plugins": [{ "name": "next" }]
+   },
+   "include": [
+     ".eslintrc.cjs",
+@@ -27,7 +28,8 @@
+     "**/*.ts",
+     "**/*.tsx",
+     "**/*.cjs",
+-    "**/*.mjs"
++    "**/*.mjs",
++    ".next/types/**/*.ts"
+   ],
+   "exclude": ["node_modules"]
+ }

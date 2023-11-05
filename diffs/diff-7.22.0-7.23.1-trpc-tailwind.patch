@@ -1,0 +1,46 @@
+diff --git a/package.json b/package.json
+index 5261440..2e4819e 100644
+--- a/package.json
++++ b/package.json
+@@ -1,5 +1,5 @@
+ {
+-  "name": "current",
++  "name": "upgrade",
+   "version": "0.1.0",
+   "private": true,
+   "scripts": {
+@@ -15,7 +15,7 @@
+     "@trpc/next": "^10.37.1",
+     "@trpc/react-query": "^10.37.1",
+     "@trpc/server": "^10.37.1",
+-    "next": "^13.5.4",
++    "next": "^14.0.0",
+     "react": "18.2.0",
+     "react-dom": "18.2.0",
+     "superjson": "^1.13.1",
+@@ -24,13 +24,13 @@
+   "devDependencies": {
+     "@types/eslint": "^8.44.2",
+     "@types/node": "^18.16.0",
+-    "@types/react": "^18.2.20",
+-    "@types/react-dom": "^18.2.7",
++    "@types/react": "^18.2.33",
++    "@types/react-dom": "^18.2.14",
+     "@typescript-eslint/eslint-plugin": "^6.3.0",
+     "@typescript-eslint/parser": "^6.3.0",
+     "autoprefixer": "^10.4.14",
+     "eslint": "^8.47.0",
+-    "eslint-config-next": "^13.5.4",
++    "eslint-config-next": "^14.0.0",
+     "postcss": "^8.4.27",
+     "prettier": "^3.0.0",
+     "prettier-plugin-tailwindcss": "^0.5.1",
+@@ -38,7 +38,7 @@
+     "typescript": "^5.1.6"
+   },
+   "ct3aMetadata": {
+-    "initVersion": "7.22.0"
++    "initVersion": "7.23.1"
+   },
+   "packageManager": "pnpm@8.5.1"
+ }
