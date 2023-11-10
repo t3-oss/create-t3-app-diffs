@@ -1,0 +1,80 @@
+diff --git a/package.json b/package.json
+index 45b47d4..1afb545 100644
+--- a/package.json
++++ b/package.json
+@@ -1,5 +1,5 @@
+ {
+-  "name": "current",
++  "name": "upgrade",
+   "version": "0.1.0",
+   "private": true,
+   "scripts": {
+@@ -21,7 +21,7 @@
+     "@trpc/react-query": "^10.37.1",
+     "@trpc/server": "^10.37.1",
+     "next": "^14.0.0",
+-    "next-auth": "^4.23.0",
++    "next-auth": "^4.24.4",
+     "react": "18.2.0",
+     "react-dom": "18.2.0",
+     "superjson": "^1.13.1",
+@@ -40,7 +40,7 @@
+     "typescript": "^5.1.6"
+   },
+   "ct3aMetadata": {
+-    "initVersion": "7.23.1"
++    "initVersion": "7.23.2"
+   },
+   "packageManager": "pnpm@8.5.1"
+ }
+diff --git a/tsconfig.json b/tsconfig.json
+index 1dfa3a8..7ad7930 100644
+--- a/tsconfig.json
++++ b/tsconfig.json
+@@ -1,26 +1,33 @@
+ {
+   "compilerOptions": {
+-    "target": "es2017",
+-    "lib": ["dom", "dom.iterable", "esnext"],
+-    "allowJs": true,
+-    "checkJs": true,
+-    "skipLibCheck": true,
+-    "strict": true,
+-    "forceConsistentCasingInFileNames": true,
+-    "noEmit": true,
++    /* Base Options: */
+     "esModuleInterop": true,
+-    "module": "esnext",
+-    "moduleResolution": "node",
++    "skipLibCheck": true,
++    "target": "es2022",
++    "allowJs": true,
+     "resolveJsonModule": true,
++    "moduleDetection": "force",
+     "isolatedModules": true,
++
++    /* Strictness */
++    "strict": true,
++    "noUncheckedIndexedAccess": true,
++    "checkJs": true,
++
++    /* Bundled projects */
++    "lib": ["dom", "dom.iterable", "ES2022"],
++    "noEmit": true,
++    "module": "ESNext",
++    "moduleResolution": "Bundler",
+     "jsx": "preserve",
++    "plugins": [{ "name": "next" }],
+     "incremental": true,
+-    "noUncheckedIndexedAccess": true,
++
++    /* Path Aliases */
+     "baseUrl": ".",
+     "paths": {
+       "~/*": ["./src/*"]
+-    },
+-    "plugins": [{ "name": "next" }]
++    }
+   },
+   "include": [
+     ".eslintrc.cjs",
