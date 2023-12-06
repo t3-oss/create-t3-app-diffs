@@ -1,0 +1,137 @@
+diff --git a/.env.example b/.env.example
+index 168cf5b..db1c402 100644
+--- a/.env.example
++++ b/.env.example
+@@ -6,7 +6,7 @@
+ # secrets in it. If you are cloning this repo, create a copy of this file named
+ # ".env" and populate it with your secrets.
+ 
+-# When adding additional environment variables, the schema in "/src/env.mjs"
++# When adding additional environment variables, the schema in "/src/env.js"
+ # should be updated accordingly.
+ 
+ # Prisma
+diff --git a/.eslintrc.cjs b/.eslintrc.cjs
+index 79cb511..d4b2cb8 100644
+--- a/.eslintrc.cjs
++++ b/.eslintrc.cjs
+@@ -6,7 +6,7 @@ const config = {
+   },
+   plugins: ["@typescript-eslint"],
+   extends: [
+-    "next/core-web-vitals",
++    "plugin:@next/next/recommended",
+     "plugin:@typescript-eslint/recommended-type-checked",
+     "plugin:@typescript-eslint/stylistic-type-checked",
+   ],
+@@ -24,8 +24,9 @@ const config = {
+       },
+     ],
+     "@typescript-eslint/no-unused-vars": ["warn", { argsIgnorePattern: "^_" }],
++    "@typescript-eslint/require-await": "off",
+     "@typescript-eslint/no-misused-promises": [
+-      2,
++      "error",
+       {
+         checksVoidReturn: { attributes: false },
+       },
+diff --git a/next.config.mjs b/next.config.js
+similarity index 93%
+rename from next.config.mjs
+rename to next.config.js
+index 61964ea..ffbeb9f 100644
+--- a/next.config.mjs
++++ b/next.config.js
+@@ -2,7 +2,7 @@
+  * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation. This is especially useful
+  * for Docker builds.
+  */
+-await import("./src/env.mjs");
++await import("./src/env.js");
+ 
+ /** @type {import("next").NextConfig} */
+ const config = {
+diff --git a/package.json b/package.json
+index dc159fd..d4f179a 100644
+--- a/package.json
++++ b/package.json
+@@ -1,7 +1,8 @@
+ {
+-  "name": "current",
++  "name": "upgrade",
+   "version": "0.1.0",
+   "private": true,
++  "type": "module",
+   "scripts": {
+     "build": "next build",
+     "dev": "next dev",
+@@ -12,27 +13,27 @@
+     "db:studio": "prisma studio"
+   },
+   "dependencies": {
+-    "@prisma/client": "^5.1.1",
+-    "@t3-oss/env-nextjs": "^0.7.0",
+-    "next": "^14.0.0",
++    "@prisma/client": "^5.6.0",
++    "@t3-oss/env-nextjs": "^0.7.1",
++    "next": "^14.0.3",
+     "react": "18.2.0",
+     "react-dom": "18.2.0",
+     "zod": "^3.22.4"
+   },
+   "devDependencies": {
+-    "@types/eslint": "^8.44.2",
+-    "@types/node": "^18.16.0",
+-    "@types/react": "^18.2.33",
+-    "@types/react-dom": "^18.2.14",
+-    "@typescript-eslint/eslint-plugin": "^6.3.0",
+-    "@typescript-eslint/parser": "^6.3.0",
+-    "eslint": "^8.47.0",
+-    "eslint-config-next": "^14.0.0",
+-    "prisma": "^5.1.1",
++    "@next/eslint-plugin-next": "^14.0.3",
++    "@types/eslint": "^8.44.7",
++    "@types/node": "^18.17.0",
++    "@types/react": "^18.2.37",
++    "@types/react-dom": "^18.2.15",
++    "@typescript-eslint/eslint-plugin": "^6.11.0",
++    "@typescript-eslint/parser": "^6.11.0",
++    "eslint": "^8.54.0",
++    "prisma": "^5.6.0",
+     "typescript": "^5.1.6"
+   },
+   "ct3aMetadata": {
+-    "initVersion": "7.23.2"
++    "initVersion": "7.24.1"
+   },
+   "packageManager": "pnpm@8.5.1"
+ }
+diff --git a/src/env.mjs b/src/env.js
+similarity index 100%
+rename from src/env.mjs
+rename to src/env.js
+diff --git a/src/server/db.ts b/src/server/db.ts
+index a4753ca..02696bc 100644
+--- a/src/server/db.ts
++++ b/src/server/db.ts
+@@ -1,6 +1,6 @@
+ import { PrismaClient } from "@prisma/client";
+ 
+-import { env } from "~/env.mjs";
++import { env } from "~/env";
+ 
+ const globalForPrisma = globalThis as unknown as {
+   prisma: PrismaClient | undefined;
+diff --git a/tsconfig.json b/tsconfig.json
+index 7ad7930..905062d 100644
+--- a/tsconfig.json
++++ b/tsconfig.json
+@@ -35,7 +35,7 @@
+     "**/*.ts",
+     "**/*.tsx",
+     "**/*.cjs",
+-    "**/*.mjs",
++    "**/*.js",
+     ".next/types/**/*.ts"
+   ],
+   "exclude": ["node_modules"]
