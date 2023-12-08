@@ -732,5 +732,21 @@
   "7.20.1..7.20.2-nextAuth-trpc-tailwind": true,
   "7.20.1..7.20.2-tailwind": true,
   "7.20.1..7.20.2-trpc": true,
-  "7.20.1..7.20.2-trpc-tailwind": true
+  "7.20.1..7.20.2-trpc-tailwind": true,
+  "7.24.0..7.24.1": true,
+  "7.24.0..7.24.1-nextAuth": true,
+  "7.24.0..7.24.1-nextAuth-prisma": true,
+  "7.24.0..7.24.1-nextAuth-prisma-trpc": true,
+  "7.24.0..7.24.1-nextAuth-trpc": true,
+  "7.24.0..7.24.1-prisma": true,
+  "7.24.0..7.24.1-prisma-trpc": true,
+  "7.24.0..7.24.1-trpc": true,
+  "7.24.0..7.24.2": true,
+  "7.24.0..7.24.2-nextAuth": true,
+  "7.24.0..7.24.2-nextAuth-prisma": true,
+  "7.24.0..7.24.2-nextAuth-prisma-trpc": true,
+  "7.24.0..7.24.2-nextAuth-trpc": true,
+  "7.24.0..7.24.2-prisma": true,
+  "7.24.0..7.24.2-prisma-trpc": true,
+  "7.24.0..7.24.2-trpc": true
 }
