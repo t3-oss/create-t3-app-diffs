@@ -1,0 +1,30 @@
+diff --git a/package.json b/package.json
+index b41af1a..5284d71 100644
+--- a/package.json
++++ b/package.json
+@@ -1,5 +1,5 @@
+ {
+-  "name": "current",
++  "name": "upgrade",
+   "version": "0.1.0",
+   "private": true,
+   "type": "module",
+@@ -38,7 +38,7 @@
+     "typescript": "^5.1.6"
+   },
+   "ct3aMetadata": {
+-    "initVersion": "7.24.0"
++    "initVersion": "7.24.2"
+   },
+   "packageManager": "pnpm@8.5.1"
+ }
+diff --git a/prettier.config.js b/prettier.config.js
+index 2d2fa4c..b2d59b4 100644
+--- a/prettier.config.js
++++ b/prettier.config.js
+@@ -1,4 +1,4 @@
+-/** @type {import('prettier').Config & import('prettier-plugin-tailwindcss').options} */
++/** @type {import('prettier').Config & import('prettier-plugin-tailwindcss').PluginOptions} */
+ const config = {
+   plugins: ["prettier-plugin-tailwindcss"],
+ };
