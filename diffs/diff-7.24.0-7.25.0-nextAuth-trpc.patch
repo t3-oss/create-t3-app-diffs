@@ -1,0 +1,50 @@
+diff --git a/package.json b/package.json
+index d29682d..f88da30 100644
+--- a/package.json
++++ b/package.json
+@@ -1,5 +1,5 @@
+ {
+-  "name": "current",
++  "name": "upgrade",
+   "version": "0.1.0",
+   "private": true,
+   "type": "module",
+@@ -35,7 +35,7 @@
+     "typescript": "^5.1.6"
+   },
+   "ct3aMetadata": {
+-    "initVersion": "7.24.0"
++    "initVersion": "7.25.0"
+   },
+   "packageManager": "pnpm@8.5.1"
+ }
+diff --git a/src/env.js b/src/env.js
+index d9e9b7c..42cc126 100644
+--- a/src/env.js
++++ b/src/env.js
+@@ -21,7 +21,6 @@ export const env = createEnv({
+       // VERCEL_URL doesn't include `https` so it cant be validated as a URL
+       process.env.VERCEL ? z.string() : z.string().url()
+     ),
+-    // Add ` on ID and SECRET if you want to make sure they're not empty
+     DISCORD_CLIENT_ID: z.string(),
+     DISCORD_CLIENT_SECRET: z.string(),
+   },
+@@ -48,13 +47,13 @@ export const env = createEnv({
+     // NEXT_PUBLIC_CLIENTVAR: process.env.NEXT_PUBLIC_CLIENTVAR,
+   },
+   /**
+-   * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation.
+-   * This is especially useful for Docker builds.
++   * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation. This is especially
++   * useful for Docker builds.
+    */
+   skipValidation: !!process.env.SKIP_ENV_VALIDATION,
+   /**
+-   * Makes it so that empty strings are treated as undefined.
+-   * `SOME_VAR: z.string()` and `SOME_VAR=''` will throw an error.
++   * Makes it so that empty strings are treated as undefined. `SOME_VAR: z.string()` and
++   * `SOME_VAR=''` will throw an error.
+    */
+   emptyStringAsUndefined: true,
+ });

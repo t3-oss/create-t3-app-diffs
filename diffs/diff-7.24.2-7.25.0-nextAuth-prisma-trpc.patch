@@ -1,0 +1,43 @@
+diff --git a/package.json b/package.json
+index 28ae7ec..6a640e9 100644
+--- a/package.json
++++ b/package.json
+@@ -1,5 +1,5 @@
+ {
+-  "name": "current",
++  "name": "upgrade",
+   "version": "0.1.0",
+   "private": true,
+   "type": "module",
+@@ -41,7 +41,7 @@
+     "typescript": "^5.1.6"
+   },
+   "ct3aMetadata": {
+-    "initVersion": "7.24.2"
++    "initVersion": "7.25.0"
+   },
+   "packageManager": "pnpm@8.5.1"
+ }
+diff --git a/src/env.js b/src/env.js
+index afde07b..35a053e 100644
+--- a/src/env.js
++++ b/src/env.js
+@@ -28,7 +28,6 @@ export const env = createEnv({
+       // VERCEL_URL doesn't include `https` so it cant be validated as a URL
+       process.env.VERCEL ? z.string() : z.string().url()
+     ),
+-    // Add ` on ID and SECRET if you want to make sure they're not empty
+     DISCORD_CLIENT_ID: z.string(),
+     DISCORD_CLIENT_SECRET: z.string(),
+   },
+@@ -60,8 +59,8 @@ export const env = createEnv({
+    */
+   skipValidation: !!process.env.SKIP_ENV_VALIDATION,
+   /**
+-   * Makes it so that empty strings are treated as undefined.
+-   * `SOME_VAR: z.string()` and `SOME_VAR=''` will throw an error.
++   * Makes it so that empty strings are treated as undefined. `SOME_VAR: z.string()` and
++   * `SOME_VAR=''` will throw an error.
+    */
+   emptyStringAsUndefined: true,
+ });
