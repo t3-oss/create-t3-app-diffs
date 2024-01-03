@@ -1,0 +1,116 @@
+diff --git a/.eslintrc.cjs b/.eslintrc.cjs
+index d4b2cb8..c946e46 100644
+--- a/.eslintrc.cjs
++++ b/.eslintrc.cjs
+@@ -6,7 +6,7 @@ const config = {
+   },
+   plugins: ["@typescript-eslint"],
+   extends: [
+-    "plugin:@next/next/recommended",
++    "next/core-web-vitals",
+     "plugin:@typescript-eslint/recommended-type-checked",
+     "plugin:@typescript-eslint/stylistic-type-checked",
+   ],
+diff --git a/package.json b/package.json
+index 28ae7ec..438c65a 100644
+--- a/package.json
++++ b/package.json
+@@ -1,5 +1,5 @@
+ {
+-  "name": "current",
++  "name": "upgrade",
+   "version": "0.1.0",
+   "private": true,
+   "type": "module",
+@@ -21,7 +21,7 @@
+     "@trpc/next": "^10.43.6",
+     "@trpc/react-query": "^10.43.6",
+     "@trpc/server": "^10.43.6",
+-    "next": "^14.0.3",
++    "next": "^14.0.4",
+     "next-auth": "^4.24.5",
+     "react": "18.2.0",
+     "react-dom": "18.2.0",
+@@ -29,7 +29,6 @@
+     "zod": "^3.22.4"
+   },
+   "devDependencies": {
+-    "@next/eslint-plugin-next": "^14.0.3",
+     "@types/eslint": "^8.44.7",
+     "@types/node": "^18.17.0",
+     "@types/react": "^18.2.37",
+@@ -37,11 +36,12 @@
+     "@typescript-eslint/eslint-plugin": "^6.11.0",
+     "@typescript-eslint/parser": "^6.11.0",
+     "eslint": "^8.54.0",
++    "eslint-config-next": "^14.0.4",
+     "prisma": "^5.6.0",
+     "typescript": "^5.1.6"
+   },
+   "ct3aMetadata": {
+-    "initVersion": "7.24.2"
++    "initVersion": "7.25.1"
+   },
+   "packageManager": "pnpm@8.5.1"
+ }
+diff --git a/src/env.js b/src/env.js
+index afde07b..35a053e 100644
+--- a/src/env.js
++++ b/src/env.js
+@@ -28,7 +28,6 @@ export const env = createEnv({
+       // VERCEL_URL doesn't include `https` so it cant be validated as a URL
+       process.env.VERCEL ? z.string() : z.string().url()
+     ),
+-    // Add ` on ID and SECRET if you want to make sure they're not empty
+     DISCORD_CLIENT_ID: z.string(),
+     DISCORD_CLIENT_SECRET: z.string(),
+   },
+@@ -60,8 +59,8 @@ export const env = createEnv({
+    */
+   skipValidation: !!process.env.SKIP_ENV_VALIDATION,
+   /**
+-   * Makes it so that empty strings are treated as undefined.
+-   * `SOME_VAR: z.string()` and `SOME_VAR=''` will throw an error.
++   * Makes it so that empty strings are treated as undefined. `SOME_VAR: z.string()` and
++   * `SOME_VAR=''` will throw an error.
+    */
+   emptyStringAsUndefined: true,
+ });
+diff --git a/src/server/api/trpc.ts b/src/server/api/trpc.ts
+index 87237ff..f76d522 100644
+--- a/src/server/api/trpc.ts
++++ b/src/server/api/trpc.ts
+@@ -107,9 +107,16 @@ export const createTRPCRouter = t.router;
+  */
+ export const publicProcedure = t.procedure;
+ 
+-/** Reusable middleware that enforces users are logged in before running the procedure. */
+-const enforceUserIsAuthed = t.middleware(({ ctx, next }) => {
+-  if (!ctx.session?.user) {
++/**
++ * Protected (authenticated) procedure
++ *
++ * If you want a query or mutation to ONLY be accessible to logged in users, use this. It verifies
++ * the session is valid and guarantees `ctx.session.user` is not null.
++ *
++ * @see https://trpc.io/docs/procedures
++ */
++export const protectedProcedure = t.procedure.use(({ ctx, next }) => {
++  if (!ctx.session || !ctx.session.user) {
+     throw new TRPCError({ code: "UNAUTHORIZED" });
+   }
+   return next({
+@@ -119,13 +126,3 @@ const enforceUserIsAuthed = t.middleware(({ ctx, next }) => {
+     },
+   });
+ });
+-
+-/**
+- * Protected (authenticated) procedure
+- *
+- * If you want a query or mutation to ONLY be accessible to logged in users, use this. It verifies
+- * the session is valid and guarantees `ctx.session.user` is not null.
+- *
+- * @see https://trpc.io/docs/procedures
+- */
+-export const protectedProcedure = t.procedure.use(enforceUserIsAuthed);
