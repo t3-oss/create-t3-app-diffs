@@ -1,0 +1,32 @@
+diff --git a/package.json b/package.json
+index 02e199b..8a62571 100644
+--- a/package.json
++++ b/package.json
+@@ -1,5 +1,5 @@
+ {
+-  "name": "current",
++  "name": "upgrade",
+   "version": "0.1.0",
+   "private": true,
+   "type": "module",
+@@ -33,7 +33,7 @@
+     "typescript": "^5.1.6"
+   },
+   "ct3aMetadata": {
+-    "initVersion": "7.25.1"
++    "initVersion": "7.26.0"
+   },
+   "packageManager": "pnpm@8.5.1"
+ }
+diff --git a/src/env.js b/src/env.js
+index 1107bd0..e3e3719 100644
+--- a/src/env.js
++++ b/src/env.js
+@@ -9,7 +9,6 @@ export const env = createEnv({
+   server: {
+     DATABASE_URL: z
+       .string()
+-      .url()
+       .refine(
+         (str) => !str.includes("YOUR_MYSQL_URL_HERE"),
+         "You forgot to change the default URL"
