@@ -1,0 +1,495 @@
+diff --git a/.env.example b/.env.example
+index c1464a2..eb5aed4 100644
+--- a/.env.example
++++ b/.env.example
+@@ -6,7 +6,7 @@
+ # secrets in it. If you are cloning this repo, create a copy of this file named
+ # ".env" and populate it with your secrets.
+ 
+-# When adding additional environment variables, the schema in "/src/env.mjs"
++# When adding additional environment variables, the schema in "/src/env.js"
+ # should be updated accordingly.
+ 
+ # Prisma
+diff --git a/.eslintrc.cjs b/.eslintrc.cjs
+index 8b7a0e8..c946e46 100644
+--- a/.eslintrc.cjs
++++ b/.eslintrc.cjs
+@@ -1,26 +1,21 @@
+-// eslint-disable-next-line @typescript-eslint/no-var-requires
+-const path = require("path");
+-
+ /** @type {import("eslint").Linter.Config} */
+ const config = {
+-  overrides: [
+-    {
+-      extends: [
+-        "plugin:@typescript-eslint/recommended-requiring-type-checking",
+-      ],
+-      files: ["*.ts", "*.tsx"],
+-      parserOptions: {
+-        project: path.join(__dirname, "tsconfig.json"),
+-      },
+-    },
+-  ],
+   parser: "@typescript-eslint/parser",
+   parserOptions: {
+-    project: path.join(__dirname, "tsconfig.json"),
++    project: true,
+   },
+   plugins: ["@typescript-eslint"],
+-  extends: ["next/core-web-vitals", "plugin:@typescript-eslint/recommended"],
++  extends: [
++    "next/core-web-vitals",
++    "plugin:@typescript-eslint/recommended-type-checked",
++    "plugin:@typescript-eslint/stylistic-type-checked",
++  ],
+   rules: {
++    // These opinionated rules are enabled in stylistic-type-checked above.
++    // Feel free to reconfigure them to your own preference.
++    "@typescript-eslint/array-type": "off",
++    "@typescript-eslint/consistent-type-definitions": "off",
++
+     "@typescript-eslint/consistent-type-imports": [
+       "warn",
+       {
+@@ -29,6 +24,13 @@ const config = {
+       },
+     ],
+     "@typescript-eslint/no-unused-vars": ["warn", { argsIgnorePattern: "^_" }],
++    "@typescript-eslint/require-await": "off",
++    "@typescript-eslint/no-misused-promises": [
++      "error",
++      {
++        checksVoidReturn: { attributes: false },
++      },
++    ],
+   },
+ };
+ 
+diff --git a/README.md b/README.md
+index fba19ed..67943c7 100644
+--- a/README.md
++++ b/README.md
+@@ -11,6 +11,7 @@ If you are not familiar with the different technologies used in this project, pl
+ - [Next.js](https://nextjs.org)
+ - [NextAuth.js](https://next-auth.js.org)
+ - [Prisma](https://prisma.io)
++- [Drizzle](https://orm.drizzle.team)
+ - [Tailwind CSS](https://tailwindcss.com)
+ - [tRPC](https://trpc.io)
+ 
+diff --git a/next.config.mjs b/next.config.js
+similarity index 72%
+rename from next.config.mjs
+rename to next.config.js
+index 654e725..ffbeb9f 100644
+--- a/next.config.mjs
++++ b/next.config.js
+@@ -2,15 +2,14 @@
+  * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation. This is especially useful
+  * for Docker builds.
+  */
+-await import("./src/env.mjs");
++await import("./src/env.js");
+ 
+ /** @type {import("next").NextConfig} */
+ const config = {
+   reactStrictMode: true,
+ 
+   /**
+-   * If you have `experimental: { appDir: true }` set, then you must comment the below `i18n` config
+-   * out.
++   * If you are using `appDir` then you must comment the below `i18n` config out.
+    *
+    * @see https://github.com/vercel/next.js/issues/41980
+    */
+diff --git a/package.json b/package.json
+index 80c091d..574aa19 100644
+--- a/package.json
++++ b/package.json
+@@ -1,43 +1,45 @@
+ {
+-  "name": "current",
++  "name": "upgrade",
+   "version": "0.1.0",
+   "private": true,
++  "type": "module",
+   "scripts": {
+     "build": "next build",
++    "db:push": "prisma db push",
++    "db:studio": "prisma studio",
+     "dev": "next dev",
+     "postinstall": "prisma generate",
+     "lint": "next lint",
+     "start": "next start"
+   },
+   "dependencies": {
+-    "@next-auth/prisma-adapter": "^1.0.5",
+-    "@prisma/client": "^4.14.0",
+-    "@t3-oss/env-nextjs": "^0.3.1",
+-    "next": "^13.4.2",
+-    "next-auth": "^4.22.1",
++    "@auth/prisma-adapter": "^1.4.0",
++    "@prisma/client": "^5.10.2",
++    "@t3-oss/env-nextjs": "^0.9.2",
++    "next": "^14.1.0",
++    "next-auth": "^4.24.6",
+     "react": "18.2.0",
+     "react-dom": "18.2.0",
+-    "zod": "^3.21.4"
++    "zod": "^3.22.4"
+   },
+   "devDependencies": {
+-    "@types/eslint": "^8.37.0",
+-    "@types/node": "^18.16.0",
+-    "@types/prettier": "^2.7.2",
+-    "@types/react": "^18.2.6",
+-    "@types/react-dom": "^18.2.4",
+-    "@typescript-eslint/eslint-plugin": "^5.59.6",
+-    "@typescript-eslint/parser": "^5.59.6",
+-    "autoprefixer": "^10.4.14",
+-    "eslint": "^8.40.0",
+-    "eslint-config-next": "^13.4.2",
+-    "postcss": "^8.4.21",
+-    "prettier": "^2.8.8",
+-    "prettier-plugin-tailwindcss": "^0.2.8",
+-    "prisma": "^4.14.0",
+-    "tailwindcss": "^3.3.0",
+-    "typescript": "^5.0.4"
++    "@types/eslint": "^8.56.2",
++    "@types/node": "^20.11.20",
++    "@types/react": "^18.2.57",
++    "@types/react-dom": "^18.2.19",
++    "@typescript-eslint/eslint-plugin": "^7.0.2",
++    "@typescript-eslint/parser": "^7.0.2",
++    "eslint": "^8.56.0",
++    "eslint-config-next": "^14.1.0",
++    "postcss": "^8.4.34",
++    "prettier": "^3.2.5",
++    "prettier-plugin-tailwindcss": "^0.5.11",
++    "prisma": "^5.10.2",
++    "tailwindcss": "^3.4.1",
++    "typescript": "^5.3.3"
+   },
+   "ct3aMetadata": {
+-    "initVersion": "7.15.0"
+-  }
++    "initVersion": "7.27.0"
++  },
++  "packageManager": "pnpm@8.5.1"
+ }
+diff --git a/postcss.config.cjs b/postcss.config.cjs
+index e305dd9..4cdb2f4 100644
+--- a/postcss.config.cjs
++++ b/postcss.config.cjs
+@@ -1,7 +1,6 @@
+ const config = {
+   plugins: {
+     tailwindcss: {},
+-    autoprefixer: {},
+   },
+ };
+ 
+diff --git a/prettier.config.cjs b/prettier.config.cjs
+deleted file mode 100644
+index ca28ed9..0000000
+--- a/prettier.config.cjs
++++ /dev/null
+@@ -1,6 +0,0 @@
+-/** @type {import("prettier").Config} */
+-const config = {
+-  plugins: [require.resolve("prettier-plugin-tailwindcss")],
+-};
+-
+-module.exports = config;
+diff --git a/prettier.config.js b/prettier.config.js
+new file mode 100644
+index 0000000..b2d59b4
+--- /dev/null
++++ b/prettier.config.js
+@@ -0,0 +1,6 @@
++/** @type {import('prettier').Config & import('prettier-plugin-tailwindcss').PluginOptions} */
++const config = {
++  plugins: ["prettier-plugin-tailwindcss"],
++};
++
++export default config;
+diff --git a/prisma/schema.prisma b/prisma/schema.prisma
+index a352ad5..848c86b 100644
+--- a/prisma/schema.prisma
++++ b/prisma/schema.prisma
+@@ -3,7 +3,6 @@
+ 
+ generator client {
+     provider = "prisma-client-js"
+-    previewFeatures = ["jsonProtocol"]
+ }
+ 
+ datasource db {
+@@ -15,10 +14,16 @@ datasource db {
+     url      = env("DATABASE_URL")
+ }
+ 
+-model Example {
+-    id        String   @id @default(cuid())
++model Post {
++    id        Int      @id @default(autoincrement())
++    name      String
+     createdAt DateTime @default(now())
+     updatedAt DateTime @updatedAt
++
++    createdBy   User   @relation(fields: [createdById], references: [id])
++    createdById String
++
++    @@index([name])
+ }
+ 
+ // Necessary for Next auth
+@@ -56,6 +61,7 @@ model User {
+     image         String?
+     accounts      Account[]
+     sessions      Session[]
++    posts         Post[]
+ }
+ 
+ model VerificationToken {
+diff --git a/src/env.mjs b/src/env.js
+similarity index 70%
+rename from src/env.mjs
+rename to src/env.js
+index 58bc43a..b190b4b 100644
+--- a/src/env.mjs
++++ b/src/env.js
+@@ -7,20 +7,26 @@ export const env = createEnv({
+    * isn't built with invalid env vars.
+    */
+   server: {
+-    DATABASE_URL: z.string().url(),
+-    NODE_ENV: z.enum(["development", "test", "production"]),
++    DATABASE_URL: z
++      .string()
++      .refine(
++        (str) => !str.includes("YOUR_MYSQL_URL_HERE"),
++        "You forgot to change the default URL"
++      ),
++    NODE_ENV: z
++      .enum(["development", "test", "production"])
++      .default("development"),
+     NEXTAUTH_SECRET:
+       process.env.NODE_ENV === "production"
+-        ? z.string().min(1)
+-        : z.string().min(1).optional(),
++        ? z.string()
++        : z.string().optional(),
+     NEXTAUTH_URL: z.preprocess(
+       // This makes Vercel deployments not fail if you don't set NEXTAUTH_URL
+       // Since NextAuth.js automatically uses the VERCEL_URL if present.
+       (str) => process.env.VERCEL_URL ?? str,
+       // VERCEL_URL doesn't include `https` so it cant be validated as a URL
+-      process.env.VERCEL ? z.string().min(1) : z.string().url()
++      process.env.VERCEL ? z.string() : z.string().url()
+     ),
+-    // Add `.min(1) on ID and SECRET if you want to make sure they're not empty
+     DISCORD_CLIENT_ID: z.string(),
+     DISCORD_CLIENT_SECRET: z.string(),
+   },
+@@ -31,7 +37,7 @@ export const env = createEnv({
+    * `NEXT_PUBLIC_`.
+    */
+   client: {
+-    // NEXT_PUBLIC_CLIENTVAR: z.string().min(1),
++    // NEXT_PUBLIC_CLIENTVAR: z.string(),
+   },
+ 
+   /**
+@@ -47,8 +53,13 @@ export const env = createEnv({
+     DISCORD_CLIENT_SECRET: process.env.DISCORD_CLIENT_SECRET,
+   },
+   /**
+-   * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation.
+-   * This is especially useful for Docker builds.
++   * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation. This is especially
++   * useful for Docker builds.
+    */
+   skipValidation: !!process.env.SKIP_ENV_VALIDATION,
++  /**
++   * Makes it so that empty strings are treated as undefined. `SOME_VAR: z.string()` and
++   * `SOME_VAR=''` will throw an error.
++   */
++  emptyStringAsUndefined: true,
+ });
+diff --git a/src/pages/_app.tsx b/src/pages/_app.tsx
+index fad7ab2..be9989c 100644
+--- a/src/pages/_app.tsx
++++ b/src/pages/_app.tsx
+@@ -1,6 +1,7 @@
+ import { type Session } from "next-auth";
+ import { SessionProvider } from "next-auth/react";
+ import { type AppType } from "next/app";
++
+ import "~/styles/globals.css";
+ 
+ const MyApp: AppType<{ session: Session | null }> = ({
+diff --git a/src/pages/api/auth/[...nextauth].ts b/src/pages/api/auth/[...nextauth].ts
+index 8aefbb6..8739530 100644
+--- a/src/pages/api/auth/[...nextauth].ts
++++ b/src/pages/api/auth/[...nextauth].ts
+@@ -1,4 +1,5 @@
+ import NextAuth from "next-auth";
++
+ import { authOptions } from "~/server/auth";
+ 
+ export default NextAuth(authOptions);
+diff --git a/src/server/auth.ts b/src/server/auth.ts
+index e3f5444..ee03a40 100644
+--- a/src/server/auth.ts
++++ b/src/server/auth.ts
+@@ -1,13 +1,15 @@
+-import { PrismaAdapter } from "@next-auth/prisma-adapter";
++import { PrismaAdapter } from "@auth/prisma-adapter";
+ import { type GetServerSidePropsContext } from "next";
+ import {
+   getServerSession,
+-  type NextAuthOptions,
+   type DefaultSession,
++  type NextAuthOptions,
+ } from "next-auth";
++import { type Adapter } from "next-auth/adapters";
+ import DiscordProvider from "next-auth/providers/discord";
+-import { env } from "~/env.mjs";
+-import { prisma } from "~/server/db";
++
++import { env } from "~/env";
++import { db } from "~/server/db";
+ 
+ /**
+  * Module augmentation for `next-auth` types. Allows us to add custom properties to the `session`
+@@ -17,11 +19,11 @@ import { prisma } from "~/server/db";
+  */
+ declare module "next-auth" {
+   interface Session extends DefaultSession {
+-    user: {
++    user: DefaultSession["user"] & {
+       id: string;
+       // ...other properties
+       // role: UserRole;
+-    } & DefaultSession["user"];
++    };
+   }
+ 
+   // interface User {
+@@ -45,7 +47,7 @@ export const authOptions: NextAuthOptions = {
+       },
+     }),
+   },
+-  adapter: PrismaAdapter(prisma),
++  adapter: PrismaAdapter(db) as Adapter,
+   providers: [
+     DiscordProvider({
+       clientId: env.DISCORD_CLIENT_ID,
+diff --git a/src/server/db.ts b/src/server/db.ts
+index 87ece8b..07dc027 100644
+--- a/src/server/db.ts
++++ b/src/server/db.ts
+@@ -1,15 +1,17 @@
+ import { PrismaClient } from "@prisma/client";
+-import { env } from "~/env.mjs";
+ 
+-const globalForPrisma = globalThis as unknown as {
+-  prisma: PrismaClient | undefined;
+-};
++import { env } from "~/env";
+ 
+-export const prisma =
+-  globalForPrisma.prisma ??
++const createPrismaClient = () =>
+   new PrismaClient({
+     log:
+       env.NODE_ENV === "development" ? ["query", "error", "warn"] : ["error"],
+   });
+ 
+-if (env.NODE_ENV !== "production") globalForPrisma.prisma = prisma;
++const globalForPrisma = globalThis as unknown as {
++  prisma: ReturnType<typeof createPrismaClient> | undefined;
++};
++
++export const db = globalForPrisma.prisma ?? createPrismaClient();
++
++if (env.NODE_ENV !== "production") globalForPrisma.prisma = db;
+diff --git a/tailwind.config.ts b/tailwind.config.ts
+index d4d3fa2..f06488f 100644
+--- a/tailwind.config.ts
++++ b/tailwind.config.ts
+@@ -1,9 +1,14 @@
+ import { type Config } from "tailwindcss";
++import { fontFamily } from "tailwindcss/defaultTheme";
+ 
+ export default {
+-  content: ["./src/**/*.{js,ts,jsx,tsx}"],
++  content: ["./src/**/*.tsx"],
+   theme: {
+-    extend: {},
++    extend: {
++      fontFamily: {
++        sans: ["var(--font-sans)", ...fontFamily.sans],
++      },
++    },
+   },
+   plugins: [],
+ } satisfies Config;
+diff --git a/tsconfig.json b/tsconfig.json
+index 03ebb74..905062d 100644
+--- a/tsconfig.json
++++ b/tsconfig.json
+@@ -1,21 +1,29 @@
+ {
+   "compilerOptions": {
+-    "target": "es2017",
+-    "lib": ["dom", "dom.iterable", "esnext"],
+-    "allowJs": true,
+-    "checkJs": true,
+-    "skipLibCheck": true,
+-    "strict": true,
+-    "forceConsistentCasingInFileNames": true,
+-    "noEmit": true,
++    /* Base Options: */
+     "esModuleInterop": true,
+-    "module": "esnext",
+-    "moduleResolution": "node",
++    "skipLibCheck": true,
++    "target": "es2022",
++    "allowJs": true,
+     "resolveJsonModule": true,
++    "moduleDetection": "force",
+     "isolatedModules": true,
++
++    /* Strictness */
++    "strict": true,
++    "noUncheckedIndexedAccess": true,
++    "checkJs": true,
++
++    /* Bundled projects */
++    "lib": ["dom", "dom.iterable", "ES2022"],
++    "noEmit": true,
++    "module": "ESNext",
++    "moduleResolution": "Bundler",
+     "jsx": "preserve",
++    "plugins": [{ "name": "next" }],
+     "incremental": true,
+-    "noUncheckedIndexedAccess": true,
++
++    /* Path Aliases */
+     "baseUrl": ".",
+     "paths": {
+       "~/*": ["./src/*"]
+@@ -27,7 +35,8 @@
+     "**/*.ts",
+     "**/*.tsx",
+     "**/*.cjs",
+-    "**/*.mjs"
++    "**/*.js",
++    ".next/types/**/*.ts"
+   ],
+   "exclude": ["node_modules"]
+ }
