@@ -1,0 +1,479 @@
+diff --git a/.env.example b/.env.example
+index 3fcccc6..adfe836 100644
+--- a/.env.example
++++ b/.env.example
+@@ -6,7 +6,7 @@
+ # secrets in it. If you are cloning this repo, create a copy of this file named
+ # ".env" and populate it with your secrets.
+ 
+-# When adding additional environment variables, the schema in "/src/env.mjs"
++# When adding additional environment variables, the schema in "/src/env.js"
+ # should be updated accordingly.
+ 
+ # Example:
+diff --git a/.eslintrc.cjs b/.eslintrc.cjs
+index 861f139..c946e46 100644
+--- a/.eslintrc.cjs
++++ b/.eslintrc.cjs
+@@ -1,23 +1,21 @@
+ /** @type {import("eslint").Linter.Config} */
+ const config = {
+-  overrides: [
+-    {
+-      extends: [
+-        "plugin:@typescript-eslint/recommended-requiring-type-checking",
+-      ],
+-      files: ["*.ts", "*.tsx"],
+-      parserOptions: {
+-        project: "tsconfig.json",
+-      },
+-    },
+-  ],
+   parser: "@typescript-eslint/parser",
+   parserOptions: {
+-    project: "./tsconfig.json",
++    project: true,
+   },
+   plugins: ["@typescript-eslint"],
+-  extends: ["next/core-web-vitals", "plugin:@typescript-eslint/recommended"],
++  extends: [
++    "next/core-web-vitals",
++    "plugin:@typescript-eslint/recommended-type-checked",
++    "plugin:@typescript-eslint/stylistic-type-checked",
++  ],
+   rules: {
++    // These opinionated rules are enabled in stylistic-type-checked above.
++    // Feel free to reconfigure them to your own preference.
++    "@typescript-eslint/array-type": "off",
++    "@typescript-eslint/consistent-type-definitions": "off",
++
+     "@typescript-eslint/consistent-type-imports": [
+       "warn",
+       {
+@@ -25,6 +23,14 @@ const config = {
+         fixStyle: "inline-type-imports",
+       },
+     ],
++    "@typescript-eslint/no-unused-vars": ["warn", { argsIgnorePattern: "^_" }],
++    "@typescript-eslint/require-await": "off",
++    "@typescript-eslint/no-misused-promises": [
++      "error",
++      {
++        checksVoidReturn: { attributes: false },
++      },
++    ],
+   },
+ };
+ 
+diff --git a/README.md b/README.md
+index fba19ed..67943c7 100644
+--- a/README.md
++++ b/README.md
+@@ -11,6 +11,7 @@ If you are not familiar with the different technologies used in this project, pl
+ - [Next.js](https://nextjs.org)
+ - [NextAuth.js](https://next-auth.js.org)
+ - [Prisma](https://prisma.io)
++- [Drizzle](https://orm.drizzle.team)
+ - [Tailwind CSS](https://tailwindcss.com)
+ - [tRPC](https://trpc.io)
+ 
+diff --git a/next.config.mjs b/next.config.js
+similarity index 54%
+rename from next.config.mjs
+rename to next.config.js
+index d7dfb79..ffbeb9f 100644
+--- a/next.config.mjs
++++ b/next.config.js
+@@ -1,18 +1,15 @@
+-// @ts-check
+-
+ /**
+- * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation.
+- * This is especially useful for Docker builds.
++ * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation. This is especially useful
++ * for Docker builds.
+  */
+-!process.env.SKIP_ENV_VALIDATION && (await import("./src/env.mjs"));
++await import("./src/env.js");
+ 
+ /** @type {import("next").NextConfig} */
+ const config = {
+   reactStrictMode: true,
+ 
+   /**
+-   * If you have the "experimental: { appDir: true }" setting enabled, then you
+-   * must comment the below `i18n` config out.
++   * If you are using `appDir` then you must comment the below `i18n` config out.
+    *
+    * @see https://github.com/vercel/next.js/issues/41980
+    */
+@@ -21,4 +18,5 @@ const config = {
+     defaultLocale: "en",
+   },
+ };
++
+ export default config;
+diff --git a/package.json b/package.json
+index 2d6db6f..8b49487 100644
+--- a/package.json
++++ b/package.json
+@@ -1,7 +1,8 @@
+ {
+-  "name": "current",
++  "name": "upgrade",
+   "version": "0.1.0",
+   "private": true,
++  "type": "module",
+   "scripts": {
+     "build": "next build",
+     "dev": "next dev",
+@@ -9,29 +10,29 @@
+     "start": "next start"
+   },
+   "dependencies": {
+-    "next": "^13.2.1",
++    "@t3-oss/env-nextjs": "^0.9.2",
++    "next": "^14.1.0",
+     "react": "18.2.0",
+     "react-dom": "18.2.0",
+-    "zod": "^3.20.6"
++    "zod": "^3.22.4"
+   },
+   "devDependencies": {
+-    "@types/eslint": "^8.21.1",
+-    "@types/node": "^18.14.0",
+-    "@types/prettier": "^2.7.2",
+-    "@types/react": "^18.0.28",
+-    "@types/react-dom": "^18.0.11",
+-    "@typescript-eslint/eslint-plugin": "^5.53.0",
+-    "@typescript-eslint/parser": "^5.53.0",
+-    "autoprefixer": "^10.4.7",
+-    "eslint": "^8.34.0",
+-    "eslint-config-next": "^13.2.1",
+-    "postcss": "^8.4.14",
+-    "prettier": "^2.8.1",
+-    "prettier-plugin-tailwindcss": "^0.2.1",
+-    "tailwindcss": "^3.2.0",
+-    "typescript": "^4.9.5"
++    "@types/eslint": "^8.56.2",
++    "@types/node": "^20.11.20",
++    "@types/react": "^18.2.57",
++    "@types/react-dom": "^18.2.19",
++    "@typescript-eslint/eslint-plugin": "^7.0.2",
++    "@typescript-eslint/parser": "^7.0.2",
++    "eslint": "^8.56.0",
++    "eslint-config-next": "^14.1.0",
++    "postcss": "^8.4.34",
++    "prettier": "^3.2.5",
++    "prettier-plugin-tailwindcss": "^0.5.11",
++    "tailwindcss": "^3.4.1",
++    "typescript": "^5.3.3"
+   },
+   "ct3aMetadata": {
+-    "initVersion": "7.6.0"
+-  }
++    "initVersion": "7.28.0"
++  },
++  "packageManager": "pnpm@8.5.1"
+ }
+diff --git a/postcss.config.cjs b/postcss.config.cjs
+index e305dd9..4cdb2f4 100644
+--- a/postcss.config.cjs
++++ b/postcss.config.cjs
+@@ -1,7 +1,6 @@
+ const config = {
+   plugins: {
+     tailwindcss: {},
+-    autoprefixer: {},
+   },
+ };
+ 
+diff --git a/prettier.config.cjs b/prettier.config.cjs
+deleted file mode 100644
+index ca28ed9..0000000
+--- a/prettier.config.cjs
++++ /dev/null
+@@ -1,6 +0,0 @@
+-/** @type {import("prettier").Config} */
+-const config = {
+-  plugins: [require.resolve("prettier-plugin-tailwindcss")],
+-};
+-
+-module.exports = config;
+diff --git a/prettier.config.js b/prettier.config.js
+new file mode 100644
+index 0000000..b2d59b4
+--- /dev/null
++++ b/prettier.config.js
+@@ -0,0 +1,6 @@
++/** @type {import('prettier').Config & import('prettier-plugin-tailwindcss').PluginOptions} */
++const config = {
++  plugins: ["prettier-plugin-tailwindcss"],
++};
++
++export default config;
+diff --git a/src/env.js b/src/env.js
+new file mode 100644
+index 0000000..5c2f937
+--- /dev/null
++++ b/src/env.js
+@@ -0,0 +1,40 @@
++import { createEnv } from "@t3-oss/env-nextjs";
++import { z } from "zod";
++
++export const env = createEnv({
++  /**
++   * Specify your server-side environment variables schema here. This way you can ensure the app
++   * isn't built with invalid env vars.
++   */
++  server: {
++    NODE_ENV: z.enum(["development", "test", "production"]),
++  },
++
++  /**
++   * Specify your client-side environment variables schema here. This way you can ensure the app
++   * isn't built with invalid env vars. To expose them to the client, prefix them with
++   * `NEXT_PUBLIC_`.
++   */
++  client: {
++    // NEXT_PUBLIC_CLIENTVAR: z.string(),
++  },
++
++  /**
++   * You can't destruct `process.env` as a regular object in the Next.js edge runtimes (e.g.
++   * middlewares) or client-side so we need to destruct manually.
++   */
++  runtimeEnv: {
++    NODE_ENV: process.env.NODE_ENV,
++    // NEXT_PUBLIC_CLIENTVAR: process.env.NEXT_PUBLIC_CLIENTVAR,
++  },
++  /**
++   * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation. This is especially
++   * useful for Docker builds.
++   */
++  skipValidation: !!process.env.SKIP_ENV_VALIDATION,
++  /**
++   * Makes it so that empty strings are treated as undefined. `SOME_VAR: z.string()` and
++   * `SOME_VAR=''` will throw an error.
++   */
++  emptyStringAsUndefined: true,
++});
+diff --git a/src/env.mjs b/src/env.mjs
+deleted file mode 100644
+index 38e38da..0000000
+--- a/src/env.mjs
++++ /dev/null
+@@ -1,74 +0,0 @@
+-import { z } from "zod";
+-
+-/**
+- * Specify your server-side environment variables schema here. This way you can ensure the app isn't
+- * built with invalid env vars.
+- */
+-const server = z.object({
+-  NODE_ENV: z.enum(["development", "test", "production"]),
+-});
+-
+-/**
+- * Specify your client-side environment variables schema here. This way you can ensure the app isn't
+- * built with invalid env vars. To expose them to the client, prefix them with `NEXT_PUBLIC_`.
+- */
+-const client = z.object({
+-  // NEXT_PUBLIC_CLIENTVAR: z.string().min(1),
+-});
+-
+-/**
+- * You can't destruct `process.env` as a regular object in the Next.js edge runtimes (e.g.
+- * middlewares) or client-side so we need to destruct manually.
+- *
+- * @type {Record<keyof z.infer<typeof server> | keyof z.infer<typeof client>, string | undefined>}
+- */
+-const processEnv = {
+-  NODE_ENV: process.env.NODE_ENV,
+-  // NEXT_PUBLIC_CLIENTVAR: process.env.NEXT_PUBLIC_CLIENTVAR,
+-};
+-
+-// Don't touch the part below
+-// --------------------------
+-
+-const merged = server.merge(client);
+-
+-/** @typedef {z.input<typeof merged>} MergedInput */
+-/** @typedef {z.infer<typeof merged>} MergedOutput */
+-/** @typedef {z.SafeParseReturnType<MergedInput, MergedOutput>} MergedSafeParseReturn */
+-
+-let env = /** @type {MergedOutput} */ (process.env);
+-
+-if (!!process.env.SKIP_ENV_VALIDATION == false) {
+-  const isServer = typeof window === "undefined";
+-
+-  const parsed = /** @type {MergedSafeParseReturn} */ (
+-    isServer
+-      ? merged.safeParse(processEnv) // on server we can validate all env vars
+-      : client.safeParse(processEnv) // on client we can only validate the ones that are exposed
+-  );
+-
+-  if (parsed.success === false) {
+-    console.error(
+-      "❌ Invalid environment variables:",
+-      parsed.error.flatten().fieldErrors,
+-    );
+-    throw new Error("Invalid environment variables");
+-  }
+-
+-  env = new Proxy(parsed.data, {
+-    get(target, prop) {
+-      if (typeof prop !== "string") return undefined;
+-      // Throw a descriptive error if a server-side env var is accessed on the client
+-      // Otherwise it would just be returning `undefined` and be annoying to debug
+-      if (!isServer && !prop.startsWith("NEXT_PUBLIC_"))
+-        throw new Error(
+-          process.env.NODE_ENV === "production"
+-            ? "❌ Attempted to access a server-side environment variable on the client"
+-            : `❌ Attempted to access server-side environment variable '${prop}' on the client`,
+-        );
+-      return target[/** @type {keyof typeof target} */ (prop)];
+-    },
+-  });
+-}
+-
+-export { env };
+diff --git a/src/pages/_app.tsx b/src/pages/_app.tsx
+index d280cbd..54fd82a 100644
+--- a/src/pages/_app.tsx
++++ b/src/pages/_app.tsx
+@@ -1,9 +1,19 @@
+-import { type AppType } from "next/dist/shared/lib/utils";
++import { type AppType } from "next/app";
++import { Inter } from "next/font/google";
+ 
+ import "~/styles/globals.css";
+ 
++const inter = Inter({
++  subsets: ["latin"],
++  variable: "--font-sans",
++});
++
+ const MyApp: AppType = ({ Component, pageProps }) => {
+-  return <Component {...pageProps} />;
++  return (
++    <main className={`font-sans ${inter.variable}`}>
++      <Component {...pageProps} />
++    </main>
++  );
+ };
+ 
+ export default MyApp;
+diff --git a/src/pages/index.tsx b/src/pages/index.tsx
+index 5513c42..2b6a387 100644
+--- a/src/pages/index.tsx
++++ b/src/pages/index.tsx
+@@ -1,8 +1,7 @@
+-import { type NextPage } from "next";
+ import Head from "next/head";
+ import Link from "next/link";
+ 
+-const Home: NextPage = () => {
++export default function Home() {
+   return (
+     <>
+       <Head>
+@@ -43,6 +42,4 @@ const Home: NextPage = () => {
+       </main>
+     </>
+   );
+-};
+-
+-export default Home;
++}
+diff --git a/tailwind.config.cjs b/tailwind.config.cjs
+deleted file mode 100644
+index a82e7e9..0000000
+--- a/tailwind.config.cjs
++++ /dev/null
+@@ -1,10 +0,0 @@
+-/** @type {import('tailwindcss').Config} */
+-const config = {
+-  content: ["./src/**/*.{js,ts,jsx,tsx}"],
+-  theme: {
+-    extend: {},
+-  },
+-  plugins: [],
+-};
+-
+-module.exports = config;
+diff --git a/tailwind.config.ts b/tailwind.config.ts
+new file mode 100644
+index 0000000..f06488f
+--- /dev/null
++++ b/tailwind.config.ts
+@@ -0,0 +1,14 @@
++import { type Config } from "tailwindcss";
++import { fontFamily } from "tailwindcss/defaultTheme";
++
++export default {
++  content: ["./src/**/*.tsx"],
++  theme: {
++    extend: {
++      fontFamily: {
++        sans: ["var(--font-sans)", ...fontFamily.sans],
++      },
++    },
++  },
++  plugins: [],
++} satisfies Config;
+diff --git a/tsconfig.json b/tsconfig.json
+index 03ebb74..905062d 100644
+--- a/tsconfig.json
++++ b/tsconfig.json
+@@ -1,21 +1,29 @@
+ {
+   "compilerOptions": {
+-    "target": "es2017",
+-    "lib": ["dom", "dom.iterable", "esnext"],
+-    "allowJs": true,
+-    "checkJs": true,
+-    "skipLibCheck": true,
+-    "strict": true,
+-    "forceConsistentCasingInFileNames": true,
+-    "noEmit": true,
++    /* Base Options: */
+     "esModuleInterop": true,
+-    "module": "esnext",
+-    "moduleResolution": "node",
++    "skipLibCheck": true,
++    "target": "es2022",
++    "allowJs": true,
+     "resolveJsonModule": true,
++    "moduleDetection": "force",
+     "isolatedModules": true,
++
++    /* Strictness */
++    "strict": true,
++    "noUncheckedIndexedAccess": true,
++    "checkJs": true,
++
++    /* Bundled projects */
++    "lib": ["dom", "dom.iterable", "ES2022"],
++    "noEmit": true,
++    "module": "ESNext",
++    "moduleResolution": "Bundler",
+     "jsx": "preserve",
++    "plugins": [{ "name": "next" }],
+     "incremental": true,
+-    "noUncheckedIndexedAccess": true,
++
++    /* Path Aliases */
+     "baseUrl": ".",
+     "paths": {
+       "~/*": ["./src/*"]
+@@ -27,7 +35,8 @@
+     "**/*.ts",
+     "**/*.tsx",
+     "**/*.cjs",
+-    "**/*.mjs"
++    "**/*.js",
++    ".next/types/**/*.ts"
+   ],
+   "exclude": ["node_modules"]
+ }
