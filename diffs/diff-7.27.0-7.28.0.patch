@@ -1,0 +1,44 @@
+diff --git a/package.json b/package.json
+index cfe5eda..c12461e 100644
+--- a/package.json
++++ b/package.json
+@@ -1,5 +1,5 @@
+ {
+-  "name": "current",
++  "name": "upgrade",
+   "version": "0.1.0",
+   "type": "module",
+   "private": true,
+@@ -28,7 +28,7 @@
+     "typescript": "^5.3.3"
+   },
+   "ct3aMetadata": {
+-    "initVersion": "7.27.0"
++    "initVersion": "7.28.0"
+   },
+   "packageManager": "pnpm@8.5.1"
+ }
+diff --git a/src/pages/_app.tsx b/src/pages/_app.tsx
+index d280cbd..7fe4731 100644
+--- a/src/pages/_app.tsx
++++ b/src/pages/_app.tsx
+@@ -1,9 +1,18 @@
+ import { type AppType } from "next/dist/shared/lib/utils";
++import { Inter } from "next/font/google";
+ 
+ import "~/styles/globals.css";
+ 
++const inter = Inter({
++  subsets: ["latin"],
++});
++
+ const MyApp: AppType = ({ Component, pageProps }) => {
+-  return <Component {...pageProps} />;
++  return (
++    <main className={inter.className}>
++      <Component {...pageProps} />
++    </main>
++  );
+ };
+ 
+ export default MyApp;

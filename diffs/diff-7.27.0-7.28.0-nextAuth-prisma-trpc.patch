@@ -1,0 +1,51 @@
+diff --git a/package.json b/package.json
+index 0bb88eb..45e3ca7 100644
+--- a/package.json
++++ b/package.json
+@@ -1,5 +1,5 @@
+ {
+-  "name": "current",
++  "name": "upgrade",
+   "version": "0.1.0",
+   "private": true,
+   "type": "module",
+@@ -41,7 +41,7 @@
+     "typescript": "^5.3.3"
+   },
+   "ct3aMetadata": {
+-    "initVersion": "7.27.0"
++    "initVersion": "7.28.0"
+   },
+   "packageManager": "pnpm@8.5.1"
+ }
+diff --git a/src/pages/_app.tsx b/src/pages/_app.tsx
+index af22fb4..dfd6273 100644
+--- a/src/pages/_app.tsx
++++ b/src/pages/_app.tsx
+@@ -1,18 +1,25 @@
+ import { type Session } from "next-auth";
+ import { SessionProvider } from "next-auth/react";
+ import { type AppType } from "next/app";
++import { Inter } from "next/font/google";
+ 
+ import { api } from "~/utils/api";
+ 
+ import "~/styles/globals.css";
+ 
++const inter = Inter({
++  subsets: ["latin"],
++});
++
+ const MyApp: AppType<{ session: Session | null }> = ({
+   Component,
+   pageProps: { session, ...pageProps },
+ }) => {
+   return (
+     <SessionProvider session={session}>
+-      <Component {...pageProps} />
++      <main className={inter.className}>
++        <Component {...pageProps} />
++      </main>
+     </SessionProvider>
+   );
+ };
