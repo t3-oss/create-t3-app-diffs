@@ -1,0 +1,38 @@
+diff --git a/package.json b/package.json
+index 8776950..0fb853c 100644
+--- a/package.json
++++ b/package.json
+@@ -1,5 +1,5 @@
+ {
+-  "name": "current",
++  "name": "upgrade",
+   "version": "0.1.0",
+   "private": true,
+   "type": "module",
+@@ -35,7 +35,7 @@
+     "typescript": "^5.4.2"
+   },
+   "ct3aMetadata": {
+-    "initVersion": "7.29.0"
++    "initVersion": "7.30.1"
+   },
+   "packageManager": "pnpm@8.5.1"
+ }
+diff --git a/src/env.js b/src/env.js
+index b190b4b..2467d22 100644
+--- a/src/env.js
++++ b/src/env.js
+@@ -7,12 +7,7 @@ export const env = createEnv({
+    * isn't built with invalid env vars.
+    */
+   server: {
+-    DATABASE_URL: z
+-      .string()
+-      .refine(
+-        (str) => !str.includes("YOUR_MYSQL_URL_HERE"),
+-        "You forgot to change the default URL"
+-      ),
++    DATABASE_URL: z.string().url(),
+     NODE_ENV: z
+       .enum(["development", "test", "production"])
+       .default("development"),
