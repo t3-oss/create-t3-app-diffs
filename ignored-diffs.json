@@ -828,5 +828,13 @@
   "7.29.0..7.30.1": true,
   "7.29.0..7.30.1-nextAuth": true,
   "7.29.0..7.30.1-nextAuth-tailwind": true,
-  "7.29.0..7.30.1-tailwind": true
+  "7.29.0..7.30.1-tailwind": true,
+  "7.30.0..7.30.1": true,
+  "7.30.0..7.30.1-nextAuth": true,
+  "7.30.0..7.30.1-nextAuth-tailwind": true,
+  "7.30.0..7.30.1-nextAuth-trpc": true,
+  "7.30.0..7.30.1-nextAuth-trpc-tailwind": true,
+  "7.30.0..7.30.1-tailwind": true,
+  "7.30.0..7.30.1-trpc": true,
+  "7.30.0..7.30.1-trpc-tailwind": true
 }
