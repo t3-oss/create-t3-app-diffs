@@ -1,0 +1,375 @@
+diff --git a/.env.example b/.env.example
+index 9cfcdd6..69feeb2 100644
+--- a/.env.example
++++ b/.env.example
+@@ -6,7 +6,7 @@
+ # secrets in it. If you are cloning this repo, create a copy of this file named
+ # ".env" and populate it with your secrets.
+ 
+-# When adding additional environment variables, the schema in "/src/env.mjs"
++# When adding additional environment variables, the schema in "/src/env.js"
+ # should be updated accordingly.
+ 
+ # Next Auth
+diff --git a/.eslintrc.cjs b/.eslintrc.cjs
+index f15a4d5..a92fb0b 100644
+--- a/.eslintrc.cjs
++++ b/.eslintrc.cjs
+@@ -1,30 +1,42 @@
+ /** @type {import("eslint").Linter.Config} */
+ const config = {
+-  parser: "@typescript-eslint/parser",
+-  parserOptions: {
+-    project: true,
++  "parser": "@typescript-eslint/parser",
++  "parserOptions": {
++    "project": true
+   },
+-  plugins: ["@typescript-eslint"],
+-  extends: [
++  "plugins": [
++    "@typescript-eslint"
++  ],
++  "extends": [
+     "next/core-web-vitals",
+     "plugin:@typescript-eslint/recommended-type-checked",
+-    "plugin:@typescript-eslint/stylistic-type-checked",
++    "plugin:@typescript-eslint/stylistic-type-checked"
+   ],
+-  rules: {
+-    // These opinionated rules are enabled in stylistic-type-checked above.
+-    // Feel free to reconfigure them to your own preference.
++  "rules": {
+     "@typescript-eslint/array-type": "off",
+     "@typescript-eslint/consistent-type-definitions": "off",
+-
+     "@typescript-eslint/consistent-type-imports": [
+       "warn",
+       {
+-        prefer: "type-imports",
+-        fixStyle: "inline-type-imports",
+-      },
++        "prefer": "type-imports",
++        "fixStyle": "inline-type-imports"
++      }
+     ],
+-    "@typescript-eslint/no-unused-vars": ["warn", { argsIgnorePattern: "^_" }],
+-  },
+-};
+-
+-module.exports = config;
++    "@typescript-eslint/no-unused-vars": [
++      "warn",
++      {
++        "argsIgnorePattern": "^_"
++      }
++    ],
++    "@typescript-eslint/require-await": "off",
++    "@typescript-eslint/no-misused-promises": [
++      "error",
++      {
++        "checksVoidReturn": {
++          "attributes": false
++        }
++      }
++    ]
++  }
++}
++module.exports = config;
+\ No newline at end of file
+diff --git a/README.md b/README.md
+index fba19ed..67943c7 100644
+--- a/README.md
++++ b/README.md
+@@ -11,6 +11,7 @@ If you are not familiar with the different technologies used in this project, pl
+ - [Next.js](https://nextjs.org)
+ - [NextAuth.js](https://next-auth.js.org)
+ - [Prisma](https://prisma.io)
++- [Drizzle](https://orm.drizzle.team)
+ - [Tailwind CSS](https://tailwindcss.com)
+ - [tRPC](https://trpc.io)
+ 
+diff --git a/next.config.mjs b/next.config.js
+similarity index 93%
+rename from next.config.mjs
+rename to next.config.js
+index 61964ea..ffbeb9f 100644
+--- a/next.config.mjs
++++ b/next.config.js
+@@ -2,7 +2,7 @@
+  * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation. This is especially useful
+  * for Docker builds.
+  */
+-await import("./src/env.mjs");
++await import("./src/env.js");
+ 
+ /** @type {import("next").NextConfig} */
+ const config = {
+diff --git a/package.json b/package.json
+index 924c433..a8c82db 100644
+--- a/package.json
++++ b/package.json
+@@ -1,7 +1,8 @@
+ {
+-  "name": "current",
++  "name": "upgrade",
+   "version": "0.1.0",
+   "private": true,
++  "type": "module",
+   "scripts": {
+     "build": "next build",
+     "dev": "next dev",
+@@ -9,30 +10,30 @@
+     "start": "next start"
+   },
+   "dependencies": {
+-    "@t3-oss/env-nextjs": "^0.6.0",
+-    "next": "^13.4.13",
+-    "next-auth": "^4.22.4",
++    "@t3-oss/env-nextjs": "^0.10.1",
++    "next": "^14.2.1",
++    "next-auth": "^4.24.6",
+     "react": "18.2.0",
+     "react-dom": "18.2.0",
+-    "zod": "^3.21.4"
++    "zod": "^3.23.3"
+   },
+   "devDependencies": {
+-    "@types/eslint": "^8.44.2",
+-    "@types/node": "^18.16.0",
+-    "@types/react": "^18.2.20",
+-    "@types/react-dom": "^18.2.7",
+-    "@typescript-eslint/eslint-plugin": "^6.3.0",
+-    "@typescript-eslint/parser": "^6.3.0",
+-    "autoprefixer": "^10.4.14",
+-    "eslint": "^8.47.0",
+-    "eslint-config-next": "^13.4.13",
+-    "postcss": "^8.4.27",
+-    "prettier": "^3.0.0",
+-    "prettier-plugin-tailwindcss": "^0.5.1",
+-    "tailwindcss": "^3.3.3",
+-    "typescript": "^5.1.6"
++    "@types/eslint": "^8.56.2",
++    "@types/node": "^20.11.20",
++    "@types/react": "^18.2.57",
++    "@types/react-dom": "^18.2.19",
++    "@typescript-eslint/eslint-plugin": "^7.1.1",
++    "@typescript-eslint/parser": "^7.1.1",
++    "eslint": "^8.57.0",
++    "eslint-config-next": "^14.1.3",
++    "postcss": "^8.4.34",
++    "prettier": "^3.2.5",
++    "prettier-plugin-tailwindcss": "^0.5.11",
++    "tailwindcss": "^3.4.1",
++    "typescript": "^5.4.2"
+   },
+   "ct3aMetadata": {
+-    "initVersion": "7.19.0"
+-  }
++    "initVersion": "7.32.0"
++  },
++  "packageManager": "pnpm@8.5.1"
+ }
+diff --git a/postcss.config.cjs b/postcss.config.cjs
+index e305dd9..4cdb2f4 100644
+--- a/postcss.config.cjs
++++ b/postcss.config.cjs
+@@ -1,7 +1,6 @@
+ const config = {
+   plugins: {
+     tailwindcss: {},
+-    autoprefixer: {},
+   },
+ };
+ 
+diff --git a/prettier.config.mjs b/prettier.config.js
+similarity index 83%
+rename from prettier.config.mjs
+rename to prettier.config.js
+index 2d2fa4c..b2d59b4 100644
+--- a/prettier.config.mjs
++++ b/prettier.config.js
+@@ -1,4 +1,4 @@
+-/** @type {import('prettier').Config & import('prettier-plugin-tailwindcss').options} */
++/** @type {import('prettier').Config & import('prettier-plugin-tailwindcss').PluginOptions} */
+ const config = {
+   plugins: ["prettier-plugin-tailwindcss"],
+ };
+diff --git a/src/env.mjs b/src/env.js
+similarity index 76%
+rename from src/env.mjs
+rename to src/env.js
+index 7180893..42cc126 100644
+--- a/src/env.mjs
++++ b/src/env.js
+@@ -7,19 +7,20 @@ export const env = createEnv({
+    * isn't built with invalid env vars.
+    */
+   server: {
+-    NODE_ENV: z.enum(["development", "test", "production"]),
++    NODE_ENV: z
++      .enum(["development", "test", "production"])
++      .default("development"),
+     NEXTAUTH_SECRET:
+       process.env.NODE_ENV === "production"
+-        ? z.string().min(1)
+-        : z.string().min(1).optional(),
++        ? z.string()
++        : z.string().optional(),
+     NEXTAUTH_URL: z.preprocess(
+       // This makes Vercel deployments not fail if you don't set NEXTAUTH_URL
+       // Since NextAuth.js automatically uses the VERCEL_URL if present.
+       (str) => process.env.VERCEL_URL ?? str,
+       // VERCEL_URL doesn't include `https` so it cant be validated as a URL
+-      process.env.VERCEL ? z.string().min(1) : z.string().url()
++      process.env.VERCEL ? z.string() : z.string().url()
+     ),
+-    // Add `.min(1) on ID and SECRET if you want to make sure they're not empty
+     DISCORD_CLIENT_ID: z.string(),
+     DISCORD_CLIENT_SECRET: z.string(),
+   },
+@@ -30,7 +31,7 @@ export const env = createEnv({
+    * `NEXT_PUBLIC_`.
+    */
+   client: {
+-    // NEXT_PUBLIC_CLIENTVAR: z.string().min(1),
++    // NEXT_PUBLIC_CLIENTVAR: z.string(),
+   },
+ 
+   /**
+@@ -46,8 +47,13 @@ export const env = createEnv({
+     // NEXT_PUBLIC_CLIENTVAR: process.env.NEXT_PUBLIC_CLIENTVAR,
+   },
+   /**
+-   * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation.
+-   * This is especially useful for Docker builds.
++   * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation. This is especially
++   * useful for Docker builds.
+    */
+   skipValidation: !!process.env.SKIP_ENV_VALIDATION,
++  /**
++   * Makes it so that empty strings are treated as undefined. `SOME_VAR: z.string()` and
++   * `SOME_VAR=''` will throw an error.
++   */
++  emptyStringAsUndefined: true,
+ });
+diff --git a/src/pages/_app.tsx b/src/pages/_app.tsx
+index be9989c..54fd82a 100644
+--- a/src/pages/_app.tsx
++++ b/src/pages/_app.tsx
+@@ -1,17 +1,18 @@
+-import { type Session } from "next-auth";
+-import { SessionProvider } from "next-auth/react";
+ import { type AppType } from "next/app";
++import { Inter } from "next/font/google";
+ 
+ import "~/styles/globals.css";
+ 
+-const MyApp: AppType<{ session: Session | null }> = ({
+-  Component,
+-  pageProps: { session, ...pageProps },
+-}) => {
++const inter = Inter({
++  subsets: ["latin"],
++  variable: "--font-sans",
++});
++
++const MyApp: AppType = ({ Component, pageProps }) => {
+   return (
+-    <SessionProvider session={session}>
++    <main className={`font-sans ${inter.variable}`}>
+       <Component {...pageProps} />
+-    </SessionProvider>
++    </main>
+   );
+ };
+ 
+diff --git a/src/server/auth.ts b/src/server/auth.ts
+index 09e2c90..cbeceb4 100644
+--- a/src/server/auth.ts
++++ b/src/server/auth.ts
+@@ -6,7 +6,7 @@ import {
+ } from "next-auth";
+ import DiscordProvider from "next-auth/providers/discord";
+ 
+-import { env } from "~/env.mjs";
++import { env } from "~/env";
+ 
+ /**
+  * Module augmentation for `next-auth` types. Allows us to add custom properties to the `session`
+diff --git a/tailwind.config.ts b/tailwind.config.ts
+index d4d3fa2..f06488f 100644
+--- a/tailwind.config.ts
++++ b/tailwind.config.ts
+@@ -1,9 +1,14 @@
+ import { type Config } from "tailwindcss";
++import { fontFamily } from "tailwindcss/defaultTheme";
+ 
+ export default {
+-  content: ["./src/**/*.{js,ts,jsx,tsx}"],
++  content: ["./src/**/*.tsx"],
+   theme: {
+-    extend: {},
++    extend: {
++      fontFamily: {
++        sans: ["var(--font-sans)", ...fontFamily.sans],
++      },
++    },
+   },
+   plugins: [],
+ } satisfies Config;
+diff --git a/tsconfig.json b/tsconfig.json
+index 03ebb74..905062d 100644
+--- a/tsconfig.json
++++ b/tsconfig.json
+@@ -1,21 +1,29 @@
+ {
+   "compilerOptions": {
+-    "target": "es2017",
+-    "lib": ["dom", "dom.iterable", "esnext"],
+-    "allowJs": true,
+-    "checkJs": true,
+-    "skipLibCheck": true,
+-    "strict": true,
+-    "forceConsistentCasingInFileNames": true,
+-    "noEmit": true,
++    /* Base Options: */
+     "esModuleInterop": true,
+-    "module": "esnext",
+-    "moduleResolution": "node",
++    "skipLibCheck": true,
++    "target": "es2022",
++    "allowJs": true,
+     "resolveJsonModule": true,
++    "moduleDetection": "force",
+     "isolatedModules": true,
++
++    /* Strictness */
++    "strict": true,
++    "noUncheckedIndexedAccess": true,
++    "checkJs": true,
++
++    /* Bundled projects */
++    "lib": ["dom", "dom.iterable", "ES2022"],
++    "noEmit": true,
++    "module": "ESNext",
++    "moduleResolution": "Bundler",
+     "jsx": "preserve",
++    "plugins": [{ "name": "next" }],
+     "incremental": true,
+-    "noUncheckedIndexedAccess": true,
++
++    /* Path Aliases */
+     "baseUrl": ".",
+     "paths": {
+       "~/*": ["./src/*"]
+@@ -27,7 +35,8 @@
+     "**/*.ts",
+     "**/*.tsx",
+     "**/*.cjs",
+-    "**/*.mjs"
++    "**/*.js",
++    ".next/types/**/*.ts"
+   ],
+   "exclude": ["node_modules"]
+ }

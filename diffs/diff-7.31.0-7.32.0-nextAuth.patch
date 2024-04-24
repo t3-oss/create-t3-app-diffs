@@ -1,0 +1,35 @@
+diff --git a/package.json b/package.json
+index 4925dde..af5de15 100644
+--- a/package.json
++++ b/package.json
+@@ -1,5 +1,5 @@
+ {
+-  "name": "current",
++  "name": "upgrade",
+   "version": "0.1.0",
+   "private": true,
+   "type": "module",
+@@ -10,12 +10,12 @@
+     "start": "next start"
+   },
+   "dependencies": {
+-    "@t3-oss/env-nextjs": "^0.9.2",
++    "@t3-oss/env-nextjs": "^0.10.1",
+     "next": "^14.2.1",
+     "next-auth": "^4.24.6",
+     "react": "18.2.0",
+     "react-dom": "18.2.0",
+-    "zod": "3.22.4"
++    "zod": "^3.23.3"
+   },
+   "devDependencies": {
+     "@types/eslint": "^8.56.2",
+@@ -29,7 +29,7 @@
+     "typescript": "^5.4.2"
+   },
+   "ct3aMetadata": {
+-    "initVersion": "7.31.0"
++    "initVersion": "7.32.0"
+   },
+   "packageManager": "pnpm@8.5.1"
+ }
