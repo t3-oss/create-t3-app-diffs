@@ -1,0 +1,32 @@
+diff --git a/.gitignore b/.gitignore
+index 2971a0b..9b986df 100644
+--- a/.gitignore
++++ b/.gitignore
+@@ -11,6 +11,7 @@
+ # database
+ /prisma/db.sqlite
+ /prisma/db.sqlite-journal
++db.sqlite
+ 
+ # next.js
+ /.next/
+diff --git a/package.json b/package.json
+index 5999744..a19f16c 100644
+--- a/package.json
++++ b/package.json
+@@ -1,5 +1,5 @@
+ {
+-  "name": "current",
++  "name": "upgrade",
+   "version": "0.1.0",
+   "private": true,
+   "type": "module",
+@@ -45,7 +45,7 @@
+     "typescript": "^5.4.2"
+   },
+   "ct3aMetadata": {
+-    "initVersion": "7.32.0"
++    "initVersion": "7.32.1"
+   },
+   "packageManager": "pnpm@8.5.1"
+ }
