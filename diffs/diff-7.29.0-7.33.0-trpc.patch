@@ -1,0 +1,176 @@
+diff --git a/.gitignore b/.gitignore
+index 2971a0b..9b986df 100644
+--- a/.gitignore
++++ b/.gitignore
+@@ -11,6 +11,7 @@
+ # database
+ /prisma/db.sqlite
+ /prisma/db.sqlite-journal
++db.sqlite
+ 
+ # next.js
+ /.next/
+diff --git a/next.config.js b/next.config.js
+index ffbeb9f..98b6f90 100644
+--- a/next.config.js
++++ b/next.config.js
+@@ -17,6 +17,7 @@ const config = {
+     locales: ["en"],
+     defaultLocale: "en",
+   },
++  transpilePackages: ["geist"],
+ };
+ 
+ export default config;
+diff --git a/package.json b/package.json
+index 7cdf1a8..1b968ed 100644
+--- a/package.json
++++ b/package.json
+@@ -1,5 +1,5 @@
+ {
+-  "name": "current",
++  "name": "upgrade",
+   "version": "0.1.0",
+   "private": true,
+   "type": "module",
+@@ -10,17 +10,18 @@
+     "start": "next start"
+   },
+   "dependencies": {
+-    "@t3-oss/env-nextjs": "^0.9.2",
+-    "@tanstack/react-query": "^4.36.1",
+-    "@trpc/client": "^10.45.1",
+-    "@trpc/next": "^10.45.1",
+-    "@trpc/react-query": "^10.45.1",
+-    "@trpc/server": "^10.45.1",
+-    "next": "^14.1.3",
++    "@t3-oss/env-nextjs": "^0.10.1",
++    "@tanstack/react-query": "^5.25.0",
++    "@trpc/client": "next",
++    "@trpc/next": "next",
++    "@trpc/react-query": "next",
++    "@trpc/server": "next",
++    "geist": "^1.3.0",
++    "next": "^14.2.1",
+     "react": "18.2.0",
+     "react-dom": "18.2.0",
+     "superjson": "^2.2.1",
+-    "zod": "^3.22.4"
++    "zod": "^3.23.3"
+   },
+   "devDependencies": {
+     "@types/eslint": "^8.56.2",
+@@ -34,7 +35,7 @@
+     "typescript": "^5.4.2"
+   },
+   "ct3aMetadata": {
+-    "initVersion": "7.29.0"
++    "initVersion": "7.33.0"
+   },
+   "packageManager": "pnpm@8.5.1"
+ }
+diff --git a/src/pages/_app.tsx b/src/pages/_app.tsx
+index ad916a6..31a28d8 100644
+--- a/src/pages/_app.tsx
++++ b/src/pages/_app.tsx
+@@ -1,17 +1,13 @@
++import { GeistSans } from "geist/font/sans";
+ import { type AppType } from "next/app";
+-import { Inter } from "next/font/google";
+ 
+ import { api } from "~/utils/api";
+ 
+ import "~/styles/globals.css";
+ 
+-const inter = Inter({
+-  subsets: ["latin"],
+-});
+-
+ const MyApp: AppType = ({ Component, pageProps }) => {
+   return (
+-    <main className={inter.className}>
++    <main className={GeistSans.className}>
+       <Component {...pageProps} />
+     </main>
+   );
+diff --git a/src/server/api/root.ts b/src/server/api/root.ts
+index 3d629a7..b341fc4 100644
+--- a/src/server/api/root.ts
++++ b/src/server/api/root.ts
+@@ -1,5 +1,5 @@
+ import { postRouter } from "~/server/api/routers/post";
+-import { createTRPCRouter } from "~/server/api/trpc";
++import { createCallerFactory, createTRPCRouter } from "~/server/api/trpc";
+ 
+ /**
+  * This is the primary router for your server.
+@@ -12,3 +12,12 @@ export const appRouter = createTRPCRouter({
+ 
+ // export type definition of API
+ export type AppRouter = typeof appRouter;
++
++/**
++ * Create a server-side caller for the tRPC API.
++ * @example
++ * const trpc = createCaller(createContext);
++ * const res = await trpc.post.all();
++ *       ^? Post[]
++ */
++export const createCaller = createCallerFactory(appRouter);
+diff --git a/src/server/api/trpc.ts b/src/server/api/trpc.ts
+index 3bda296..a1429e1 100644
+--- a/src/server/api/trpc.ts
++++ b/src/server/api/trpc.ts
+@@ -68,6 +68,13 @@ const t = initTRPC.context<typeof createTRPCContext>().create({
+   },
+ });
+ 
++/**
++ * Create a server-side caller.
++ *
++ * @see https://trpc.io/docs/server/server-side-calls
++ */
++export const createCallerFactory = t.createCallerFactory;
++
+ /**
+  * 3. ROUTER & PROCEDURE (THE IMPORTANT BIT)
+  *
+diff --git a/src/utils/api.ts b/src/utils/api.ts
+index f4f4ad5..0f03d30 100644
+--- a/src/utils/api.ts
++++ b/src/utils/api.ts
+@@ -21,13 +21,6 @@ const getBaseUrl = () => {
+ export const api = createTRPCNext<AppRouter>({
+   config() {
+     return {
+-      /**
+-       * Transformer used for data de-serialization from the server.
+-       *
+-       * @see https://trpc.io/docs/data-transformers
+-       */
+-      transformer: superjson,
+-
+       /**
+        * Links used to determine request flow from client to server.
+        *
+@@ -40,6 +33,12 @@ export const api = createTRPCNext<AppRouter>({
+             (opts.direction === "down" && opts.result instanceof Error),
+         }),
+         httpBatchLink({
++          /**
++           * Transformer used for data de-serialization from the server.
++           *
++           * @see https://trpc.io/docs/data-transformers
++           */
++          transformer: superjson,
+           url: `${getBaseUrl()}/api/trpc`,
+         }),
+       ],
+@@ -51,6 +50,7 @@ export const api = createTRPCNext<AppRouter>({
+    * @see https://trpc.io/docs/nextjs#ssr-boolean-default-false
+    */
+   ssr: false,
++  transformer: superjson,
+ });
+ 
+ /**
