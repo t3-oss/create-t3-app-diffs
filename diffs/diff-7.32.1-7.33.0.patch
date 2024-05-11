@@ -1,0 +1,62 @@
+diff --git a/next.config.js b/next.config.js
+index ffbeb9f..98b6f90 100644
+--- a/next.config.js
++++ b/next.config.js
+@@ -17,6 +17,7 @@ const config = {
+     locales: ["en"],
+     defaultLocale: "en",
+   },
++  transpilePackages: ["geist"],
+ };
+ 
+ export default config;
+diff --git a/package.json b/package.json
+index 75fd22d..f026494 100644
+--- a/package.json
++++ b/package.json
+@@ -1,5 +1,5 @@
+ {
+-  "name": "current",
++  "name": "upgrade",
+   "version": "0.1.0",
+   "type": "module",
+   "private": true,
+@@ -11,6 +11,7 @@
+   },
+   "dependencies": {
+     "@t3-oss/env-nextjs": "^0.10.1",
++    "geist": "^1.3.0",
+     "next": "^14.2.1",
+     "react": "18.2.0",
+     "react-dom": "18.2.0",
+@@ -28,7 +29,7 @@
+     "typescript": "^5.4.2"
+   },
+   "ct3aMetadata": {
+-    "initVersion": "7.32.1"
++    "initVersion": "7.33.0"
+   },
+   "packageManager": "pnpm@8.5.1"
+ }
+diff --git a/src/pages/_app.tsx b/src/pages/_app.tsx
+index 7fe4731..716ddaf 100644
+--- a/src/pages/_app.tsx
++++ b/src/pages/_app.tsx
+@@ -1,15 +1,11 @@
++import { GeistSans } from "geist/font/sans";
+ import { type AppType } from "next/dist/shared/lib/utils";
+-import { Inter } from "next/font/google";
+ 
+ import "~/styles/globals.css";
+ 
+-const inter = Inter({
+-  subsets: ["latin"],
+-});
+-
+ const MyApp: AppType = ({ Component, pageProps }) => {
+   return (
+-    <main className={inter.className}>
++    <main className={GeistSans.className}>
+       <Component {...pageProps} />
+     </main>
+   );
