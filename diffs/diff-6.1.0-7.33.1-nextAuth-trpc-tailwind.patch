@@ -1,0 +1,1403 @@
+diff --git a/.env.example b/.env.example
+new file mode 100644
+index 0000000..69feeb2
+--- /dev/null
++++ b/.env.example
+@@ -0,0 +1,21 @@
++# Since the ".env" file is gitignored, you can use the ".env.example" file to
++# build a new ".env" file when you clone the repo. Keep this file up-to-date
++# when you add new variables to `.env`.
++
++# This file will be committed to version control, so make sure not to have any
++# secrets in it. If you are cloning this repo, create a copy of this file named
++# ".env" and populate it with your secrets.
++
++# When adding additional environment variables, the schema in "/src/env.js"
++# should be updated accordingly.
++
++# Next Auth
++# You can generate a new secret on the command line with:
++# openssl rand -base64 32
++# https://next-auth.js.org/configuration/options#secret
++# NEXTAUTH_SECRET=""
++NEXTAUTH_URL="http://localhost:3000"
++
++# Next Auth Discord Provider
++DISCORD_CLIENT_ID=""
++DISCORD_CLIENT_SECRET=""
+diff --git a/.eslintrc.cjs b/.eslintrc.cjs
+new file mode 100644
+index 0000000..a92fb0b
+--- /dev/null
++++ b/.eslintrc.cjs
+@@ -0,0 +1,42 @@
++/** @type {import("eslint").Linter.Config} */
++const config = {
++  "parser": "@typescript-eslint/parser",
++  "parserOptions": {
++    "project": true
++  },
++  "plugins": [
++    "@typescript-eslint"
++  ],
++  "extends": [
++    "next/core-web-vitals",
++    "plugin:@typescript-eslint/recommended-type-checked",
++    "plugin:@typescript-eslint/stylistic-type-checked"
++  ],
++  "rules": {
++    "@typescript-eslint/array-type": "off",
++    "@typescript-eslint/consistent-type-definitions": "off",
++    "@typescript-eslint/consistent-type-imports": [
++      "warn",
++      {
++        "prefer": "type-imports",
++        "fixStyle": "inline-type-imports"
++      }
++    ],
++    "@typescript-eslint/no-unused-vars": [
++      "warn",
++      {
++        "argsIgnorePattern": "^_"
++      }
++    ],
++    "@typescript-eslint/require-await": "off",
++    "@typescript-eslint/no-misused-promises": [
++      "error",
++      {
++        "checksVoidReturn": {
++          "attributes": false
++        }
++      }
++    ]
++  }
++}
++module.exports = config;
+\ No newline at end of file
+diff --git a/.eslintrc.json b/.eslintrc.json
+deleted file mode 100644
+index 1cd4470..0000000
+--- a/.eslintrc.json
++++ /dev/null
+@@ -1,8 +0,0 @@
+-{
+-  "parser": "@typescript-eslint/parser",
+-  "parserOptions": {
+-    "project": "./tsconfig.json"
+-  },
+-  "plugins": ["@typescript-eslint"],
+-  "extends": ["next/core-web-vitals", "plugin:@typescript-eslint/recommended"]
+-}
+diff --git a/.gitignore b/.gitignore
+index d9bbc5d..9b986df 100644
+--- a/.gitignore
++++ b/.gitignore
+@@ -11,10 +11,12 @@
+ # database
+ /prisma/db.sqlite
+ /prisma/db.sqlite-journal
++db.sqlite
+ 
+ # next.js
+ /.next/
+ /out/
++next-env.d.ts
+ 
+ # production
+ /build
+@@ -30,6 +32,7 @@ yarn-error.log*
+ .pnpm-debug.log*
+ 
+ # local env files
++# do not commit any .env files to git, except for the .env.example file. https://create.t3.gg/en/usage/env-variables#using-environment-variables
+ .env
+ .env*.local
+ 
+diff --git a/README.md b/README.md
+index e37ef87..67943c7 100644
+--- a/README.md
++++ b/README.md
+@@ -1,50 +1,29 @@
+ # Create T3 App
+ 
+-This is an app bootstrapped according to the [init.tips](https://init.tips) stack, also known as the T3-Stack.
+-
+-## Why are there `.js` files in here?
+-
+-As per [T3-Axiom #3](https://github.com/t3-oss/create-t3-app/tree/next#3-typesafety-isnt-optional), we take typesafety as a first class citizen. Unfortunately, not all frameworks and plugins support TypeScript which means some of the configuration files have to be `.js` files.
+-
+-We try to emphasize that these files are javascript for a reason, by explicitly declaring its type (`cjs` or `mjs`) depending on what's supported by the library it is used by. Also, all the `js` files in this project are still typechecked using a `@ts-check` comment at the top.
++This is a [T3 Stack](https://create.t3.gg/) project bootstrapped with `create-t3-app`.
+ 
+ ## What's next? How do I make an app with this?
+ 
+-We try to keep this project as simple as possible, so you can start with the most basic configuration and then move on to more advanced configuration.
++We try to keep this project as simple as possible, so you can start with just the scaffolding we set up for you, and add additional things later when they become necessary.
+ 
+ If you are not familiar with the different technologies used in this project, please refer to the respective docs. If you still are in the wind, please join our [Discord](https://t3.gg/discord) and ask for help.
+ 
+-- [Next-Auth.js](https://next-auth.js.org)
++- [Next.js](https://nextjs.org)
++- [NextAuth.js](https://next-auth.js.org)
+ - [Prisma](https://prisma.io)
+-- [TailwindCSS](https://tailwindcss.com)
+-- [tRPC](https://trpc.io) (using @next version? [see v10 docs here](https://trpc.io/docs/v10/))
+-
+-Also checkout these awesome tutorials on `create-t3-app`.
+-
+-- [Build a Blog With the T3 Stack - tRPC, TypeScript, Next.js, Prisma & Zod](https://www.youtube.com/watch?v=syEWlxVFUrY)
+-- [Build a Live Chat Application with the T3 Stack - TypeScript, Tailwind, tRPC](https://www.youtube.com/watch?v=dXRRY37MPuk)
+-- [Build a full stack app with create-t3-app](https://www.nexxel.dev/blog/ct3a-guestbook)
+-- [A first look at create-t3-app](https://dev.to/ajcwebdev/a-first-look-at-create-t3-app-1i8f)
++- [Drizzle](https://orm.drizzle.team)
++- [Tailwind CSS](https://tailwindcss.com)
++- [tRPC](https://trpc.io)
+ 
+-## How do I deploy this?
+-
+-### Vercel
+-
+-We recommend deploying to [Vercel](https://vercel.com/?utm_source=t3-oss&utm_campaign=oss). It makes it super easy to deploy NextJs apps.
++## Learn More
+ 
+-- Push your code to a GitHub repository.
+-- Go to [Vercel](https://vercel.com/?utm_source=t3-oss&utm_campaign=oss) and sign up with GitHub.
+-- Create a Project and import the repository you pushed your code to.
+-- Add your environment variables.
+-- Click **Deploy**
+-- Now whenever you push a change to your repository, Vercel will automatically redeploy your website!
++To learn more about the [T3 Stack](https://create.t3.gg/), take a look at the following resources:
+ 
+-### Docker
++- [Documentation](https://create.t3.gg/)
++- [Learn the T3 Stack](https://create.t3.gg/en/faq#what-learning-resources-are-currently-available) — Check out these awesome tutorials
+ 
+-You can also dockerize this stack and deploy a container. See the [Docker deployment page](https://create-t3-app-nu.vercel.app/en/deployment/docker) for details.
++You can check out the [create-t3-app GitHub repository](https://github.com/t3-oss/create-t3-app) — your feedback and contributions are welcome!
+ 
+-## Useful resources
+-
+-Here are some resources that we commonly refer to:
++## How do I deploy this?
+ 
+-- [Protecting routes with Next-Auth.js](https://next-auth.js.org/configuration/nextjs#unstable_getserversession)
++Follow our deployment guides for [Vercel](https://create.t3.gg/en/deployment/vercel), [Netlify](https://create.t3.gg/en/deployment/netlify) and [Docker](https://create.t3.gg/en/deployment/docker) for more information.
+diff --git a/next.config.js b/next.config.js
+new file mode 100644
+index 0000000..98b6f90
+--- /dev/null
++++ b/next.config.js
+@@ -0,0 +1,23 @@
++/**
++ * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation. This is especially useful
++ * for Docker builds.
++ */
++await import("./src/env.js");
++
++/** @type {import("next").NextConfig} */
++const config = {
++  reactStrictMode: true,
++
++  /**
++   * If you are using `appDir` then you must comment the below `i18n` config out.
++   *
++   * @see https://github.com/vercel/next.js/issues/41980
++   */
++  i18n: {
++    locales: ["en"],
++    defaultLocale: "en",
++  },
++  transpilePackages: ["geist"],
++};
++
++export default config;
+diff --git a/next.config.mjs b/next.config.mjs
+deleted file mode 100644
+index 9a4c0c9..0000000
+--- a/next.config.mjs
++++ /dev/null
+@@ -1,24 +0,0 @@
+-// @ts-check
+-import { env } from "./src/env/server.mjs";
+-
+-/**
+- * Don't be scared of the generics here.
+- * All they do is to give us autocompletion when using this.
+- *
+- * @template {import('next').NextConfig} T
+- * @param {T} config - A generic parameter that flows through to the return type
+- * @constraint {{import('next').NextConfig}}
+- */
+-function defineNextConfig(config) {
+-  return config;
+-}
+-
+-export default defineNextConfig({
+-  reactStrictMode: true,
+-  swcMinify: true,
+-  // Next.js i18n docs: https://nextjs.org/docs/advanced-features/i18n-routing
+-  i18n: {
+-    locales: ["en"],
+-    defaultLocale: "en",
+-  },
+-});
+diff --git a/package.json b/package.json
+index b4a1a93..a1cc5ff 100644
+--- a/package.json
++++ b/package.json
+@@ -1,30 +1,46 @@
+ {
+-  "name": "current",
++  "name": "upgrade",
+   "version": "0.1.0",
+   "private": true,
++  "type": "module",
+   "scripts": {
+-    "dev": "next dev",
+     "build": "next build",
+-    "start": "next start",
+-    "lint": "next lint"
++    "dev": "next dev",
++    "lint": "next lint",
++    "start": "next start"
+   },
+   "dependencies": {
+-    "next": "12.3.1",
++    "@t3-oss/env-nextjs": "^0.10.1",
++    "@tanstack/react-query": "^5.25.0",
++    "@trpc/client": "next",
++    "@trpc/next": "next",
++    "@trpc/react-query": "next",
++    "@trpc/server": "next",
++    "geist": "^1.3.0",
++    "next": "^14.2.1",
++    "next-auth": "^4.24.6",
+     "react": "18.2.0",
+     "react-dom": "18.2.0",
+-    "zod": "^3.18.0"
++    "superjson": "^2.2.1",
++    "zod": "^3.23.3"
+   },
+   "devDependencies": {
+-    "@types/node": "18.0.0",
+-    "@types/react": "18.0.14",
+-    "@types/react-dom": "18.0.5",
+-    "@typescript-eslint/eslint-plugin": "^5.33.0",
+-    "@typescript-eslint/parser": "^5.33.0",
+-    "eslint": "8.22.0",
+-    "eslint-config-next": "12.3.1",
+-    "typescript": "^4.8.4"
++    "@types/eslint": "^8.56.2",
++    "@types/node": "^20.11.20",
++    "@types/react": "^18.2.57",
++    "@types/react-dom": "^18.2.19",
++    "@typescript-eslint/eslint-plugin": "^7.1.1",
++    "@typescript-eslint/parser": "^7.1.1",
++    "eslint": "^8.57.0",
++    "eslint-config-next": "^14.1.3",
++    "postcss": "^8.4.34",
++    "prettier": "^3.2.5",
++    "prettier-plugin-tailwindcss": "^0.5.11",
++    "tailwindcss": "^3.4.1",
++    "typescript": "^5.4.2"
+   },
+   "ct3aMetadata": {
+-    "initVersion": "6.1.0"
+-  }
++    "initVersion": "7.33.1"
++  },
++  "packageManager": "pnpm@8.5.1"
+ }
+diff --git a/postcss.config.cjs b/postcss.config.cjs
+new file mode 100644
+index 0000000..4cdb2f4
+--- /dev/null
++++ b/postcss.config.cjs
+@@ -0,0 +1,7 @@
++const config = {
++  plugins: {
++    tailwindcss: {},
++  },
++};
++
++module.exports = config;
+diff --git a/prettier.config.js b/prettier.config.js
+new file mode 100644
+index 0000000..b2d59b4
+--- /dev/null
++++ b/prettier.config.js
+@@ -0,0 +1,6 @@
++/** @type {import('prettier').Config & import('prettier-plugin-tailwindcss').PluginOptions} */
++const config = {
++  plugins: ["prettier-plugin-tailwindcss"],
++};
++
++export default config;
+diff --git a/public/favicon.ico b/public/favicon.ico
+index efd76f1..60c702a 100644
+Binary files a/public/favicon.ico and b/public/favicon.ico differ
+diff --git a/src/env.js b/src/env.js
+new file mode 100644
+index 0000000..42cc126
+--- /dev/null
++++ b/src/env.js
+@@ -0,0 +1,59 @@
++import { createEnv } from "@t3-oss/env-nextjs";
++import { z } from "zod";
++
++export const env = createEnv({
++  /**
++   * Specify your server-side environment variables schema here. This way you can ensure the app
++   * isn't built with invalid env vars.
++   */
++  server: {
++    NODE_ENV: z
++      .enum(["development", "test", "production"])
++      .default("development"),
++    NEXTAUTH_SECRET:
++      process.env.NODE_ENV === "production"
++        ? z.string()
++        : z.string().optional(),
++    NEXTAUTH_URL: z.preprocess(
++      // This makes Vercel deployments not fail if you don't set NEXTAUTH_URL
++      // Since NextAuth.js automatically uses the VERCEL_URL if present.
++      (str) => process.env.VERCEL_URL ?? str,
++      // VERCEL_URL doesn't include `https` so it cant be validated as a URL
++      process.env.VERCEL ? z.string() : z.string().url()
++    ),
++    DISCORD_CLIENT_ID: z.string(),
++    DISCORD_CLIENT_SECRET: z.string(),
++  },
++
++  /**
++   * Specify your client-side environment variables schema here. This way you can ensure the app
++   * isn't built with invalid env vars. To expose them to the client, prefix them with
++   * `NEXT_PUBLIC_`.
++   */
++  client: {
++    // NEXT_PUBLIC_CLIENTVAR: z.string(),
++  },
++
++  /**
++   * You can't destruct `process.env` as a regular object in the Next.js edge runtimes (e.g.
++   * middlewares) or client-side so we need to destruct manually.
++   */
++  runtimeEnv: {
++    NODE_ENV: process.env.NODE_ENV,
++    NEXTAUTH_SECRET: process.env.NEXTAUTH_SECRET,
++    NEXTAUTH_URL: process.env.NEXTAUTH_URL,
++    DISCORD_CLIENT_ID: process.env.DISCORD_CLIENT_ID,
++    DISCORD_CLIENT_SECRET: process.env.DISCORD_CLIENT_SECRET,
++    // NEXT_PUBLIC_CLIENTVAR: process.env.NEXT_PUBLIC_CLIENTVAR,
++  },
++  /**
++   * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation. This is especially
++   * useful for Docker builds.
++   */
++  skipValidation: !!process.env.SKIP_ENV_VALIDATION,
++  /**
++   * Makes it so that empty strings are treated as undefined. `SOME_VAR: z.string()` and
++   * `SOME_VAR=''` will throw an error.
++   */
++  emptyStringAsUndefined: true,
++});
+diff --git a/src/env/client.mjs b/src/env/client.mjs
+deleted file mode 100644
+index 30958cb..0000000
+--- a/src/env/client.mjs
++++ /dev/null
+@@ -1,35 +0,0 @@
+-// @ts-check
+-import { clientEnv, clientSchema } from "./schema.mjs";
+-
+-const _clientEnv = clientSchema.safeParse(clientEnv);
+-
+-export const formatErrors = (
+-  /** @type {import('zod').ZodFormattedError<Map<string,string>,string>} */
+-  errors,
+-) =>
+-  Object.entries(errors)
+-    .map(([name, value]) => {
+-      if (value && "_errors" in value)
+-        return `${name}: ${value._errors.join(", ")}\n`;
+-    })
+-    .filter(Boolean);
+-
+-if (!_clientEnv.success) {
+-  console.error(
+-    "❌ Invalid environment variables:\n",
+-    ...formatErrors(_clientEnv.error.format()),
+-  );
+-  throw new Error("Invalid environment variables");
+-}
+-
+-for (let key of Object.keys(_clientEnv.data)) {
+-  if (!key.startsWith("NEXT_PUBLIC_")) {
+-    console.warn(
+-      `❌ Invalid public environment variable name: ${key}. It must begin with 'NEXT_PUBLIC_'`,
+-    );
+-
+-    throw new Error("Invalid public environment variable name");
+-  }
+-}
+-
+-export const env = _clientEnv.data;
+diff --git a/src/env/schema.mjs b/src/env/schema.mjs
+deleted file mode 100644
+index c621d13..0000000
+--- a/src/env/schema.mjs
++++ /dev/null
+@@ -1,29 +0,0 @@
+-// @ts-check
+-import { z } from "zod";
+-
+-/**
+- * Specify your server-side environment variables schema here.
+- * This way you can ensure the app isn't built with invalid env vars.
+- */
+-export const serverSchema = z.object({
+-  NODE_ENV: z.enum(["development", "test", "production"]),
+-});
+-
+-/**
+- * Specify your client-side environment variables schema here.
+- * This way you can ensure the app isn't built with invalid env vars.
+- * To expose them to the client, prefix them with `NEXT_PUBLIC_`.
+- */
+-export const clientSchema = z.object({
+-  // NEXT_PUBLIC_CLIENTVAR: z.string(),
+-});
+-
+-/**
+- * You can't destruct `process.env` as a regular object, so you have to do
+- * it manually here. This is because Next.js evaluates this at build time,
+- * and only used environment variables are included in the build.
+- * @type {{ [k in keyof z.infer<typeof clientSchema>]: z.infer<typeof clientSchema>[k] | undefined }}
+- */
+-export const clientEnv = {
+-  // NEXT_PUBLIC_CLIENTVAR: process.env.NEXT_PUBLIC_CLIENTVAR,
+-};
+diff --git a/src/env/server.mjs b/src/env/server.mjs
+deleted file mode 100644
+index 736e3a6..0000000
+--- a/src/env/server.mjs
++++ /dev/null
+@@ -1,27 +0,0 @@
+-// @ts-check
+-/**
+- * This file is included in `/next.config.mjs` which ensures the app isn't built with invalid env vars.
+- * It has to be a `.mjs`-file to be imported there.
+- */
+-import { serverSchema } from "./schema.mjs";
+-import { env as clientEnv, formatErrors } from "./client.mjs";
+-
+-const _serverEnv = serverSchema.safeParse(process.env);
+-
+-if (!_serverEnv.success) {
+-  console.error(
+-    "❌ Invalid environment variables:\n",
+-    ...formatErrors(_serverEnv.error.format()),
+-  );
+-  throw new Error("Invalid environment variables");
+-}
+-
+-for (let key of Object.keys(_serverEnv.data)) {
+-  if (key.startsWith("NEXT_PUBLIC_")) {
+-    console.warn("❌ You are exposing a server-side env-variable:", key);
+-
+-    throw new Error("You are exposing a server-side env-variable");
+-  }
+-}
+-
+-export const env = { ..._serverEnv.data, ...clientEnv };
+diff --git a/src/pages/_app.tsx b/src/pages/_app.tsx
+index c1c9d2f..b39099f 100644
+--- a/src/pages/_app.tsx
++++ b/src/pages/_app.tsx
+@@ -1,8 +1,23 @@
+-import "../styles/globals.css";
+-import type { AppType } from "next/dist/shared/lib/utils";
++import { GeistSans } from "geist/font/sans";
++import { type Session } from "next-auth";
++import { SessionProvider } from "next-auth/react";
++import { type AppType } from "next/app";
+ 
+-const MyApp: AppType = ({ Component, pageProps }) => {
+-  return <Component {...pageProps} />;
++import { api } from "~/utils/api";
++
++import "~/styles/globals.css";
++
++const MyApp: AppType<{ session: Session | null }> = ({
++  Component,
++  pageProps: { session, ...pageProps },
++}) => {
++  return (
++    <SessionProvider session={session}>
++      <main className={GeistSans.className}>
++        <Component {...pageProps} />
++      </main>
++    </SessionProvider>
++  );
+ };
+ 
+-export default MyApp;
++export default api.withTRPC(MyApp);
+diff --git a/src/pages/api/auth/[...nextauth].ts b/src/pages/api/auth/[...nextauth].ts
+new file mode 100644
+index 0000000..8739530
+--- /dev/null
++++ b/src/pages/api/auth/[...nextauth].ts
+@@ -0,0 +1,5 @@
++import NextAuth from "next-auth";
++
++import { authOptions } from "~/server/auth";
++
++export default NextAuth(authOptions);
+diff --git a/src/pages/api/trpc/[trpc].ts b/src/pages/api/trpc/[trpc].ts
+new file mode 100644
+index 0000000..587dd2b
+--- /dev/null
++++ b/src/pages/api/trpc/[trpc].ts
+@@ -0,0 +1,19 @@
++import { createNextApiHandler } from "@trpc/server/adapters/next";
++
++import { env } from "~/env";
++import { appRouter } from "~/server/api/root";
++import { createTRPCContext } from "~/server/api/trpc";
++
++// export API handler
++export default createNextApiHandler({
++  router: appRouter,
++  createContext: createTRPCContext,
++  onError:
++    env.NODE_ENV === "development"
++      ? ({ path, error }) => {
++          console.error(
++            `❌ tRPC failed on ${path ?? "<no-path>"}: ${error.message}`
++          );
++        }
++      : undefined,
++});
+diff --git a/src/pages/index.module.css b/src/pages/index.module.css
+deleted file mode 100644
+index 4fc3217..0000000
+--- a/src/pages/index.module.css
++++ /dev/null
+@@ -1,196 +0,0 @@
+-.containerOuter {
+-  --color-gray-500: rgba(107, 114, 128, 100%);
+-  --color-gray-600: rgba(75, 85, 99, 100%);
+-  --color-gray-700: rgba(55, 65, 81, 100%);
+-  --color-purple-300: rgba(216, 180, 254, 100%);
+-  --color-blue-500: rgba(59, 130, 246, 100%);
+-  --color-violet-500: rgba(139, 92, 246, 100%);
+-  --tw-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1),
+-    0 8px 10px -6px rgb(0 0 0 / 0.1);
+-
+-  display: flex;
+-  align-items: center;
+-  justify-content: center;
+-  width: 100vw;
+-  min-height: 100vh;
+-}
+-
+-.containerInner {
+-  width: 100%;
+-  min-height: 100vh;
+-  padding: 16px;
+-  display: flex;
+-  flex-direction: column;
+-  align-items: center;
+-  justify-content: center;
+-  font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+-    "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif,
+-    "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+-}
+-
+-@media (min-width: 640px) {
+-  .containerInner {
+-    max-width: 640px;
+-  }
+-}
+-
+-@media (min-width: 768px) {
+-  .containerInner {
+-    max-width: 768px;
+-  }
+-}
+-
+-@media (min-width: 1024px) {
+-  .containerInner {
+-    max-width: 1024px;
+-  }
+-}
+-
+-@media (min-width: 1280px) {
+-  .containerInner {
+-    max-width: 1280px;
+-  }
+-}
+-
+-@media (min-width: 1536px) {
+-  .containerInner {
+-    max-width: 1536px;
+-  }
+-}
+-
+-.title {
+-  margin: 0;
+-  font-size: 3rem;
+-  font-weight: 800;
+-  line-height: 1.5;
+-  color: var(--color-gray-700);
+-}
+-
+-@media (min-width: 768px) {
+-  .title {
+-    font-size: 5rem;
+-  }
+-}
+-
+-.titlePink {
+-  color: var(--color-purple-300);
+-}
+-
+-.subtitle {
+-  margin: 0;
+-  color: var(--color-gray-700);
+-  font-weight: 400;
+-  font-size: 1.5rem;
+-  line-height: 2rem;
+-}
+-
+-.cardGrid {
+-  display: grid;
+-  gap: 0.75rem;
+-  padding-top: 0.75rem;
+-  margin-top: 0.75rem;
+-  text-align: center;
+-}
+-
+-@media (min-width: 768px) {
+-  .cardGrid {
+-    grid-template-columns: repeat(2, minmax(0, 1fr));
+-  }
+-}
+-
+-@media (min-width: 1024px) {
+-  .cardGrid {
+-    width: calc(200% / 3);
+-  }
+-}
+-
+-.card {
+-  display: flex;
+-  flex-direction: column;
+-  justify-content: center;
+-  padding: 1.5rem;
+-  transition-duration: 500ms;
+-  border: 2px solid var(--color-gray-500);
+-  border-radius: 0.25rem;
+-  box-shadow: var(--tw-shadow);
+-}
+-
+-.card:hover {
+-  transform: scale(1.05);
+-}
+-
+-@media (prefers-reduced-motion) {
+-  .card:hover {
+-    transform: none;
+-  }
+-}
+-
+-.cardTitle {
+-  margin: 0;
+-  font-size: 1.125rem;
+-  line-height: 1.75rem;
+-  font-weight: 400;
+-  color: var(--color-gray-500);
+-}
+-
+-.cardDescription {
+-  margin: 0;
+-  font-size: 0.875rem;
+-  line-height: 1.25rem;
+-  color: var(--color-gray-600);
+-}
+-
+-.cardDocumentation {
+-  margin-top: 0.75rem;
+-  font-size: 0.875rem;
+-  line-height: 1.25rem;
+-  text-decoration-line: underline;
+-  -webkit-text-decoration-line: underline;
+-  text-decoration-style: dotted;
+-  -webkit-text-decoration-style: dotted;
+-  text-underline-offset: 2px;
+-  color: var(--color-violet-500);
+-}
+-
+-.helloFrom {
+-  padding-top: 1.5rem;
+-  font-size: 1.5rem;
+-  line-height: 2rem;
+-  color: var(--color-blue-500);
+-  display: flex;
+-  align-items: center;
+-  justify-content: center;
+-  width: 100%;
+-}
+-
+-.helloFrom p {
+-  margin: 0;
+-}
+-
+-.authShowcase {
+-  margin: 2rem;
+-  display: flex;
+-  flex-direction: column;
+-  align-items: center;
+-  gap: 16px;
+-}
+-
+-.loginInfo {
+-  color: var(--color-blue-500);
+-  font-size: 1.5rem;
+-  line-height: 2rem;
+-}
+-
+-.signInButton {
+-  padding: 0.5rem 1rem;
+-  border: 1px solid black;
+-  background-color: rgba(245, 243, 255, 100%);
+-  font-size: 1.25rem;
+-  line-height: 1.75rem;
+-  border-radius: 0.375rem;
+-  box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+-}
+-
+-.signInButton:hover {
+-  background-color: rgba(237, 233, 254, 100%);
+-}
+diff --git a/src/pages/index.tsx b/src/pages/index.tsx
+index 173337b..7f55cbf 100644
+--- a/src/pages/index.tsx
++++ b/src/pages/index.tsx
+@@ -1,8 +1,12 @@
+-import type { NextPage } from "next";
++import { signIn, signOut, useSession } from "next-auth/react";
+ import Head from "next/head";
+-import styles from "./index.module.css";
++import Link from "next/link";
++
++import { api } from "~/utils/api";
++
++export default function Home() {
++  const hello = api.post.hello.useQuery({ text: "from tRPC" });
+ 
+-const Home: NextPage = () => {
+   return (
+     <>
+       <Head>
+@@ -10,76 +14,67 @@ const Home: NextPage = () => {
+         <meta name="description" content="Generated by create-t3-app" />
+         <link rel="icon" href="/favicon.ico" />
+       </Head>
+-      <div className={styles.containerOuter}>
+-        <div className={styles.containerInner}>
+-          <h1 className={styles.title}>
+-            Create <span className={styles.titlePink}>T3</span> App
++      <main className=" flex min-h-screen flex-col items-center justify-center bg-gradient-to-b from-[#2e026d] to-[#15162c]">
++        <div className="container flex flex-col items-center justify-center gap-12 px-4 py-16 ">
++          <h1 className="text-5xl font-extrabold tracking-tight text-white sm:text-[5rem]">
++            Create <span className="text-[hsl(280,100%,70%)]">T3</span> App
+           </h1>
+-
+-          <h3 className={styles.subtitle}>This stack uses:</h3>
+-          <div className={styles.cardGrid}>
+-            <TechnologyCard
+-              name="NextJS"
+-              description="The React framework for production"
+-              documentation="https://nextjs.org/"
+-            />
+-            <TechnologyCard
+-              name="TypeScript"
+-              description="Strongly typed programming language that builds on JavaScript, giving you better tooling at any scale"
+-              documentation="https://www.typescriptlang.org/"
+-            />
+-            <TechnologyCard
+-              name="TailwindCSS"
+-              description="Rapidly build modern websites without ever leaving your HTML"
+-              documentation="https://tailwindcss.com/"
+-            />
+-            <TechnologyCard
+-              name="tRPC"
+-              description="End-to-end typesafe APIs made easy"
+-              documentation="https://trpc.io/"
+-            />
+-            <TechnologyCard
+-              name="Next-Auth"
+-              description="Authentication for Next.js"
+-              documentation="https://next-auth.js.org/"
+-            />
+-            <TechnologyCard
+-              name="Prisma"
+-              description="Build data-driven JavaScript & TypeScript apps in less time"
+-              documentation="https://www.prisma.io/docs/"
+-            />
++          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:gap-8">
++            <Link
++              className="flex max-w-xs flex-col gap-4 rounded-xl bg-white/10 p-4 text-white hover:bg-white/20"
++              href="https://create.t3.gg/en/usage/first-steps"
++              target="_blank"
++            >
++              <h3 className="text-2xl font-bold">First Steps →</h3>
++              <div className="text-lg">
++                Just the basics - Everything you need to know to set up your
++                database and authentication.
++              </div>
++            </Link>
++            <Link
++              className="flex max-w-xs flex-col gap-4 rounded-xl bg-white/10 p-4 text-white hover:bg-white/20"
++              href="https://create.t3.gg/en/introduction"
++              target="_blank"
++            >
++              <h3 className="text-2xl font-bold">Documentation →</h3>
++              <div className="text-lg">
++                Learn more about Create T3 App, the libraries it uses, and how
++                to deploy it.
++              </div>
++            </Link>
++          </div>
++          <div className="flex flex-col items-center gap-2">
++            <p className="text-2xl text-white">
++              {hello.data ? hello.data.greeting : "Loading tRPC query..."}
++            </p>
++            <AuthShowcase />
+           </div>
+         </div>
+-      </div>
++      </main>
+     </>
+   );
+-};
++}
+ 
+-export default Home;
++function AuthShowcase() {
++  const { data: sessionData } = useSession();
+ 
+-type TechnologyCardProps = {
+-  name: string;
+-  description: string;
+-  documentation: string;
+-};
++  const { data: secretMessage } = api.post.getSecretMessage.useQuery(
++    undefined, // no input
++    { enabled: sessionData?.user !== undefined }
++  );
+ 
+-const TechnologyCard = ({
+-  name,
+-  description,
+-  documentation,
+-}: TechnologyCardProps) => {
+   return (
+-    <section className={styles.card}>
+-      <h2 className={styles.cardTitle}>{name}</h2>
+-      <p className={styles.cardDescription}>{description}</p>
+-      <a
+-        className={styles.cardDocumentation}
+-        href={documentation}
+-        target="_blank"
+-        rel="noreferrer"
++    <div className="flex flex-col items-center justify-center gap-4">
++      <p className="text-center text-2xl text-white">
++        {sessionData && <span>Logged in as {sessionData.user?.name}</span>}
++        {secretMessage && <span> - {secretMessage}</span>}
++      </p>
++      <button
++        className="rounded-full bg-white/10 px-10 py-3 font-semibold text-white no-underline transition hover:bg-white/20"
++        onClick={sessionData ? () => void signOut() : () => void signIn()}
+       >
+-        Documentation
+-      </a>
+-    </section>
++        {sessionData ? "Sign out" : "Sign in"}
++      </button>
++    </div>
+   );
+-};
++}
+diff --git a/src/server/api/root.ts b/src/server/api/root.ts
+new file mode 100644
+index 0000000..b341fc4
+--- /dev/null
++++ b/src/server/api/root.ts
+@@ -0,0 +1,23 @@
++import { postRouter } from "~/server/api/routers/post";
++import { createCallerFactory, createTRPCRouter } from "~/server/api/trpc";
++
++/**
++ * This is the primary router for your server.
++ *
++ * All routers added in /api/routers should be manually added here.
++ */
++export const appRouter = createTRPCRouter({
++  post: postRouter,
++});
++
++// export type definition of API
++export type AppRouter = typeof appRouter;
++
++/**
++ * Create a server-side caller for the tRPC API.
++ * @example
++ * const trpc = createCaller(createContext);
++ * const res = await trpc.post.all();
++ *       ^? Post[]
++ */
++export const createCaller = createCallerFactory(appRouter);
+diff --git a/src/server/api/routers/post.ts b/src/server/api/routers/post.ts
+new file mode 100644
+index 0000000..a2072d3
+--- /dev/null
++++ b/src/server/api/routers/post.ts
+@@ -0,0 +1,40 @@
++import { z } from "zod";
++
++import {
++  createTRPCRouter,
++  protectedProcedure,
++  publicProcedure,
++} from "~/server/api/trpc";
++
++let post = {
++  id: 1,
++  name: "Hello World",
++};
++
++export const postRouter = createTRPCRouter({
++  hello: publicProcedure
++    .input(z.object({ text: z.string() }))
++    .query(({ input }) => {
++      return {
++        greeting: `Hello ${input.text}`,
++      };
++    }),
++
++  create: protectedProcedure
++    .input(z.object({ name: z.string().min(1) }))
++    .mutation(async ({ input }) => {
++      // simulate a slow db call
++      await new Promise((resolve) => setTimeout(resolve, 1000));
++
++      post = { id: post.id + 1, name: input.name };
++      return post;
++    }),
++
++  getLatest: protectedProcedure.query(() => {
++    return post;
++  }),
++
++  getSecretMessage: protectedProcedure.query(() => {
++    return "you can now see this secret message!";
++  }),
++});
+diff --git a/src/server/api/trpc.ts b/src/server/api/trpc.ts
+new file mode 100644
+index 0000000..fc64816
+--- /dev/null
++++ b/src/server/api/trpc.ts
+@@ -0,0 +1,133 @@
++/**
++ * YOU PROBABLY DON'T NEED TO EDIT THIS FILE, UNLESS:
++ * 1. You want to modify request context (see Part 1).
++ * 2. You want to create a new middleware or type of procedure (see Part 3).
++ *
++ * TL;DR - This is where all the tRPC server stuff is created and plugged in. The pieces you will
++ * need to use are documented accordingly near the end.
++ */
++import { initTRPC, TRPCError } from "@trpc/server";
++import { type CreateNextContextOptions } from "@trpc/server/adapters/next";
++import { type Session } from "next-auth";
++import superjson from "superjson";
++import { ZodError } from "zod";
++
++import { getServerAuthSession } from "~/server/auth";
++
++/**
++ * 1. CONTEXT
++ *
++ * This section defines the "contexts" that are available in the backend API.
++ *
++ * These allow you to access things when processing a request, like the database, the session, etc.
++ */
++
++interface CreateContextOptions {
++  session: Session | null;
++}
++
++/**
++ * This helper generates the "internals" for a tRPC context. If you need to use it, you can export
++ * it from here.
++ *
++ * Examples of things you may need it for:
++ * - testing, so we don't have to mock Next.js' req/res
++ * - tRPC's `createSSGHelpers`, where we don't have req/res
++ *
++ * @see https://create.t3.gg/en/usage/trpc#-serverapitrpcts
++ */
++const createInnerTRPCContext = ({ session }: CreateContextOptions) => {
++  return {
++    session,
++  };
++};
++
++/**
++ * This is the actual context you will use in your router. It will be used to process every request
++ * that goes through your tRPC endpoint.
++ *
++ * @see https://trpc.io/docs/context
++ */
++export const createTRPCContext = async ({
++  req,
++  res,
++}: CreateNextContextOptions) => {
++  // Get the session from the server using the getServerSession wrapper function
++  const session = await getServerAuthSession({ req, res });
++
++  return createInnerTRPCContext({
++    session,
++  });
++};
++
++/**
++ * 2. INITIALIZATION
++ *
++ * This is where the tRPC API is initialized, connecting the context and transformer. We also parse
++ * ZodErrors so that you get typesafety on the frontend if your procedure fails due to validation
++ * errors on the backend.
++ */
++
++const t = initTRPC.context<typeof createTRPCContext>().create({
++  transformer: superjson,
++  errorFormatter({ shape, error }) {
++    return {
++      ...shape,
++      data: {
++        ...shape.data,
++        zodError:
++          error.cause instanceof ZodError ? error.cause.flatten() : null,
++      },
++    };
++  },
++});
++
++/**
++ * Create a server-side caller.
++ *
++ * @see https://trpc.io/docs/server/server-side-calls
++ */
++export const createCallerFactory = t.createCallerFactory;
++
++/**
++ * 3. ROUTER & PROCEDURE (THE IMPORTANT BIT)
++ *
++ * These are the pieces you use to build your tRPC API. You should import these a lot in the
++ * "/src/server/api/routers" directory.
++ */
++
++/**
++ * This is how you create new routers and sub-routers in your tRPC API.
++ *
++ * @see https://trpc.io/docs/router
++ */
++export const createTRPCRouter = t.router;
++
++/**
++ * Public (unauthenticated) procedure
++ *
++ * This is the base piece you use to build new queries and mutations on your tRPC API. It does not
++ * guarantee that a user querying is authorized, but you can still access user session data if they
++ * are logged in.
++ */
++export const publicProcedure = t.procedure;
++
++/**
++ * Protected (authenticated) procedure
++ *
++ * If you want a query or mutation to ONLY be accessible to logged in users, use this. It verifies
++ * the session is valid and guarantees `ctx.session.user` is not null.
++ *
++ * @see https://trpc.io/docs/procedures
++ */
++export const protectedProcedure = t.procedure.use(({ ctx, next }) => {
++  if (!ctx.session || !ctx.session.user) {
++    throw new TRPCError({ code: "UNAUTHORIZED" });
++  }
++  return next({
++    ctx: {
++      // infers the `session` as non-nullable
++      session: { ...ctx.session, user: ctx.session.user },
++    },
++  });
++});
+diff --git a/src/server/auth.ts b/src/server/auth.ts
+new file mode 100644
+index 0000000..cbeceb4
+--- /dev/null
++++ b/src/server/auth.ts
+@@ -0,0 +1,74 @@
++import { type GetServerSidePropsContext } from "next";
++import {
++  getServerSession,
++  type DefaultSession,
++  type NextAuthOptions,
++} from "next-auth";
++import DiscordProvider from "next-auth/providers/discord";
++
++import { env } from "~/env";
++
++/**
++ * Module augmentation for `next-auth` types. Allows us to add custom properties to the `session`
++ * object and keep type safety.
++ *
++ * @see https://next-auth.js.org/getting-started/typescript#module-augmentation
++ */
++declare module "next-auth" {
++  interface Session extends DefaultSession {
++    user: DefaultSession["user"] & {
++      id: string;
++      // ...other properties
++      // role: UserRole;
++    };
++  }
++
++  // interface User {
++  //   // ...other properties
++  //   // role: UserRole;
++  // }
++}
++
++/**
++ * Options for NextAuth.js used to configure adapters, providers, callbacks, etc.
++ *
++ * @see https://next-auth.js.org/configuration/options
++ */
++export const authOptions: NextAuthOptions = {
++  callbacks: {
++    session: ({ session, token }) => ({
++      ...session,
++      user: {
++        ...session.user,
++        id: token.sub,
++      },
++    }),
++  },
++  providers: [
++    DiscordProvider({
++      clientId: env.DISCORD_CLIENT_ID,
++      clientSecret: env.DISCORD_CLIENT_SECRET,
++    }),
++    /**
++     * ...add more providers here.
++     *
++     * Most other providers require a bit more work than the Discord provider. For example, the
++     * GitHub provider requires you to add the `refresh_token_expires_in` field to the Account
++     * model. Refer to the NextAuth.js docs for the provider you want to use. Example:
++     *
++     * @see https://next-auth.js.org/providers/github
++     */
++  ],
++};
++
++/**
++ * Wrapper for `getServerSession` so that you don't need to import the `authOptions` in every file.
++ *
++ * @see https://next-auth.js.org/configuration/nextjs
++ */
++export const getServerAuthSession = (ctx: {
++  req: GetServerSidePropsContext["req"];
++  res: GetServerSidePropsContext["res"];
++}) => {
++  return getServerSession(ctx.req, ctx.res, authOptions);
++};
+diff --git a/src/styles/globals.css b/src/styles/globals.css
+index e5e2dcc..b5c61c9 100644
+--- a/src/styles/globals.css
++++ b/src/styles/globals.css
+@@ -1,16 +1,3 @@
+-html,
+-body {
+-  padding: 0;
+-  margin: 0;
+-  font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Oxygen,
+-    Ubuntu, Cantarell, Fira Sans, Droid Sans, Helvetica Neue, sans-serif;
+-}
+-
+-a {
+-  color: inherit;
+-  text-decoration: none;
+-}
+-
+-* {
+-  box-sizing: border-box;
+-}
++@tailwind base;
++@tailwind components;
++@tailwind utilities;
+diff --git a/src/utils/api.ts b/src/utils/api.ts
+new file mode 100644
+index 0000000..0f03d30
+--- /dev/null
++++ b/src/utils/api.ts
+@@ -0,0 +1,68 @@
++/**
++ * This is the client-side entrypoint for your tRPC API. It is used to create the `api` object which
++ * contains the Next.js App-wrapper, as well as your type-safe React Query hooks.
++ *
++ * We also create a few inference helpers for input and output types.
++ */
++import { httpBatchLink, loggerLink } from "@trpc/client";
++import { createTRPCNext } from "@trpc/next";
++import { type inferRouterInputs, type inferRouterOutputs } from "@trpc/server";
++import superjson from "superjson";
++
++import { type AppRouter } from "~/server/api/root";
++
++const getBaseUrl = () => {
++  if (typeof window !== "undefined") return ""; // browser should use relative url
++  if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}`; // SSR should use vercel url
++  return `http://localhost:${process.env.PORT ?? 3000}`; // dev SSR should use localhost
++};
++
++/** A set of type-safe react-query hooks for your tRPC API. */
++export const api = createTRPCNext<AppRouter>({
++  config() {
++    return {
++      /**
++       * Links used to determine request flow from client to server.
++       *
++       * @see https://trpc.io/docs/links
++       */
++      links: [
++        loggerLink({
++          enabled: (opts) =>
++            process.env.NODE_ENV === "development" ||
++            (opts.direction === "down" && opts.result instanceof Error),
++        }),
++        httpBatchLink({
++          /**
++           * Transformer used for data de-serialization from the server.
++           *
++           * @see https://trpc.io/docs/data-transformers
++           */
++          transformer: superjson,
++          url: `${getBaseUrl()}/api/trpc`,
++        }),
++      ],
++    };
++  },
++  /**
++   * Whether tRPC should await queries when server rendering pages.
++   *
++   * @see https://trpc.io/docs/nextjs#ssr-boolean-default-false
++   */
++  ssr: false,
++  transformer: superjson,
++});
++
++/**
++ * Inference helper for inputs.
++ *
++ * @example type HelloInput = RouterInputs['example']['hello']
++ */
++export type RouterInputs = inferRouterInputs<AppRouter>;
++
++/**
++ * Inference helper for outputs.
++ *
++ * @example type HelloOutput = RouterOutputs['example']['hello']
++ */
++export type RouterOutputs = inferRouterOutputs<AppRouter>;
+diff --git a/tailwind.config.ts b/tailwind.config.ts
+new file mode 100644
+index 0000000..5fd44e8
+--- /dev/null
++++ b/tailwind.config.ts
+@@ -0,0 +1,14 @@
++import { type Config } from "tailwindcss";
++import { fontFamily } from "tailwindcss/defaultTheme";
++
++export default {
++  content: ["./src/**/*.tsx"],
++  theme: {
++    extend: {
++      fontFamily: {
++        sans: ["var(--font-geist-sans)", ...fontFamily.sans],
++      },
++    },
++  },
++  plugins: [],
++} satisfies Config;
+diff --git a/tsconfig.json b/tsconfig.json
+index 0608fd0..905062d 100644
+--- a/tsconfig.json
++++ b/tsconfig.json
+@@ -1,21 +1,42 @@
+ {
+   "compilerOptions": {
+-    "target": "es5",
+-    "lib": ["dom", "dom.iterable", "esnext"],
+-    "allowJs": true,
+-    "skipLibCheck": true,
+-    "strict": true,
+-    "forceConsistentCasingInFileNames": true,
+-    "noEmit": true,
++    /* Base Options: */
+     "esModuleInterop": true,
+-    "module": "esnext",
+-    "moduleResolution": "node",
++    "skipLibCheck": true,
++    "target": "es2022",
++    "allowJs": true,
+     "resolveJsonModule": true,
++    "moduleDetection": "force",
+     "isolatedModules": true,
++
++    /* Strictness */
++    "strict": true,
++    "noUncheckedIndexedAccess": true,
++    "checkJs": true,
++
++    /* Bundled projects */
++    "lib": ["dom", "dom.iterable", "ES2022"],
++    "noEmit": true,
++    "module": "ESNext",
++    "moduleResolution": "Bundler",
+     "jsx": "preserve",
++    "plugins": [{ "name": "next" }],
+     "incremental": true,
+-    "noUncheckedIndexedAccess": true
++
++    /* Path Aliases */
++    "baseUrl": ".",
++    "paths": {
++      "~/*": ["./src/*"]
++    }
+   },
+-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", "**/*.cjs", "**/*.mjs"],
++  "include": [
++    ".eslintrc.cjs",
++    "next-env.d.ts",
++    "**/*.ts",
++    "**/*.tsx",
++    "**/*.cjs",
++    "**/*.js",
++    ".next/types/**/*.ts"
++  ],
+   "exclude": ["node_modules"]
+ }
