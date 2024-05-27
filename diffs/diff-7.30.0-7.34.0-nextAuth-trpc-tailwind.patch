@@ -1,0 +1,122 @@
+diff --git a/.gitignore b/.gitignore
+index 2971a0b..9b986df 100644
+--- a/.gitignore
++++ b/.gitignore
+@@ -11,6 +11,7 @@
+ # database
+ /prisma/db.sqlite
+ /prisma/db.sqlite-journal
++db.sqlite
+ 
+ # next.js
+ /.next/
+diff --git a/next.config.js b/next.config.js
+index ffbeb9f..98b6f90 100644
+--- a/next.config.js
++++ b/next.config.js
+@@ -17,6 +17,7 @@ const config = {
+     locales: ["en"],
+     defaultLocale: "en",
+   },
++  transpilePackages: ["geist"],
+ };
+ 
+ export default config;
+diff --git a/package.json b/package.json
+index 04b7409..8e7c0b1 100644
+--- a/package.json
++++ b/package.json
+@@ -1,5 +1,5 @@
+ {
+-  "name": "current",
++  "name": "upgrade",
+   "version": "0.1.0",
+   "private": true,
+   "type": "module",
+@@ -10,18 +10,19 @@
+     "start": "next start"
+   },
+   "dependencies": {
+-    "@t3-oss/env-nextjs": "^0.9.2",
+-    "@tanstack/react-query": "^5.25.0",
++    "@t3-oss/env-nextjs": "^0.10.1",
++    "@tanstack/react-query": "^5.39.0",
+     "@trpc/client": "next",
+     "@trpc/next": "next",
+     "@trpc/react-query": "next",
+     "@trpc/server": "next",
+-    "next": "^14.1.3",
+-    "next-auth": "^4.24.6",
+-    "react": "18.2.0",
+-    "react-dom": "18.2.0",
++    "geist": "^1.3.0",
++    "next": "^14.2.1",
++    "next-auth": "^4.24.7",
++    "react": "^18.3.0",
++    "react-dom": "^18.3.0",
+     "superjson": "^2.2.1",
+-    "zod": "^3.22.4"
++    "zod": "^3.23.3"
+   },
+   "devDependencies": {
+     "@types/eslint": "^8.56.2",
+@@ -34,12 +35,12 @@
+     "eslint-config-next": "^14.1.3",
+     "postcss": "^8.4.34",
+     "prettier": "^3.2.5",
+-    "prettier-plugin-tailwindcss": "^0.5.11",
+-    "tailwindcss": "^3.4.1",
++    "prettier-plugin-tailwindcss": "^0.5.14",
++    "tailwindcss": "^3.4.3",
+     "typescript": "^5.4.2"
+   },
+   "ct3aMetadata": {
+-    "initVersion": "7.30.0"
++    "initVersion": "7.34.0"
+   },
+   "packageManager": "pnpm@8.5.1"
+ }
+diff --git a/src/pages/_app.tsx b/src/pages/_app.tsx
+index f579f30..b39099f 100644
+--- a/src/pages/_app.tsx
++++ b/src/pages/_app.tsx
+@@ -1,24 +1,19 @@
++import { GeistSans } from "geist/font/sans";
+ import { type Session } from "next-auth";
+ import { SessionProvider } from "next-auth/react";
+ import { type AppType } from "next/app";
+-import { Inter } from "next/font/google";
+ 
+ import { api } from "~/utils/api";
+ 
+ import "~/styles/globals.css";
+ 
+-const inter = Inter({
+-  subsets: ["latin"],
+-  variable: "--font-sans",
+-});
+-
+ const MyApp: AppType<{ session: Session | null }> = ({
+   Component,
+   pageProps: { session, ...pageProps },
+ }) => {
+   return (
+     <SessionProvider session={session}>
+-      <main className={`font-sans ${inter.variable}`}>
++      <main className={GeistSans.className}>
+         <Component {...pageProps} />
+       </main>
+     </SessionProvider>
+diff --git a/tailwind.config.ts b/tailwind.config.ts
+index f06488f..5fd44e8 100644
+--- a/tailwind.config.ts
++++ b/tailwind.config.ts
+@@ -6,7 +6,7 @@ export default {
+   theme: {
+     extend: {
+       fontFamily: {
+-        sans: ["var(--font-sans)", ...fontFamily.sans],
++        sans: ["var(--font-geist-sans)", ...fontFamily.sans],
+       },
+     },
+   },
