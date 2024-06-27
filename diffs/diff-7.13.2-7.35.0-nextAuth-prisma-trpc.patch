@@ -1,0 +1,857 @@
+diff --git a/.env.example b/.env.example
+index c1464a2..eb5aed4 100644
+--- a/.env.example
++++ b/.env.example
+@@ -6,7 +6,7 @@
+ # secrets in it. If you are cloning this repo, create a copy of this file named
+ # ".env" and populate it with your secrets.
+ 
+-# When adding additional environment variables, the schema in "/src/env.mjs"
++# When adding additional environment variables, the schema in "/src/env.js"
+ # should be updated accordingly.
+ 
+ # Prisma
+diff --git a/.eslintrc.cjs b/.eslintrc.cjs
+index 8b7a0e8..a92fb0b 100644
+--- a/.eslintrc.cjs
++++ b/.eslintrc.cjs
+@@ -1,35 +1,42 @@
+-// eslint-disable-next-line @typescript-eslint/no-var-requires
+-const path = require("path");
+-
+ /** @type {import("eslint").Linter.Config} */
+ const config = {
+-  overrides: [
+-    {
+-      extends: [
+-        "plugin:@typescript-eslint/recommended-requiring-type-checking",
+-      ],
+-      files: ["*.ts", "*.tsx"],
+-      parserOptions: {
+-        project: path.join(__dirname, "tsconfig.json"),
+-      },
+-    },
+-  ],
+-  parser: "@typescript-eslint/parser",
+-  parserOptions: {
+-    project: path.join(__dirname, "tsconfig.json"),
++  "parser": "@typescript-eslint/parser",
++  "parserOptions": {
++    "project": true
+   },
+-  plugins: ["@typescript-eslint"],
+-  extends: ["next/core-web-vitals", "plugin:@typescript-eslint/recommended"],
+-  rules: {
++  "plugins": [
++    "@typescript-eslint"
++  ],
++  "extends": [
++    "next/core-web-vitals",
++    "plugin:@typescript-eslint/recommended-type-checked",
++    "plugin:@typescript-eslint/stylistic-type-checked"
++  ],
++  "rules": {
++    "@typescript-eslint/array-type": "off",
++    "@typescript-eslint/consistent-type-definitions": "off",
+     "@typescript-eslint/consistent-type-imports": [
+       "warn",
+       {
+-        prefer: "type-imports",
+-        fixStyle: "inline-type-imports",
+-      },
++        "prefer": "type-imports",
++        "fixStyle": "inline-type-imports"
++      }
+     ],
+-    "@typescript-eslint/no-unused-vars": ["warn", { argsIgnorePattern: "^_" }],
+-  },
+-};
+-
+-module.exports = config;
++    "@typescript-eslint/no-unused-vars": [
++      "warn",
++      {
++        "argsIgnorePattern": "^_"
++      }
++    ],
++    "@typescript-eslint/require-await": "off",
++    "@typescript-eslint/no-misused-promises": [
++      "error",
++      {
++        "checksVoidReturn": {
++          "attributes": false
++        }
++      }
++    ]
++  }
++}
++module.exports = config;
+\ No newline at end of file
+diff --git a/.gitignore b/.gitignore
+index 2971a0b..c24a835 100644
+--- a/.gitignore
++++ b/.gitignore
+@@ -11,6 +11,7 @@
+ # database
+ /prisma/db.sqlite
+ /prisma/db.sqlite-journal
++db.sqlite
+ 
+ # next.js
+ /.next/
+@@ -40,3 +41,6 @@ yarn-error.log*
+ 
+ # typescript
+ *.tsbuildinfo
++
++# idea files
++.idea
+\ No newline at end of file
+diff --git a/README.md b/README.md
+index fba19ed..67943c7 100644
+--- a/README.md
++++ b/README.md
+@@ -11,6 +11,7 @@ If you are not familiar with the different technologies used in this project, pl
+ - [Next.js](https://nextjs.org)
+ - [NextAuth.js](https://next-auth.js.org)
+ - [Prisma](https://prisma.io)
++- [Drizzle](https://orm.drizzle.team)
+ - [Tailwind CSS](https://tailwindcss.com)
+ - [tRPC](https://trpc.io)
+ 
+diff --git a/next.config.mjs b/next.config.js
+similarity index 72%
+rename from next.config.mjs
+rename to next.config.js
+index d921057..98b6f90 100644
+--- a/next.config.mjs
++++ b/next.config.js
+@@ -2,15 +2,14 @@
+  * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation. This is especially useful
+  * for Docker builds.
+  */
+-await import("./src/env.mjs");
++await import("./src/env.js");
+ 
+ /** @type {import("next").NextConfig} */
+ const config = {
+   reactStrictMode: true,
+ 
+   /**
+-   * If you have `experimental: { appDir: true }` set, then you must comment the below `i18n` config
+-   * out.
++   * If you are using `appDir` then you must comment the below `i18n` config out.
+    *
+    * @see https://github.com/vercel/next.js/issues/41980
+    */
+@@ -18,5 +17,7 @@ const config = {
+     locales: ["en"],
+     defaultLocale: "en",
+   },
++  transpilePackages: ["geist"],
+ };
++
+ export default config;
+diff --git a/package.json b/package.json
+index ad8aef7..b4ac8e1 100644
+--- a/package.json
++++ b/package.json
+@@ -1,43 +1,50 @@
+ {
+-  "name": "current",
++  "name": "upgrade",
+   "version": "0.1.0",
+   "private": true,
++  "type": "module",
+   "scripts": {
+     "build": "next build",
++    "db:generate": "prisma migrate dev",
++    "db:migrate": "prisma migrate deploy",
++    "db:push": "prisma db push",
++    "db:studio": "prisma studio",
+     "dev": "next dev",
+     "postinstall": "prisma generate",
+     "lint": "next lint",
+     "start": "next start"
+   },
+   "dependencies": {
+-    "@next-auth/prisma-adapter": "^1.0.5",
+-    "@prisma/client": "^4.14.0",
+-    "@t3-oss/env-nextjs": "^0.3.1",
+-    "@tanstack/react-query": "^4.29.7",
+-    "@trpc/client": "^10.26.0",
+-    "@trpc/next": "^10.26.0",
+-    "@trpc/react-query": "^10.26.0",
+-    "@trpc/server": "^10.26.0",
+-    "next": "^13.4.2",
+-    "next-auth": "^4.22.1",
+-    "react": "18.2.0",
+-    "react-dom": "18.2.0",
+-    "superjson": "1.12.2",
+-    "zod": "^3.21.4"
++    "@auth/prisma-adapter": "^1.6.0",
++    "@prisma/client": "^5.14.0",
++    "@t3-oss/env-nextjs": "^0.10.1",
++    "@tanstack/react-query": "^5.39.0",
++    "@trpc/client": "next",
++    "@trpc/next": "next",
++    "@trpc/react-query": "next",
++    "@trpc/server": "next",
++    "geist": "^1.3.0",
++    "next": "^14.2.1",
++    "next-auth": "^4.24.7",
++    "react": "^18.3.0",
++    "react-dom": "^18.3.0",
++    "superjson": "^2.2.1",
++    "zod": "^3.23.3"
+   },
+   "devDependencies": {
+-    "@types/eslint": "^8.37.0",
+-    "@types/node": "^18.16.0",
+-    "@types/react": "^18.2.6",
+-    "@types/react-dom": "^18.2.4",
+-    "@typescript-eslint/eslint-plugin": "^5.59.6",
+-    "@typescript-eslint/parser": "^5.59.6",
+-    "eslint": "^8.40.0",
+-    "eslint-config-next": "^13.4.2",
+-    "prisma": "^4.14.0",
+-    "typescript": "^5.0.4"
++    "@types/eslint": "^8.56.2",
++    "@types/node": "^20.11.20",
++    "@types/react": "^18.2.57",
++    "@types/react-dom": "^18.2.19",
++    "@typescript-eslint/eslint-plugin": "^7.1.1",
++    "@typescript-eslint/parser": "^7.1.1",
++    "eslint": "^8.57.0",
++    "eslint-config-next": "^14.1.3",
++    "prisma": "^5.14.0",
++    "typescript": "^5.4.2"
+   },
+   "ct3aMetadata": {
+-    "initVersion": "7.13.2"
+-  }
++    "initVersion": "7.35.0"
++  },
++  "packageManager": "pnpm@8.5.1"
+ }
+diff --git a/prisma/schema.prisma b/prisma/schema.prisma
+index a352ad5..b17831e 100644
+--- a/prisma/schema.prisma
++++ b/prisma/schema.prisma
+@@ -3,7 +3,6 @@
+ 
+ generator client {
+     provider = "prisma-client-js"
+-    previewFeatures = ["jsonProtocol"]
+ }
+ 
+ datasource db {
+@@ -15,27 +14,34 @@ datasource db {
+     url      = env("DATABASE_URL")
+ }
+ 
+-model Example {
+-    id        String   @id @default(cuid())
++model Post {
++    id        Int      @id @default(autoincrement())
++    name      String
+     createdAt DateTime @default(now())
+     updatedAt DateTime @updatedAt
++
++    createdBy   User   @relation(fields: [createdById], references: [id])
++    createdById String
++
++    @@index([name])
+ }
+ 
+ // Necessary for Next auth
+ model Account {
+-    id                String  @id @default(cuid())
+-    userId            String
+-    type              String
+-    provider          String
+-    providerAccountId String
+-    refresh_token     String? // @db.Text
+-    access_token      String? // @db.Text
+-    expires_at        Int?
+-    token_type        String?
+-    scope             String?
+-    id_token          String? // @db.Text
+-    session_state     String?
+-    user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
++    id                       String  @id @default(cuid())
++    userId                   String
++    type                     String
++    provider                 String
++    providerAccountId        String
++    refresh_token            String? // @db.Text
++    access_token             String? // @db.Text
++    expires_at               Int?
++    token_type               String?
++    scope                    String?
++    id_token                 String? // @db.Text
++    session_state            String?
++    user                     User    @relation(fields: [userId], references: [id], onDelete: Cascade)
++    refresh_token_expires_in Int?
+ 
+     @@unique([provider, providerAccountId])
+ }
+@@ -56,6 +62,7 @@ model User {
+     image         String?
+     accounts      Account[]
+     sessions      Session[]
++    posts         Post[]
+ }
+ 
+ model VerificationToken {
+diff --git a/src/env.mjs b/src/env.js
+similarity index 76%
+rename from src/env.mjs
+rename to src/env.js
+index 30fa238..2467d22 100644
+--- a/src/env.mjs
++++ b/src/env.js
+@@ -8,19 +8,20 @@ export const env = createEnv({
+    */
+   server: {
+     DATABASE_URL: z.string().url(),
+-    NODE_ENV: z.enum(["development", "test", "production"]),
++    NODE_ENV: z
++      .enum(["development", "test", "production"])
++      .default("development"),
+     NEXTAUTH_SECRET:
+       process.env.NODE_ENV === "production"
+-        ? z.string().min(1)
+-        : z.string().min(1).optional(),
++        ? z.string()
++        : z.string().optional(),
+     NEXTAUTH_URL: z.preprocess(
+       // This makes Vercel deployments not fail if you don't set NEXTAUTH_URL
+       // Since NextAuth.js automatically uses the VERCEL_URL if present.
+       (str) => process.env.VERCEL_URL ?? str,
+       // VERCEL_URL doesn't include `https` so it cant be validated as a URL
+-      process.env.VERCEL ? z.string().min(1) : z.string().url(),
++      process.env.VERCEL ? z.string() : z.string().url()
+     ),
+-    // Add `.min(1) on ID and SECRET if you want to make sure they're not empty
+     DISCORD_CLIENT_ID: z.string(),
+     DISCORD_CLIENT_SECRET: z.string(),
+   },
+@@ -31,7 +32,7 @@ export const env = createEnv({
+    * `NEXT_PUBLIC_`.
+    */
+   client: {
+-    // NEXT_PUBLIC_CLIENTVAR: z.string().min(1),
++    // NEXT_PUBLIC_CLIENTVAR: z.string(),
+   },
+ 
+   /**
+@@ -47,8 +48,13 @@ export const env = createEnv({
+     DISCORD_CLIENT_SECRET: process.env.DISCORD_CLIENT_SECRET,
+   },
+   /**
+-   * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation.
+-   * This is especially useful for Docker builds.
++   * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation. This is especially
++   * useful for Docker builds.
+    */
+   skipValidation: !!process.env.SKIP_ENV_VALIDATION,
++  /**
++   * Makes it so that empty strings are treated as undefined. `SOME_VAR: z.string()` and
++   * `SOME_VAR=''` will throw an error.
++   */
++  emptyStringAsUndefined: true,
+ });
+diff --git a/src/pages/_app.tsx b/src/pages/_app.tsx
+index e319df4..b39099f 100644
+--- a/src/pages/_app.tsx
++++ b/src/pages/_app.tsx
+@@ -1,7 +1,10 @@
++import { GeistSans } from "geist/font/sans";
+ import { type Session } from "next-auth";
+ import { SessionProvider } from "next-auth/react";
+ import { type AppType } from "next/app";
++
+ import { api } from "~/utils/api";
++
+ import "~/styles/globals.css";
+ 
+ const MyApp: AppType<{ session: Session | null }> = ({
+@@ -10,7 +13,9 @@ const MyApp: AppType<{ session: Session | null }> = ({
+ }) => {
+   return (
+     <SessionProvider session={session}>
+-      <Component {...pageProps} />
++      <main className={GeistSans.className}>
++        <Component {...pageProps} />
++      </main>
+     </SessionProvider>
+   );
+ };
+diff --git a/src/pages/api/auth/[...nextauth].ts b/src/pages/api/auth/[...nextauth].ts
+index 8aefbb6..8739530 100644
+--- a/src/pages/api/auth/[...nextauth].ts
++++ b/src/pages/api/auth/[...nextauth].ts
+@@ -1,4 +1,5 @@
+ import NextAuth from "next-auth";
++
+ import { authOptions } from "~/server/auth";
+ 
+ export default NextAuth(authOptions);
+diff --git a/src/pages/api/trpc/[trpc].ts b/src/pages/api/trpc/[trpc].ts
+index dc36ccf..587dd2b 100644
+--- a/src/pages/api/trpc/[trpc].ts
++++ b/src/pages/api/trpc/[trpc].ts
+@@ -1,5 +1,6 @@
+ import { createNextApiHandler } from "@trpc/server/adapters/next";
+-import { env } from "~/env.mjs";
++
++import { env } from "~/env";
+ import { appRouter } from "~/server/api/root";
+ import { createTRPCContext } from "~/server/api/trpc";
+ 
+@@ -11,7 +12,7 @@ export default createNextApiHandler({
+     env.NODE_ENV === "development"
+       ? ({ path, error }) => {
+           console.error(
+-            `❌ tRPC failed on ${path ?? "<no-path>"}: ${error.message}`,
++            `❌ tRPC failed on ${path ?? "<no-path>"}: ${error.message}`
+           );
+         }
+       : undefined,
+diff --git a/src/pages/index.module.css b/src/pages/index.module.css
+index d9caeea..fac9982 100644
+--- a/src/pages/index.module.css
++++ b/src/pages/index.module.css
+@@ -147,3 +147,31 @@
+ .loginButton:hover {
+   background-color: rgb(255 255 255 / 0.2);
+ }
++
++.form {
++  display: flex;
++  flex-direction: column;
++  gap: 0.5rem;
++}
++
++.input {
++  width: 100%;
++  border-radius: 9999px;
++  padding: 0.5rem 1rem;
++  color: black;
++}
++
++.submitButton {
++  all: unset;
++  border-radius: 9999px;
++  background-color: rgb(255 255 255 / 0.1);
++  padding: 0.75rem 2.5rem;
++  font-weight: 600;
++  color: white;
++  text-align: center;
++  transition: background-color 150ms cubic-bezier(0.5, 0, 0.2, 1);
++}
++
++.submitButton:hover {
++  background-color: rgb(255 255 255 / 0.2);
++}
+diff --git a/src/pages/index.tsx b/src/pages/index.tsx
+index 15fb69b..6902f95 100644
+--- a/src/pages/index.tsx
++++ b/src/pages/index.tsx
+@@ -1,11 +1,12 @@
+-import styles from "./index.module.css";
+ import { signIn, signOut, useSession } from "next-auth/react";
+ import Head from "next/head";
+ import Link from "next/link";
++
+ import { api } from "~/utils/api";
++import styles from "./index.module.css";
+ 
+ export default function Home() {
+-  const hello = api.example.hello.useQuery({ text: "from tRPC" });
++  const hello = api.post.hello.useQuery({ text: "from tRPC" });
+ 
+   return (
+     <>
+@@ -58,9 +59,9 @@ export default function Home() {
+ function AuthShowcase() {
+   const { data: sessionData } = useSession();
+ 
+-  const { data: secretMessage } = api.example.getSecretMessage.useQuery(
++  const { data: secretMessage } = api.post.getSecretMessage.useQuery(
+     undefined, // no input
+-    { enabled: sessionData?.user !== undefined },
++    { enabled: sessionData?.user !== undefined }
+   );
+ 
+   return (
+diff --git a/src/server/api/root.ts b/src/server/api/root.ts
+index 7caea0f..b341fc4 100644
+--- a/src/server/api/root.ts
++++ b/src/server/api/root.ts
+@@ -1,5 +1,5 @@
+-import { exampleRouter } from "~/server/api/routers/example";
+-import { createTRPCRouter } from "~/server/api/trpc";
++import { postRouter } from "~/server/api/routers/post";
++import { createCallerFactory, createTRPCRouter } from "~/server/api/trpc";
+ 
+ /**
+  * This is the primary router for your server.
+@@ -7,8 +7,17 @@ import { createTRPCRouter } from "~/server/api/trpc";
+  * All routers added in /api/routers should be manually added here.
+  */
+ export const appRouter = createTRPCRouter({
+-  example: exampleRouter,
++  post: postRouter,
+ });
+ 
+ // export type definition of API
+ export type AppRouter = typeof appRouter;
++
++/**
++ * Create a server-side caller for the tRPC API.
++ * @example
++ * const trpc = createCaller(createContext);
++ * const res = await trpc.post.all();
++ *       ^? Post[]
++ */
++export const createCaller = createCallerFactory(appRouter);
+diff --git a/src/server/api/routers/example.ts b/src/server/api/routers/example.ts
+deleted file mode 100644
+index fbb066a..0000000
+--- a/src/server/api/routers/example.ts
++++ /dev/null
+@@ -1,24 +0,0 @@
+-import { z } from "zod";
+-import {
+-  createTRPCRouter,
+-  publicProcedure,
+-  protectedProcedure,
+-} from "~/server/api/trpc";
+-
+-export const exampleRouter = createTRPCRouter({
+-  hello: publicProcedure
+-    .input(z.object({ text: z.string() }))
+-    .query(({ input }) => {
+-      return {
+-        greeting: `Hello ${input.text}`,
+-      };
+-    }),
+-
+-  getAll: publicProcedure.query(({ ctx }) => {
+-    return ctx.prisma.example.findMany();
+-  }),
+-
+-  getSecretMessage: protectedProcedure.query(() => {
+-    return "you can now see this secret message!";
+-  }),
+-});
+diff --git a/src/server/api/routers/post.ts b/src/server/api/routers/post.ts
+new file mode 100644
+index 0000000..3994691
+--- /dev/null
++++ b/src/server/api/routers/post.ts
+@@ -0,0 +1,42 @@
++import { z } from "zod";
++
++import {
++  createTRPCRouter,
++  protectedProcedure,
++  publicProcedure,
++} from "~/server/api/trpc";
++
++export const postRouter = createTRPCRouter({
++  hello: publicProcedure
++    .input(z.object({ text: z.string() }))
++    .query(({ input }) => {
++      return {
++        greeting: `Hello ${input.text}`,
++      };
++    }),
++
++  create: protectedProcedure
++    .input(z.object({ name: z.string().min(1) }))
++    .mutation(async ({ ctx, input }) => {
++      // simulate a slow db call
++      await new Promise((resolve) => setTimeout(resolve, 1000));
++
++      return ctx.db.post.create({
++        data: {
++          name: input.name,
++          createdBy: { connect: { id: ctx.session.user.id } },
++        },
++      });
++    }),
++
++  getLatest: protectedProcedure.query(({ ctx }) => {
++    return ctx.db.post.findFirst({
++      orderBy: { createdAt: "desc" },
++      where: { createdBy: { id: ctx.session.user.id } },
++    });
++  }),
++
++  getSecretMessage: protectedProcedure.query(() => {
++    return "you can now see this secret message!";
++  }),
++});
+diff --git a/src/server/api/trpc.ts b/src/server/api/trpc.ts
+index c2491f0..3e75c9e 100644
+--- a/src/server/api/trpc.ts
++++ b/src/server/api/trpc.ts
+@@ -12,8 +12,9 @@ import { type CreateNextContextOptions } from "@trpc/server/adapters/next";
+ import { type Session } from "next-auth";
+ import superjson from "superjson";
+ import { ZodError } from "zod";
++
+ import { getServerAuthSession } from "~/server/auth";
+-import { prisma } from "~/server/db";
++import { db } from "~/server/db";
+ 
+ /**
+  * 1. CONTEXT
+@@ -23,9 +24,9 @@ import { prisma } from "~/server/db";
+  * These allow you to access things when processing a request, like the database, the session, etc.
+  */
+ 
+-type CreateContextOptions = {
++interface CreateContextOptions {
+   session: Session | null;
+-};
++}
+ 
+ /**
+  * This helper generates the "internals" for a tRPC context. If you need to use it, you can export
+@@ -40,7 +41,7 @@ type CreateContextOptions = {
+ const createInnerTRPCContext = (opts: CreateContextOptions) => {
+   return {
+     session: opts.session,
+-    prisma,
++    db,
+   };
+ };
+ 
+@@ -83,6 +84,13 @@ const t = initTRPC.context<typeof createTRPCContext>().create({
+   },
+ });
+ 
++/**
++ * Create a server-side caller.
++ *
++ * @see https://trpc.io/docs/server/server-side-calls
++ */
++export const createCallerFactory = t.createCallerFactory;
++
+ /**
+  * 3. ROUTER & PROCEDURE (THE IMPORTANT BIT)
+  *
+@@ -106,8 +114,15 @@ export const createTRPCRouter = t.router;
+  */
+ export const publicProcedure = t.procedure;
+ 
+-/** Reusable middleware that enforces users are logged in before running the procedure. */
+-const enforceUserIsAuthed = t.middleware(({ ctx, next }) => {
++/**
++ * Protected (authenticated) procedure
++ *
++ * If you want a query or mutation to ONLY be accessible to logged in users, use this. It verifies
++ * the session is valid and guarantees `ctx.session.user` is not null.
++ *
++ * @see https://trpc.io/docs/procedures
++ */
++export const protectedProcedure = t.procedure.use(({ ctx, next }) => {
+   if (!ctx.session || !ctx.session.user) {
+     throw new TRPCError({ code: "UNAUTHORIZED" });
+   }
+@@ -118,13 +133,3 @@ const enforceUserIsAuthed = t.middleware(({ ctx, next }) => {
+     },
+   });
+ });
+-
+-/**
+- * Protected (authenticated) procedure
+- *
+- * If you want a query or mutation to ONLY be accessible to logged in users, use this. It verifies
+- * the session is valid and guarantees `ctx.session.user` is not null.
+- *
+- * @see https://trpc.io/docs/procedures
+- */
+-export const protectedProcedure = t.procedure.use(enforceUserIsAuthed);
+diff --git a/src/server/auth.ts b/src/server/auth.ts
+index e3f5444..ee03a40 100644
+--- a/src/server/auth.ts
++++ b/src/server/auth.ts
+@@ -1,13 +1,15 @@
+-import { PrismaAdapter } from "@next-auth/prisma-adapter";
++import { PrismaAdapter } from "@auth/prisma-adapter";
+ import { type GetServerSidePropsContext } from "next";
+ import {
+   getServerSession,
+-  type NextAuthOptions,
+   type DefaultSession,
++  type NextAuthOptions,
+ } from "next-auth";
++import { type Adapter } from "next-auth/adapters";
+ import DiscordProvider from "next-auth/providers/discord";
+-import { env } from "~/env.mjs";
+-import { prisma } from "~/server/db";
++
++import { env } from "~/env";
++import { db } from "~/server/db";
+ 
+ /**
+  * Module augmentation for `next-auth` types. Allows us to add custom properties to the `session`
+@@ -17,11 +19,11 @@ import { prisma } from "~/server/db";
+  */
+ declare module "next-auth" {
+   interface Session extends DefaultSession {
+-    user: {
++    user: DefaultSession["user"] & {
+       id: string;
+       // ...other properties
+       // role: UserRole;
+-    } & DefaultSession["user"];
++    };
+   }
+ 
+   // interface User {
+@@ -45,7 +47,7 @@ export const authOptions: NextAuthOptions = {
+       },
+     }),
+   },
+-  adapter: PrismaAdapter(prisma),
++  adapter: PrismaAdapter(db) as Adapter,
+   providers: [
+     DiscordProvider({
+       clientId: env.DISCORD_CLIENT_ID,
+diff --git a/src/server/db.ts b/src/server/db.ts
+index 87ece8b..07dc027 100644
+--- a/src/server/db.ts
++++ b/src/server/db.ts
+@@ -1,15 +1,17 @@
+ import { PrismaClient } from "@prisma/client";
+-import { env } from "~/env.mjs";
+ 
+-const globalForPrisma = globalThis as unknown as {
+-  prisma: PrismaClient | undefined;
+-};
++import { env } from "~/env";
+ 
+-export const prisma =
+-  globalForPrisma.prisma ??
++const createPrismaClient = () =>
+   new PrismaClient({
+     log:
+       env.NODE_ENV === "development" ? ["query", "error", "warn"] : ["error"],
+   });
+ 
+-if (env.NODE_ENV !== "production") globalForPrisma.prisma = prisma;
++const globalForPrisma = globalThis as unknown as {
++  prisma: ReturnType<typeof createPrismaClient> | undefined;
++};
++
++export const db = globalForPrisma.prisma ?? createPrismaClient();
++
++if (env.NODE_ENV !== "production") globalForPrisma.prisma = db;
+diff --git a/src/utils/api.ts b/src/utils/api.ts
+index b2d5afd..0f03d30 100644
+--- a/src/utils/api.ts
++++ b/src/utils/api.ts
+@@ -8,6 +8,7 @@ import { httpBatchLink, loggerLink } from "@trpc/client";
+ import { createTRPCNext } from "@trpc/next";
+ import { type inferRouterInputs, type inferRouterOutputs } from "@trpc/server";
+ import superjson from "superjson";
++
+ import { type AppRouter } from "~/server/api/root";
+ 
+ const getBaseUrl = () => {
+@@ -20,13 +21,6 @@ const getBaseUrl = () => {
+ export const api = createTRPCNext<AppRouter>({
+   config() {
+     return {
+-      /**
+-       * Transformer used for data de-serialization from the server.
+-       *
+-       * @see https://trpc.io/docs/data-transformers
+-       */
+-      transformer: superjson,
+-
+       /**
+        * Links used to determine request flow from client to server.
+        *
+@@ -39,6 +33,12 @@ export const api = createTRPCNext<AppRouter>({
+             (opts.direction === "down" && opts.result instanceof Error),
+         }),
+         httpBatchLink({
++          /**
++           * Transformer used for data de-serialization from the server.
++           *
++           * @see https://trpc.io/docs/data-transformers
++           */
++          transformer: superjson,
+           url: `${getBaseUrl()}/api/trpc`,
+         }),
+       ],
+@@ -50,6 +50,7 @@ export const api = createTRPCNext<AppRouter>({
+    * @see https://trpc.io/docs/nextjs#ssr-boolean-default-false
+    */
+   ssr: false,
++  transformer: superjson,
+ });
+ 
+ /**
+diff --git a/tsconfig.json b/tsconfig.json
+index 03ebb74..905062d 100644
+--- a/tsconfig.json
++++ b/tsconfig.json
+@@ -1,21 +1,29 @@
+ {
+   "compilerOptions": {
+-    "target": "es2017",
+-    "lib": ["dom", "dom.iterable", "esnext"],
+-    "allowJs": true,
+-    "checkJs": true,
+-    "skipLibCheck": true,
+-    "strict": true,
+-    "forceConsistentCasingInFileNames": true,
+-    "noEmit": true,
++    /* Base Options: */
+     "esModuleInterop": true,
+-    "module": "esnext",
+-    "moduleResolution": "node",
++    "skipLibCheck": true,
++    "target": "es2022",
++    "allowJs": true,
+     "resolveJsonModule": true,
++    "moduleDetection": "force",
+     "isolatedModules": true,
++
++    /* Strictness */
++    "strict": true,
++    "noUncheckedIndexedAccess": true,
++    "checkJs": true,
++
++    /* Bundled projects */
++    "lib": ["dom", "dom.iterable", "ES2022"],
++    "noEmit": true,
++    "module": "ESNext",
++    "moduleResolution": "Bundler",
+     "jsx": "preserve",
++    "plugins": [{ "name": "next" }],
+     "incremental": true,
+-    "noUncheckedIndexedAccess": true,
++
++    /* Path Aliases */
+     "baseUrl": ".",
+     "paths": {
+       "~/*": ["./src/*"]
+@@ -27,7 +35,8 @@
+     "**/*.ts",
+     "**/*.tsx",
+     "**/*.cjs",
+-    "**/*.mjs"
++    "**/*.js",
++    ".next/types/**/*.ts"
+   ],
+   "exclude": ["node_modules"]
+ }

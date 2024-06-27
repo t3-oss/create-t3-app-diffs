@@ -844,5 +844,13 @@
   "7.33.0..7.33.1-prisma-tailwind": true,
   "7.33.0..7.33.1-prisma-trpc-tailwind": true,
   "7.33.0..7.33.1-tailwind": true,
-  "7.33.0..7.33.1-trpc-tailwind": true
+  "7.33.0..7.33.1-trpc-tailwind": true,
+  "7.33.0..7.33.1": true,
+  "7.33.0..7.33.1-nextAuth": true,
+  "7.33.0..7.33.1-nextAuth-prisma": true,
+  "7.33.0..7.33.1-nextAuth-prisma-trpc": true,
+  "7.33.0..7.33.1-nextAuth-trpc": true,
+  "7.33.0..7.33.1-prisma": true,
+  "7.33.0..7.33.1-prisma-trpc": true,
+  "7.33.0..7.33.1-trpc": true
 }
