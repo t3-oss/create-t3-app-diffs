@@ -1,0 +1,350 @@
+diff --git a/.eslintrc.cjs b/.eslintrc.cjs
+index c946e46..a92fb0b 100644
+--- a/.eslintrc.cjs
++++ b/.eslintrc.cjs
+@@ -1,37 +1,42 @@
+ /** @type {import("eslint").Linter.Config} */
+ const config = {
+-  parser: "@typescript-eslint/parser",
+-  parserOptions: {
+-    project: true,
++  "parser": "@typescript-eslint/parser",
++  "parserOptions": {
++    "project": true
+   },
+-  plugins: ["@typescript-eslint"],
+-  extends: [
++  "plugins": [
++    "@typescript-eslint"
++  ],
++  "extends": [
+     "next/core-web-vitals",
+     "plugin:@typescript-eslint/recommended-type-checked",
+-    "plugin:@typescript-eslint/stylistic-type-checked",
++    "plugin:@typescript-eslint/stylistic-type-checked"
+   ],
+-  rules: {
+-    // These opinionated rules are enabled in stylistic-type-checked above.
+-    // Feel free to reconfigure them to your own preference.
++  "rules": {
+     "@typescript-eslint/array-type": "off",
+     "@typescript-eslint/consistent-type-definitions": "off",
+-
+     "@typescript-eslint/consistent-type-imports": [
+       "warn",
+       {
+-        prefer: "type-imports",
+-        fixStyle: "inline-type-imports",
+-      },
++        "prefer": "type-imports",
++        "fixStyle": "inline-type-imports"
++      }
++    ],
++    "@typescript-eslint/no-unused-vars": [
++      "warn",
++      {
++        "argsIgnorePattern": "^_"
++      }
+     ],
+-    "@typescript-eslint/no-unused-vars": ["warn", { argsIgnorePattern: "^_" }],
+     "@typescript-eslint/require-await": "off",
+     "@typescript-eslint/no-misused-promises": [
+       "error",
+       {
+-        checksVoidReturn: { attributes: false },
+-      },
+-    ],
+-  },
+-};
+-
+-module.exports = config;
++        "checksVoidReturn": {
++          "attributes": false
++        }
++      }
++    ]
++  }
++}
++module.exports = config;
+\ No newline at end of file
+diff --git a/.gitignore b/.gitignore
+index 2971a0b..c24a835 100644
+--- a/.gitignore
++++ b/.gitignore
+@@ -11,6 +11,7 @@
+ # database
+ /prisma/db.sqlite
+ /prisma/db.sqlite-journal
++db.sqlite
+ 
+ # next.js
+ /.next/
+@@ -40,3 +41,6 @@ yarn-error.log*
+ 
+ # typescript
+ *.tsbuildinfo
++
++# idea files
++.idea
+\ No newline at end of file
+diff --git a/README.md b/README.md
+index fba19ed..67943c7 100644
+--- a/README.md
++++ b/README.md
+@@ -11,6 +11,7 @@ If you are not familiar with the different technologies used in this project, pl
+ - [Next.js](https://nextjs.org)
+ - [NextAuth.js](https://next-auth.js.org)
+ - [Prisma](https://prisma.io)
++- [Drizzle](https://orm.drizzle.team)
+ - [Tailwind CSS](https://tailwindcss.com)
+ - [tRPC](https://trpc.io)
+ 
+diff --git a/next.config.js b/next.config.js
+index ffbeb9f..98b6f90 100644
+--- a/next.config.js
++++ b/next.config.js
+@@ -17,6 +17,7 @@ const config = {
+     locales: ["en"],
+     defaultLocale: "en",
+   },
++  transpilePackages: ["geist"],
+ };
+ 
+ export default config;
+diff --git a/package.json b/package.json
+index 71f8a6e..16d9220 100644
+--- a/package.json
++++ b/package.json
+@@ -1,10 +1,12 @@
+ {
+-  "name": "current",
++  "name": "upgrade",
+   "version": "0.1.0",
+   "private": true,
+   "type": "module",
+   "scripts": {
+     "build": "next build",
++    "db:generate": "prisma migrate dev",
++    "db:migrate": "prisma migrate deploy",
+     "db:push": "prisma db push",
+     "db:studio": "prisma studio",
+     "dev": "next dev",
+@@ -13,34 +15,34 @@
+     "start": "next start"
+   },
+   "dependencies": {
+-    "@next-auth/prisma-adapter": "^1.0.7",
+-    "@prisma/client": "^5.6.0",
+-    "@t3-oss/env-nextjs": "^0.7.1",
+-    "next": "^14.0.4",
+-    "next-auth": "^4.24.5",
+-    "react": "18.2.0",
+-    "react-dom": "18.2.0",
+-    "zod": "^3.22.4"
++    "@auth/prisma-adapter": "^1.6.0",
++    "@prisma/client": "^5.14.0",
++    "@t3-oss/env-nextjs": "^0.10.1",
++    "geist": "^1.3.0",
++    "next": "^14.2.1",
++    "next-auth": "^4.24.7",
++    "react": "^18.3.0",
++    "react-dom": "^18.3.0",
++    "zod": "^3.23.3"
+   },
+   "devDependencies": {
+-    "@types/eslint": "^8.44.7",
+-    "@types/node": "^18.17.0",
+-    "@types/react": "^18.2.37",
+-    "@types/react-dom": "^18.2.15",
+-    "@typescript-eslint/eslint-plugin": "^6.11.0",
+-    "@typescript-eslint/parser": "^6.11.0",
+-    "autoprefixer": "^10.4.14",
+-    "eslint": "^8.54.0",
+-    "eslint-config-next": "^14.0.4",
+-    "postcss": "^8.4.31",
+-    "prettier": "^3.1.0",
+-    "prettier-plugin-tailwindcss": "^0.5.7",
+-    "prisma": "^5.6.0",
+-    "tailwindcss": "^3.3.5",
+-    "typescript": "^5.1.6"
++    "@types/eslint": "^8.56.2",
++    "@types/node": "^20.11.20",
++    "@types/react": "^18.2.57",
++    "@types/react-dom": "^18.2.19",
++    "@typescript-eslint/eslint-plugin": "^7.1.1",
++    "@typescript-eslint/parser": "^7.1.1",
++    "eslint": "^8.57.0",
++    "eslint-config-next": "^14.1.3",
++    "postcss": "^8.4.34",
++    "prettier": "^3.2.5",
++    "prettier-plugin-tailwindcss": "^0.5.14",
++    "prisma": "^5.14.0",
++    "tailwindcss": "^3.4.3",
++    "typescript": "^5.4.2"
+   },
+   "ct3aMetadata": {
+-    "initVersion": "7.26.0"
++    "initVersion": "7.35.0"
+   },
+   "packageManager": "pnpm@8.5.1"
+ }
+diff --git a/postcss.config.cjs b/postcss.config.cjs
+index e305dd9..4cdb2f4 100644
+--- a/postcss.config.cjs
++++ b/postcss.config.cjs
+@@ -1,7 +1,6 @@
+ const config = {
+   plugins: {
+     tailwindcss: {},
+-    autoprefixer: {},
+   },
+ };
+ 
+diff --git a/prisma/schema.prisma b/prisma/schema.prisma
+index 848c86b..b17831e 100644
+--- a/prisma/schema.prisma
++++ b/prisma/schema.prisma
+@@ -28,19 +28,20 @@ model Post {
+ 
+ // Necessary for Next auth
+ model Account {
+-    id                String  @id @default(cuid())
+-    userId            String
+-    type              String
+-    provider          String
+-    providerAccountId String
+-    refresh_token     String? // @db.Text
+-    access_token      String? // @db.Text
+-    expires_at        Int?
+-    token_type        String?
+-    scope             String?
+-    id_token          String? // @db.Text
+-    session_state     String?
+-    user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
++    id                       String  @id @default(cuid())
++    userId                   String
++    type                     String
++    provider                 String
++    providerAccountId        String
++    refresh_token            String? // @db.Text
++    access_token             String? // @db.Text
++    expires_at               Int?
++    token_type               String?
++    scope                    String?
++    id_token                 String? // @db.Text
++    session_state            String?
++    user                     User    @relation(fields: [userId], references: [id], onDelete: Cascade)
++    refresh_token_expires_in Int?
+ 
+     @@unique([provider, providerAccountId])
+ }
+diff --git a/src/env.js b/src/env.js
+index b190b4b..2467d22 100644
+--- a/src/env.js
++++ b/src/env.js
+@@ -7,12 +7,7 @@ export const env = createEnv({
+    * isn't built with invalid env vars.
+    */
+   server: {
+-    DATABASE_URL: z
+-      .string()
+-      .refine(
+-        (str) => !str.includes("YOUR_MYSQL_URL_HERE"),
+-        "You forgot to change the default URL"
+-      ),
++    DATABASE_URL: z.string().url(),
+     NODE_ENV: z
+       .enum(["development", "test", "production"])
+       .default("development"),
+diff --git a/src/pages/_app.tsx b/src/pages/_app.tsx
+index be9989c..e9d159b 100644
+--- a/src/pages/_app.tsx
++++ b/src/pages/_app.tsx
+@@ -1,17 +1,13 @@
+-import { type Session } from "next-auth";
+-import { SessionProvider } from "next-auth/react";
++import { GeistSans } from "geist/font/sans";
+ import { type AppType } from "next/app";
+ 
+ import "~/styles/globals.css";
+ 
+-const MyApp: AppType<{ session: Session | null }> = ({
+-  Component,
+-  pageProps: { session, ...pageProps },
+-}) => {
++const MyApp: AppType = ({ Component, pageProps }) => {
+   return (
+-    <SessionProvider session={session}>
++    <main className={GeistSans.className}>
+       <Component {...pageProps} />
+-    </SessionProvider>
++    </main>
+   );
+ };
+ 
+diff --git a/src/server/auth.ts b/src/server/auth.ts
+index 1c5d368..ee03a40 100644
+--- a/src/server/auth.ts
++++ b/src/server/auth.ts
+@@ -1,10 +1,11 @@
+-import { PrismaAdapter } from "@next-auth/prisma-adapter";
++import { PrismaAdapter } from "@auth/prisma-adapter";
+ import { type GetServerSidePropsContext } from "next";
+ import {
+   getServerSession,
+   type DefaultSession,
+   type NextAuthOptions,
+ } from "next-auth";
++import { type Adapter } from "next-auth/adapters";
+ import DiscordProvider from "next-auth/providers/discord";
+ 
+ import { env } from "~/env";
+@@ -46,7 +47,7 @@ export const authOptions: NextAuthOptions = {
+       },
+     }),
+   },
+-  adapter: PrismaAdapter(db),
++  adapter: PrismaAdapter(db) as Adapter,
+   providers: [
+     DiscordProvider({
+       clientId: env.DISCORD_CLIENT_ID,
+diff --git a/src/server/db.ts b/src/server/db.ts
+index 02696bc..07dc027 100644
+--- a/src/server/db.ts
++++ b/src/server/db.ts
+@@ -2,15 +2,16 @@ import { PrismaClient } from "@prisma/client";
+ 
+ import { env } from "~/env";
+ 
+-const globalForPrisma = globalThis as unknown as {
+-  prisma: PrismaClient | undefined;
+-};
+-
+-export const db =
+-  globalForPrisma.prisma ??
++const createPrismaClient = () =>
+   new PrismaClient({
+     log:
+       env.NODE_ENV === "development" ? ["query", "error", "warn"] : ["error"],
+   });
+ 
++const globalForPrisma = globalThis as unknown as {
++  prisma: ReturnType<typeof createPrismaClient> | undefined;
++};
++
++export const db = globalForPrisma.prisma ?? createPrismaClient();
++
+ if (env.NODE_ENV !== "production") globalForPrisma.prisma = db;
+diff --git a/tailwind.config.ts b/tailwind.config.ts
+index f06488f..5fd44e8 100644
+--- a/tailwind.config.ts
++++ b/tailwind.config.ts
+@@ -6,7 +6,7 @@ export default {
+   theme: {
+     extend: {
+       fontFamily: {
+-        sans: ["var(--font-sans)", ...fontFamily.sans],
++        sans: ["var(--font-geist-sans)", ...fontFamily.sans],
+       },
+     },
+   },
