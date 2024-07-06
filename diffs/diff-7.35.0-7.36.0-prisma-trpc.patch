@@ -1,0 +1,36 @@
+diff --git a/package.json b/package.json
+index 0b8429e..69c3ea6 100644
+--- a/package.json
++++ b/package.json
+@@ -1,5 +1,5 @@
+ {
+-  "name": "current",
++  "name": "upgrade",
+   "version": "0.1.0",
+   "private": true,
+   "type": "module",
+@@ -42,7 +42,7 @@
+     "typescript": "^5.4.2"
+   },
+   "ct3aMetadata": {
+-    "initVersion": "7.35.0"
++    "initVersion": "7.36.0"
+   },
+   "packageManager": "pnpm@8.5.1"
+ }
+diff --git a/src/pages/_app.tsx b/src/pages/_app.tsx
+index 31a28d8..464c50c 100644
+--- a/src/pages/_app.tsx
++++ b/src/pages/_app.tsx
+@@ -7,9 +7,9 @@ import "~/styles/globals.css";
+ 
+ const MyApp: AppType = ({ Component, pageProps }) => {
+   return (
+-    <main className={GeistSans.className}>
++    <div className={GeistSans.className}>
+       <Component {...pageProps} />
+-    </main>
++    </div>
+   );
+ };
+ 
