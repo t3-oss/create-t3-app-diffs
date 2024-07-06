@@ -1,0 +1,48 @@
+diff --git a/.gitignore b/.gitignore
+index 9b986df..c24a835 100644
+--- a/.gitignore
++++ b/.gitignore
+@@ -41,3 +41,6 @@ yarn-error.log*
+ 
+ # typescript
+ *.tsbuildinfo
++
++# idea files
++.idea
+\ No newline at end of file
+diff --git a/package.json b/package.json
+index 5320819..32f3f16 100644
+--- a/package.json
++++ b/package.json
+@@ -1,5 +1,5 @@
+ {
+-  "name": "current",
++  "name": "upgrade",
+   "version": "0.1.0",
+   "private": true,
+   "type": "module",
+@@ -40,7 +40,7 @@
+     "typescript": "^5.4.2"
+   },
+   "ct3aMetadata": {
+-    "initVersion": "7.34.0"
++    "initVersion": "7.36.0"
+   },
+   "packageManager": "pnpm@8.5.1"
+ }
+diff --git a/src/pages/_app.tsx b/src/pages/_app.tsx
+index b39099f..89d10b0 100644
+--- a/src/pages/_app.tsx
++++ b/src/pages/_app.tsx
+@@ -13,9 +13,9 @@ const MyApp: AppType<{ session: Session | null }> = ({
+ }) => {
+   return (
+     <SessionProvider session={session}>
+-      <main className={GeistSans.className}>
++      <div className={GeistSans.className}>
+         <Component {...pageProps} />
+-      </main>
++      </div>
+     </SessionProvider>
+   );
+ };

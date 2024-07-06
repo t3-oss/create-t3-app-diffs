@@ -1,0 +1,48 @@
+diff --git a/.gitignore b/.gitignore
+index 9b986df..c24a835 100644
+--- a/.gitignore
++++ b/.gitignore
+@@ -41,3 +41,6 @@ yarn-error.log*
+ 
+ # typescript
+ *.tsbuildinfo
++
++# idea files
++.idea
+\ No newline at end of file
+diff --git a/package.json b/package.json
+index 3a81954..296dcf3 100644
+--- a/package.json
++++ b/package.json
+@@ -1,5 +1,5 @@
+ {
+-  "name": "current",
++  "name": "upgrade",
+   "version": "0.1.0",
+   "type": "module",
+   "private": true,
+@@ -29,7 +29,7 @@
+     "typescript": "^5.4.2"
+   },
+   "ct3aMetadata": {
+-    "initVersion": "7.34.0"
++    "initVersion": "7.36.0"
+   },
+   "packageManager": "pnpm@8.5.1"
+ }
+diff --git a/src/pages/_app.tsx b/src/pages/_app.tsx
+index 716ddaf..e7e7fb2 100644
+--- a/src/pages/_app.tsx
++++ b/src/pages/_app.tsx
+@@ -5,9 +5,9 @@ import "~/styles/globals.css";
+ 
+ const MyApp: AppType = ({ Component, pageProps }) => {
+   return (
+-    <main className={GeistSans.className}>
++    <div className={GeistSans.className}>
+       <Component {...pageProps} />
+-    </main>
++    </div>
+   );
+ };
+ 
