@@ -1,0 +1,209 @@
+diff --git a/.gitignore b/.gitignore
+index 2971a0b..c24a835 100644
+--- a/.gitignore
++++ b/.gitignore
+@@ -11,6 +11,7 @@
+ # database
+ /prisma/db.sqlite
+ /prisma/db.sqlite-journal
++db.sqlite
+ 
+ # next.js
+ /.next/
+@@ -40,3 +41,6 @@ yarn-error.log*
+ 
+ # typescript
+ *.tsbuildinfo
++
++# idea files
++.idea
+\ No newline at end of file
+diff --git a/next.config.js b/next.config.js
+index ffbeb9f..98b6f90 100644
+--- a/next.config.js
++++ b/next.config.js
+@@ -17,6 +17,7 @@ const config = {
+     locales: ["en"],
+     defaultLocale: "en",
+   },
++  transpilePackages: ["geist"],
+ };
+ 
+ export default config;
+diff --git a/package.json b/package.json
+index 14cee15..bf00ecc 100644
+--- a/package.json
++++ b/package.json
+@@ -1,5 +1,5 @@
+ {
+-  "name": "current",
++  "name": "upgrade",
+   "version": "0.1.0",
+   "private": true,
+   "type": "module",
+@@ -11,31 +11,32 @@
+   },
+   "dependencies": {
+     "@t3-oss/env-nextjs": "^0.10.1",
+-    "@tanstack/react-query": "^5.25.0",
+-    "@trpc/client": "next",
+-    "@trpc/next": "next",
+-    "@trpc/react-query": "next",
+-    "@trpc/server": "next",
+-    "next": "^14.2.1",
+-    "next-auth": "^4.24.6",
+-    "react": "18.2.0",
+-    "react-dom": "18.2.0",
++    "@tanstack/react-query": "^5.50.0",
++    "@trpc/client": "^11.0.0-rc.446",
++    "@trpc/next": "^11.0.0-rc.446",
++    "@trpc/react-query": "^11.0.0-rc.446",
++    "@trpc/server": "^11.0.0-rc.446",
++    "geist": "^1.3.0",
++    "next": "^14.2.4",
++    "next-auth": "^4.24.7",
++    "react": "^18.3.1",
++    "react-dom": "^18.3.1",
+     "superjson": "^2.2.1",
+     "zod": "^3.23.3"
+   },
+   "devDependencies": {
+-    "@types/eslint": "^8.56.2",
+-    "@types/node": "^20.11.20",
+-    "@types/react": "^18.2.57",
+-    "@types/react-dom": "^18.2.19",
++    "@types/eslint": "^8.56.10",
++    "@types/node": "^20.14.10",
++    "@types/react": "^18.3.3",
++    "@types/react-dom": "^18.3.0",
+     "@typescript-eslint/eslint-plugin": "^7.1.1",
+     "@typescript-eslint/parser": "^7.1.1",
+     "eslint": "^8.57.0",
+-    "eslint-config-next": "^14.1.3",
+-    "typescript": "^5.4.2"
++    "eslint-config-next": "^14.2.4",
++    "typescript": "^5.5.3"
+   },
+   "ct3aMetadata": {
+-    "initVersion": "7.32.0"
++    "initVersion": "7.36.2"
+   },
+   "packageManager": "pnpm@8.5.1"
+ }
+diff --git a/src/pages/_app.tsx b/src/pages/_app.tsx
+index dfd6273..89d10b0 100644
+--- a/src/pages/_app.tsx
++++ b/src/pages/_app.tsx
+@@ -1,25 +1,21 @@
++import { GeistSans } from "geist/font/sans";
+ import { type Session } from "next-auth";
+ import { SessionProvider } from "next-auth/react";
+ import { type AppType } from "next/app";
+-import { Inter } from "next/font/google";
+ 
+ import { api } from "~/utils/api";
+ 
+ import "~/styles/globals.css";
+ 
+-const inter = Inter({
+-  subsets: ["latin"],
+-});
+-
+ const MyApp: AppType<{ session: Session | null }> = ({
+   Component,
+   pageProps: { session, ...pageProps },
+ }) => {
+   return (
+     <SessionProvider session={session}>
+-      <main className={inter.className}>
++      <div className={GeistSans.className}>
+         <Component {...pageProps} />
+-      </main>
++      </div>
+     </SessionProvider>
+   );
+ };
+diff --git a/src/server/api/routers/post.ts b/src/server/api/routers/post.ts
+index a2072d3..199b617 100644
+--- a/src/server/api/routers/post.ts
++++ b/src/server/api/routers/post.ts
+@@ -23,9 +23,6 @@ export const postRouter = createTRPCRouter({
+   create: protectedProcedure
+     .input(z.object({ name: z.string().min(1) }))
+     .mutation(async ({ input }) => {
+-      // simulate a slow db call
+-      await new Promise((resolve) => setTimeout(resolve, 1000));
+-
+       post = { id: post.id + 1, name: input.name };
+       return post;
+     }),
+diff --git a/src/server/api/trpc.ts b/src/server/api/trpc.ts
+index fc64816..323f1d9 100644
+--- a/src/server/api/trpc.ts
++++ b/src/server/api/trpc.ts
+@@ -103,6 +103,29 @@ export const createCallerFactory = t.createCallerFactory;
+  */
+ export const createTRPCRouter = t.router;
+ 
++/**
++ * Middleware for timing procedure execution and adding an articifial delay in development.
++ *
++ * You can remove this if you don't like it, but it can help catch unwanted waterfalls by simulating
++ * network latency that would occur in production but not in local development.
++ */
++const timingMiddleware = t.middleware(async ({ next, path }) => {
++  const start = Date.now();
++
++  if (t._config.isDev) {
++    // artificial delay in dev
++    const waitMs = Math.floor(Math.random() * 400) + 100;
++    await new Promise((resolve) => setTimeout(resolve, waitMs));
++  }
++
++  const result = await next();
++
++  const end = Date.now();
++  console.log(`[TRPC] ${path} took ${end - start}ms to execute`);
++
++  return result;
++});
++
+ /**
+  * Public (unauthenticated) procedure
+  *
+@@ -110,7 +133,7 @@ export const createTRPCRouter = t.router;
+  * guarantee that a user querying is authorized, but you can still access user session data if they
+  * are logged in.
+  */
+-export const publicProcedure = t.procedure;
++export const publicProcedure = t.procedure.use(timingMiddleware);
+ 
+ /**
+  * Protected (authenticated) procedure
+@@ -120,14 +143,16 @@ export const publicProcedure = t.procedure;
+  *
+  * @see https://trpc.io/docs/procedures
+  */
+-export const protectedProcedure = t.procedure.use(({ ctx, next }) => {
+-  if (!ctx.session || !ctx.session.user) {
+-    throw new TRPCError({ code: "UNAUTHORIZED" });
+-  }
+-  return next({
+-    ctx: {
+-      // infers the `session` as non-nullable
+-      session: { ...ctx.session, user: ctx.session.user },
+-    },
++export const protectedProcedure = t.procedure
++  .use(timingMiddleware)
++  .use(({ ctx, next }) => {
++    if (!ctx.session || !ctx.session.user) {
++      throw new TRPCError({ code: "UNAUTHORIZED" });
++    }
++    return next({
++      ctx: {
++        // infers the `session` as non-nullable
++        session: { ...ctx.session, user: ctx.session.user },
++      },
++    });
+   });
+-});

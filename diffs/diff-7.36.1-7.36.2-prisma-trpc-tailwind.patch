@@ -1,0 +1,88 @@
+diff --git a/package.json b/package.json
+index aefe8ee..ff0d9cf 100644
+--- a/package.json
++++ b/package.json
+@@ -1,5 +1,5 @@
+ {
+-  "name": "current",
++  "name": "upgrade",
+   "version": "0.1.0",
+   "private": true,
+   "type": "module",
+@@ -46,7 +46,7 @@
+     "typescript": "^5.5.3"
+   },
+   "ct3aMetadata": {
+-    "initVersion": "7.36.1"
++    "initVersion": "7.36.2"
+   },
+   "packageManager": "pnpm@8.5.1"
+ }
+diff --git a/src/server/api/routers/post.ts b/src/server/api/routers/post.ts
+index 68367a3..da1c799 100644
+--- a/src/server/api/routers/post.ts
++++ b/src/server/api/routers/post.ts
+@@ -14,9 +14,6 @@ export const postRouter = createTRPCRouter({
+   create: publicProcedure
+     .input(z.object({ name: z.string().min(1) }))
+     .mutation(async ({ ctx, input }) => {
+-      // simulate a slow db call
+-      await new Promise((resolve) => setTimeout(resolve, 1000));
+-
+       return ctx.db.post.create({
+         data: {
+           name: input.name,
+@@ -24,9 +21,11 @@ export const postRouter = createTRPCRouter({
+       });
+     }),
+ 
+-  getLatest: publicProcedure.query(({ ctx }) => {
+-    return ctx.db.post.findFirst({
++  getLatest: publicProcedure.query(async ({ ctx }) => {
++    const post = await ctx.db.post.findFirst({
+       orderBy: { createdAt: "desc" },
+     });
++
++    return post ?? null;
+   }),
+ });
+diff --git a/src/server/api/trpc.ts b/src/server/api/trpc.ts
+index 11edbdb..96a3630 100644
+--- a/src/server/api/trpc.ts
++++ b/src/server/api/trpc.ts
+@@ -92,6 +92,29 @@ export const createCallerFactory = t.createCallerFactory;
+  */
+ export const createTRPCRouter = t.router;
+ 
++/**
++ * Middleware for timing procedure execution and adding an articifial delay in development.
++ *
++ * You can remove this if you don't like it, but it can help catch unwanted waterfalls by simulating
++ * network latency that would occur in production but not in local development.
++ */
++const timingMiddleware = t.middleware(async ({ next, path }) => {
++  const start = Date.now();
++
++  if (t._config.isDev) {
++    // artificial delay in dev
++    const waitMs = Math.floor(Math.random() * 400) + 100;
++    await new Promise((resolve) => setTimeout(resolve, waitMs));
++  }
++
++  const result = await next();
++
++  const end = Date.now();
++  console.log(`[TRPC] ${path} took ${end - start}ms to execute`);
++
++  return result;
++});
++
+ /**
+  * Public (unauthenticated) procedure
+  *
+@@ -99,4 +122,4 @@ export const createTRPCRouter = t.router;
+  * guarantee that a user querying is authorized, but you can still access user session data if they
+  * are logged in.
+  */
+-export const publicProcedure = t.procedure;
++export const publicProcedure = t.procedure.use(timingMiddleware);
