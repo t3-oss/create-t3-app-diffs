@@ -1,0 +1,31 @@
+diff --git a/package.json b/package.json
+index 66ec1e3..dd22bc5 100644
+--- a/package.json
++++ b/package.json
+@@ -1,5 +1,5 @@
+ {
+-  "name": "current",
++  "name": "upgrade",
+   "version": "0.1.0",
+   "private": true,
+   "type": "module",
+@@ -23,8 +23,8 @@
+     "@types/node": "^20.14.10",
+     "@types/react": "^18.3.3",
+     "@types/react-dom": "^18.3.0",
+-    "@typescript-eslint/eslint-plugin": "^7.1.1",
+-    "@typescript-eslint/parser": "^7.1.1",
++    "@typescript-eslint/eslint-plugin": "^8.1.0",
++    "@typescript-eslint/parser": "^8.1.0",
+     "eslint": "^8.57.0",
+     "eslint-config-next": "^14.2.4",
+     "postcss": "^8.4.39",
+@@ -34,7 +34,7 @@
+     "typescript": "^5.5.3"
+   },
+   "ct3aMetadata": {
+-    "initVersion": "7.36.1"
++    "initVersion": "7.37.0"
+   },
+   "packageManager": "pnpm@8.5.1"
+ }
