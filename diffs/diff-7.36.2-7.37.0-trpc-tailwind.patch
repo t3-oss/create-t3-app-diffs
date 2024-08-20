@@ -1,0 +1,44 @@
+diff --git a/package.json b/package.json
+index 2886dac..f3eda33 100644
+--- a/package.json
++++ b/package.json
+@@ -1,5 +1,5 @@
+ {
+-  "name": "current",
++  "name": "upgrade",
+   "version": "0.1.0",
+   "private": true,
+   "type": "module",
+@@ -28,8 +28,8 @@
+     "@types/node": "^20.14.10",
+     "@types/react": "^18.3.3",
+     "@types/react-dom": "^18.3.0",
+-    "@typescript-eslint/eslint-plugin": "^7.1.1",
+-    "@typescript-eslint/parser": "^7.1.1",
++    "@typescript-eslint/eslint-plugin": "^8.1.0",
++    "@typescript-eslint/parser": "^8.1.0",
+     "eslint": "^8.57.0",
+     "eslint-config-next": "^14.2.4",
+     "postcss": "^8.4.39",
+@@ -39,7 +39,7 @@
+     "typescript": "^5.5.3"
+   },
+   "ct3aMetadata": {
+-    "initVersion": "7.36.2"
++    "initVersion": "7.37.0"
+   },
+   "packageManager": "pnpm@8.5.1"
+ }
+diff --git a/src/server/api/trpc.ts b/src/server/api/trpc.ts
+index 8460e37..09445da 100644
+--- a/src/server/api/trpc.ts
++++ b/src/server/api/trpc.ts
+@@ -90,7 +90,7 @@ export const createCallerFactory = t.createCallerFactory;
+ export const createTRPCRouter = t.router;
+ 
+ /**
+- * Middleware for timing procedure execution and adding an articifial delay in development.
++ * Middleware for timing procedure execution and adding an artificial delay in development.
+  *
+  * You can remove this if you don't like it, but it can help catch unwanted waterfalls by simulating
+  * network latency that would occur in production but not in local development.

@@ -1,0 +1,243 @@
+diff --git a/.gitignore b/.gitignore
+index 2971a0b..c24a835 100644
+--- a/.gitignore
++++ b/.gitignore
+@@ -11,6 +11,7 @@
+ # database
+ /prisma/db.sqlite
+ /prisma/db.sqlite-journal
++db.sqlite
+ 
+ # next.js
+ /.next/
+@@ -40,3 +41,6 @@ yarn-error.log*
+ 
+ # typescript
+ *.tsbuildinfo
++
++# idea files
++.idea
+\ No newline at end of file
+diff --git a/next.config.js b/next.config.js
+index ffbeb9f..98b6f90 100644
+--- a/next.config.js
++++ b/next.config.js
+@@ -17,6 +17,7 @@ const config = {
+     locales: ["en"],
+     defaultLocale: "en",
+   },
++  transpilePackages: ["geist"],
+ };
+ 
+ export default config;
+diff --git a/package.json b/package.json
+index 76e2ee0..f3eda33 100644
+--- a/package.json
++++ b/package.json
+@@ -1,5 +1,5 @@
+ {
+-  "name": "current",
++  "name": "upgrade",
+   "version": "0.1.0",
+   "private": true,
+   "type": "module",
+@@ -10,35 +10,36 @@
+     "start": "next start"
+   },
+   "dependencies": {
+-    "@t3-oss/env-nextjs": "^0.9.2",
+-    "@tanstack/react-query": "^5.25.0",
+-    "@trpc/client": "next",
+-    "@trpc/next": "next",
+-    "@trpc/react-query": "next",
+-    "@trpc/server": "next",
+-    "next": "^14.1.3",
+-    "react": "18.2.0",
+-    "react-dom": "18.2.0",
++    "@t3-oss/env-nextjs": "^0.10.1",
++    "@tanstack/react-query": "^5.50.0",
++    "@trpc/client": "^11.0.0-rc.446",
++    "@trpc/next": "^11.0.0-rc.446",
++    "@trpc/react-query": "^11.0.0-rc.446",
++    "@trpc/server": "^11.0.0-rc.446",
++    "geist": "^1.3.0",
++    "next": "^14.2.4",
++    "react": "^18.3.1",
++    "react-dom": "^18.3.1",
+     "superjson": "^2.2.1",
+-    "zod": "^3.22.4"
++    "zod": "^3.23.3"
+   },
+   "devDependencies": {
+-    "@types/eslint": "^8.56.2",
+-    "@types/node": "^20.11.20",
+-    "@types/react": "^18.2.57",
+-    "@types/react-dom": "^18.2.19",
+-    "@typescript-eslint/eslint-plugin": "^7.1.1",
+-    "@typescript-eslint/parser": "^7.1.1",
++    "@types/eslint": "^8.56.10",
++    "@types/node": "^20.14.10",
++    "@types/react": "^18.3.3",
++    "@types/react-dom": "^18.3.0",
++    "@typescript-eslint/eslint-plugin": "^8.1.0",
++    "@typescript-eslint/parser": "^8.1.0",
+     "eslint": "^8.57.0",
+-    "eslint-config-next": "^14.1.3",
+-    "postcss": "^8.4.34",
+-    "prettier": "^3.2.5",
+-    "prettier-plugin-tailwindcss": "^0.5.11",
+-    "tailwindcss": "^3.4.1",
+-    "typescript": "^5.4.2"
++    "eslint-config-next": "^14.2.4",
++    "postcss": "^8.4.39",
++    "prettier": "^3.3.2",
++    "prettier-plugin-tailwindcss": "^0.6.5",
++    "tailwindcss": "^3.4.3",
++    "typescript": "^5.5.3"
+   },
+   "ct3aMetadata": {
+-    "initVersion": "7.30.0"
++    "initVersion": "7.37.0"
+   },
+   "packageManager": "pnpm@8.5.1"
+ }
+diff --git a/src/pages/_app.tsx b/src/pages/_app.tsx
+index 6537f30..464c50c 100644
+--- a/src/pages/_app.tsx
++++ b/src/pages/_app.tsx
+@@ -1,19 +1,15 @@
++import { GeistSans } from "geist/font/sans";
+ import { type AppType } from "next/app";
+-import { Inter } from "next/font/google";
+ 
+ import { api } from "~/utils/api";
+ 
+ import "~/styles/globals.css";
+ 
+-const inter = Inter({
+-  subsets: ["latin"],
+-  variable: "--font-sans",
+-});
+ const MyApp: AppType = ({ Component, pageProps }) => {
+   return (
+-    <main className={`font-sans ${inter.variable}`}>
++    <div className={GeistSans.className}>
+       <Component {...pageProps} />
+-    </main>
++    </div>
+   );
+ };
+ 
+diff --git a/src/pages/index.tsx b/src/pages/index.tsx
+index 26341d6..5982ebe 100644
+--- a/src/pages/index.tsx
++++ b/src/pages/index.tsx
+@@ -14,7 +14,7 @@ export default function Home() {
+         <link rel="icon" href="/favicon.ico" />
+       </Head>
+       <main className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-b from-[#2e026d] to-[#15162c]">
+-        <div className="container flex flex-col items-center justify-center gap-12 px-4 py-16 ">
++        <div className="container flex flex-col items-center justify-center gap-12 px-4 py-16">
+           <h1 className="text-5xl font-extrabold tracking-tight text-white sm:text-[5rem]">
+             Create <span className="text-[hsl(280,100%,70%)]">T3</span> App
+           </h1>
+diff --git a/src/server/api/routers/post.ts b/src/server/api/routers/post.ts
+index 1673517..afe46d8 100644
+--- a/src/server/api/routers/post.ts
++++ b/src/server/api/routers/post.ts
+@@ -2,10 +2,17 @@ import { z } from "zod";
+ 
+ import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
+ 
+-let post = {
+-  id: 1,
+-  name: "Hello World",
+-};
++// Mocked DB
++interface Post {
++  id: number;
++  name: string;
++}
++const posts: Post[] = [
++  {
++    id: 1,
++    name: "Hello World",
++  },
++];
+ 
+ export const postRouter = createTRPCRouter({
+   hello: publicProcedure
+@@ -19,14 +26,15 @@ export const postRouter = createTRPCRouter({
+   create: publicProcedure
+     .input(z.object({ name: z.string().min(1) }))
+     .mutation(async ({ input }) => {
+-      // simulate a slow db call
+-      await new Promise((resolve) => setTimeout(resolve, 1000));
+-
+-      post = { id: post.id + 1, name: input.name };
++      const post: Post = {
++        id: posts.length + 1,
++        name: input.name,
++      };
++      posts.push(post);
+       return post;
+     }),
+ 
+   getLatest: publicProcedure.query(() => {
+-    return post;
++    return posts.at(-1) ?? null;
+   }),
+ });
+diff --git a/src/server/api/trpc.ts b/src/server/api/trpc.ts
+index a1429e1..09445da 100644
+--- a/src/server/api/trpc.ts
++++ b/src/server/api/trpc.ts
+@@ -89,6 +89,29 @@ export const createCallerFactory = t.createCallerFactory;
+  */
+ export const createTRPCRouter = t.router;
+ 
++/**
++ * Middleware for timing procedure execution and adding an artificial delay in development.
++ *
++ * You can remove this if you don't like it, but it can help catch unwanted waterfalls by simulating
++ * network latency that would occur in production but not in local development.
++ */
++const timingMiddleware = t.middleware(async ({ next, path }) => {
++  const start = Date.now();
++
++  if (t._config.isDev) {
++    // artificial delay in dev
++    const waitMs = Math.floor(Math.random() * 400) + 100;
++    await new Promise((resolve) => setTimeout(resolve, waitMs));
++  }
++
++  const result = await next();
++
++  const end = Date.now();
++  console.log(`[TRPC] ${path} took ${end - start}ms to execute`);
++
++  return result;
++});
++
+ /**
+  * Public (unauthenticated) procedure
+  *
+@@ -96,4 +119,4 @@ export const createTRPCRouter = t.router;
+  * guarantee that a user querying is authorized, but you can still access user session data if they
+  * are logged in.
+  */
+-export const publicProcedure = t.procedure;
++export const publicProcedure = t.procedure.use(timingMiddleware);
+diff --git a/tailwind.config.ts b/tailwind.config.ts
+index f06488f..5fd44e8 100644
+--- a/tailwind.config.ts
++++ b/tailwind.config.ts
+@@ -6,7 +6,7 @@ export default {
+   theme: {
+     extend: {
+       fontFamily: {
+-        sans: ["var(--font-sans)", ...fontFamily.sans],
++        sans: ["var(--font-geist-sans)", ...fontFamily.sans],
+       },
+     },
+   },

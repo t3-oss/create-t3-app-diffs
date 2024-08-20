@@ -1,0 +1,106 @@
+diff --git a/.gitignore b/.gitignore
+index 2971a0b..c24a835 100644
+--- a/.gitignore
++++ b/.gitignore
+@@ -11,6 +11,7 @@
+ # database
+ /prisma/db.sqlite
+ /prisma/db.sqlite-journal
++db.sqlite
+ 
+ # next.js
+ /.next/
+@@ -40,3 +41,6 @@ yarn-error.log*
+ 
+ # typescript
+ *.tsbuildinfo
++
++# idea files
++.idea
+\ No newline at end of file
+diff --git a/next.config.js b/next.config.js
+index ffbeb9f..98b6f90 100644
+--- a/next.config.js
++++ b/next.config.js
+@@ -17,6 +17,7 @@ const config = {
+     locales: ["en"],
+     defaultLocale: "en",
+   },
++  transpilePackages: ["geist"],
+ };
+ 
+ export default config;
+diff --git a/package.json b/package.json
+index ef508f9..1af46da 100644
+--- a/package.json
++++ b/package.json
+@@ -1,5 +1,5 @@
+ {
+-  "name": "current",
++  "name": "upgrade",
+   "version": "0.1.0",
+   "type": "module",
+   "private": true,
+@@ -11,24 +11,25 @@
+   },
+   "dependencies": {
+     "@t3-oss/env-nextjs": "^0.10.1",
+-    "next": "^14.2.1",
+-    "react": "18.2.0",
+-    "react-dom": "18.2.0",
++    "geist": "^1.3.0",
++    "next": "^14.2.4",
++    "react": "^18.3.1",
++    "react-dom": "^18.3.1",
+     "zod": "^3.23.3"
+   },
+   "devDependencies": {
+-    "@types/eslint": "^8.56.2",
+-    "@types/node": "^20.11.20",
+-    "@types/react": "^18.2.57",
+-    "@types/react-dom": "^18.2.19",
+-    "@typescript-eslint/eslint-plugin": "^7.1.1",
+-    "@typescript-eslint/parser": "^7.1.1",
++    "@types/eslint": "^8.56.10",
++    "@types/node": "^20.14.10",
++    "@types/react": "^18.3.3",
++    "@types/react-dom": "^18.3.0",
++    "@typescript-eslint/eslint-plugin": "^8.1.0",
++    "@typescript-eslint/parser": "^8.1.0",
+     "eslint": "^8.57.0",
+-    "eslint-config-next": "^14.1.3",
+-    "typescript": "^5.4.2"
++    "eslint-config-next": "^14.2.4",
++    "typescript": "^5.5.3"
+   },
+   "ct3aMetadata": {
+-    "initVersion": "7.32.0"
++    "initVersion": "7.37.0"
+   },
+   "packageManager": "pnpm@8.5.1"
+ }
+diff --git a/src/pages/_app.tsx b/src/pages/_app.tsx
+index 7fe4731..e7e7fb2 100644
+--- a/src/pages/_app.tsx
++++ b/src/pages/_app.tsx
+@@ -1,17 +1,13 @@
++import { GeistSans } from "geist/font/sans";
+ import { type AppType } from "next/dist/shared/lib/utils";
+-import { Inter } from "next/font/google";
+ 
+ import "~/styles/globals.css";
+ 
+-const inter = Inter({
+-  subsets: ["latin"],
+-});
+-
+ const MyApp: AppType = ({ Component, pageProps }) => {
+   return (
+-    <main className={inter.className}>
++    <div className={GeistSans.className}>
+       <Component {...pageProps} />
+-    </main>
++    </div>
+   );
+ };
+ 
