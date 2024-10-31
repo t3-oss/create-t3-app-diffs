@@ -865,6 +865,10 @@
   "7.36.0..7.36.2-nextAuth": true,
   "7.36.0..7.36.2-nextAuth-prisma": true,
   "7.36.0..7.36.2-prisma": true,
+  "7.36.0..7.37.0": true,
+  "7.36.0..7.37.0-nextAuth": true,
+  "7.36.0..7.37.0-nextAuth-prisma": true,
+  "7.36.0..7.37.0-prisma": true,
   "7.36.1..7.36.2": true,
   "7.36.1..7.36.2-nextAuth": true,
   "7.36.1..7.36.2-nextAuth-prisma": true,
@@ -876,5 +880,9 @@
   "7.36.1..7.37.0": true,
   "7.36.1..7.37.0-nextAuth": true,
   "7.36.1..7.37.0-nextAuth-prisma": true,
-  "7.36.1..7.37.0-prisma": true
+  "7.36.1..7.37.0-prisma": true,
+  "7.36.2..7.37.0": true,
+  "7.36.2..7.37.0-nextAuth": true,
+  "7.36.2..7.37.0-nextAuth-prisma": true,
+  "7.36.2..7.37.0-prisma": true
 }
