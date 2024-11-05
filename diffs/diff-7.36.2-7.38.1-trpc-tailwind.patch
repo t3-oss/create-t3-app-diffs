@@ -1,0 +1,121 @@
+diff --git a/next.config.js b/next.config.js
+index 98b6f90..0eff695 100644
+--- a/next.config.js
++++ b/next.config.js
+@@ -2,7 +2,7 @@
+  * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation. This is especially useful
+  * for Docker builds.
+  */
+-await import("./src/env.js");
++import "./src/env.js";
+ 
+ /** @type {import("next").NextConfig} */
+ const config = {
+diff --git a/package.json b/package.json
+index 2886dac..c3cafc5 100644
+--- a/package.json
++++ b/package.json
+@@ -1,13 +1,19 @@
+ {
+-  "name": "current",
++  "name": "upgrade",
+   "version": "0.1.0",
+   "private": true,
+   "type": "module",
+   "scripts": {
+     "build": "next build",
+-    "dev": "next dev",
++    "check": "next lint && tsc --noEmit",
++    "dev": "next dev --turbo",
++    "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,mdx}\" --cache",
++    "format:write": "prettier --write \"**/*.{ts,tsx,js,jsx,mdx}\" --cache",
+     "lint": "next lint",
+-    "start": "next start"
++    "lint:fix": "next lint --fix",
++    "preview": "next build && next start",
++    "start": "next start",
++    "typecheck": "tsc --noEmit"
+   },
+   "dependencies": {
+     "@t3-oss/env-nextjs": "^0.10.1",
+@@ -17,7 +23,7 @@
+     "@trpc/react-query": "^11.0.0-rc.446",
+     "@trpc/server": "^11.0.0-rc.446",
+     "geist": "^1.3.0",
+-    "next": "^14.2.4",
++    "next": "^15.0.1",
+     "react": "^18.3.1",
+     "react-dom": "^18.3.1",
+     "superjson": "^2.2.1",
+@@ -28,10 +34,10 @@
+     "@types/node": "^20.14.10",
+     "@types/react": "^18.3.3",
+     "@types/react-dom": "^18.3.0",
+-    "@typescript-eslint/eslint-plugin": "^7.1.1",
+-    "@typescript-eslint/parser": "^7.1.1",
++    "@typescript-eslint/eslint-plugin": "^8.1.0",
++    "@typescript-eslint/parser": "^8.1.0",
+     "eslint": "^8.57.0",
+-    "eslint-config-next": "^14.2.4",
++    "eslint-config-next": "^15.0.1",
+     "postcss": "^8.4.39",
+     "prettier": "^3.3.2",
+     "prettier-plugin-tailwindcss": "^0.6.5",
+@@ -39,7 +45,7 @@
+     "typescript": "^5.5.3"
+   },
+   "ct3aMetadata": {
+-    "initVersion": "7.36.2"
++    "initVersion": "7.38.1"
+   },
+   "packageManager": "pnpm@8.5.1"
+ }
+diff --git a/postcss.config.cjs b/postcss.config.cjs
+deleted file mode 100644
+index 4cdb2f4..0000000
+--- a/postcss.config.cjs
++++ /dev/null
+@@ -1,7 +0,0 @@
+-const config = {
+-  plugins: {
+-    tailwindcss: {},
+-  },
+-};
+-
+-module.exports = config;
+diff --git a/postcss.config.js b/postcss.config.js
+new file mode 100644
+index 0000000..01bf743
+--- /dev/null
++++ b/postcss.config.js
+@@ -0,0 +1,5 @@
++export default {
++  plugins: {
++    tailwindcss: {},
++  },
++};
+diff --git a/prettier.config.js b/prettier.config.js
+index b2d59b4..da332bd 100644
+--- a/prettier.config.js
++++ b/prettier.config.js
+@@ -1,6 +1,4 @@
+ /** @type {import('prettier').Config & import('prettier-plugin-tailwindcss').PluginOptions} */
+-const config = {
++export default {
+   plugins: ["prettier-plugin-tailwindcss"],
+ };
+-
+-export default config;
+diff --git a/src/server/api/trpc.ts b/src/server/api/trpc.ts
+index 8460e37..09445da 100644
+--- a/src/server/api/trpc.ts
++++ b/src/server/api/trpc.ts
+@@ -90,7 +90,7 @@ export const createCallerFactory = t.createCallerFactory;
+ export const createTRPCRouter = t.router;
+ 
+ /**
+- * Middleware for timing procedure execution and adding an articifial delay in development.
++ * Middleware for timing procedure execution and adding an artificial delay in development.
+  *
+  * You can remove this if you don't like it, but it can help catch unwanted waterfalls by simulating
+  * network latency that would occur in production but not in local development.
