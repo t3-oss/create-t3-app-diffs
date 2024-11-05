@@ -1,0 +1,318 @@
+diff --git a/.env.example b/.env.example
+index 69feeb2..cac1e17 100644
+--- a/.env.example
++++ b/.env.example
+@@ -11,11 +11,10 @@
+ 
+ # Next Auth
+ # You can generate a new secret on the command line with:
+-# openssl rand -base64 32
++# npx auth secret
+ # https://next-auth.js.org/configuration/options#secret
+-# NEXTAUTH_SECRET=""
+-NEXTAUTH_URL="http://localhost:3000"
++AUTH_SECRET=""
+ 
+ # Next Auth Discord Provider
+-DISCORD_CLIENT_ID=""
+-DISCORD_CLIENT_SECRET=""
++AUTH_DISCORD_ID=""
++AUTH_DISCORD_SECRET=""
+diff --git a/next.config.js b/next.config.js
+index 98b6f90..0eff695 100644
+--- a/next.config.js
++++ b/next.config.js
+@@ -2,7 +2,7 @@
+  * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation. This is especially useful
+  * for Docker builds.
+  */
+-await import("./src/env.js");
++import "./src/env.js";
+ 
+ /** @type {import("next").NextConfig} */
+ const config = {
+diff --git a/package.json b/package.json
+index 26a5f60..bea997e 100644
+--- a/package.json
++++ b/package.json
+@@ -1,13 +1,19 @@
+ {
+-  "name": "current",
++  "name": "upgrade",
+   "version": "0.1.0",
+   "private": true,
+   "type": "module",
+   "scripts": {
+     "build": "next build",
+-    "dev": "next dev",
++    "check": "next lint && tsc --noEmit",
++    "dev": "next dev --turbo",
++    "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,mdx}\" --cache",
++    "format:write": "prettier --write \"**/*.{ts,tsx,js,jsx,mdx}\" --cache",
+     "lint": "next lint",
+-    "start": "next start"
++    "lint:fix": "next lint --fix",
++    "preview": "next build && next start",
++    "start": "next start",
++    "typecheck": "tsc --noEmit"
+   },
+   "dependencies": {
+     "@t3-oss/env-nextjs": "^0.10.1",
+@@ -17,8 +23,8 @@
+     "@trpc/react-query": "^11.0.0-rc.446",
+     "@trpc/server": "^11.0.0-rc.446",
+     "geist": "^1.3.0",
+-    "next": "^14.2.4",
+-    "next-auth": "^4.24.7",
++    "next": "^15.0.1",
++    "next-auth": "5.0.0-beta.25",
+     "react": "^18.3.1",
+     "react-dom": "^18.3.1",
+     "superjson": "^2.2.1",
+@@ -32,7 +38,7 @@
+     "@typescript-eslint/eslint-plugin": "^8.1.0",
+     "@typescript-eslint/parser": "^8.1.0",
+     "eslint": "^8.57.0",
+-    "eslint-config-next": "^14.2.4",
++    "eslint-config-next": "^15.0.1",
+     "postcss": "^8.4.39",
+     "prettier": "^3.3.2",
+     "prettier-plugin-tailwindcss": "^0.6.5",
+@@ -40,7 +46,7 @@
+     "typescript": "^5.5.3"
+   },
+   "ct3aMetadata": {
+-    "initVersion": "7.37.0"
++    "initVersion": "7.38.1"
+   },
+   "packageManager": "pnpm@8.5.1"
+ }
+diff --git a/postcss.config.cjs b/postcss.config.cjs
+deleted file mode 100644
+index 4cdb2f4..0000000
+--- a/postcss.config.cjs
++++ /dev/null
+@@ -1,7 +0,0 @@
+-const config = {
+-  plugins: {
+-    tailwindcss: {},
+-  },
+-};
+-
+-module.exports = config;
+diff --git a/postcss.config.js b/postcss.config.js
+new file mode 100644
+index 0000000..01bf743
+--- /dev/null
++++ b/postcss.config.js
+@@ -0,0 +1,5 @@
++export default {
++  plugins: {
++    tailwindcss: {},
++  },
++};
+diff --git a/prettier.config.js b/prettier.config.js
+index b2d59b4..da332bd 100644
+--- a/prettier.config.js
++++ b/prettier.config.js
+@@ -1,6 +1,4 @@
+ /** @type {import('prettier').Config & import('prettier-plugin-tailwindcss').PluginOptions} */
+-const config = {
++export default {
+   plugins: ["prettier-plugin-tailwindcss"],
+ };
+-
+-export default config;
+diff --git a/src/app/api/auth/[...nextauth]/route.ts b/src/app/api/auth/[...nextauth]/route.ts
+new file mode 100644
+index 0000000..8e8302c
+--- /dev/null
++++ b/src/app/api/auth/[...nextauth]/route.ts
+@@ -0,0 +1,3 @@
++import { handlers } from "~/server/auth";
++
++export const { GET, POST } = handlers;
+diff --git a/src/env.js b/src/env.js
+index 42cc126..45b5cba 100644
+--- a/src/env.js
++++ b/src/env.js
+@@ -7,22 +7,15 @@ export const env = createEnv({
+    * isn't built with invalid env vars.
+    */
+   server: {
+-    NODE_ENV: z
+-      .enum(["development", "test", "production"])
+-      .default("development"),
+-    NEXTAUTH_SECRET:
++    AUTH_SECRET:
+       process.env.NODE_ENV === "production"
+         ? z.string()
+         : z.string().optional(),
+-    NEXTAUTH_URL: z.preprocess(
+-      // This makes Vercel deployments not fail if you don't set NEXTAUTH_URL
+-      // Since NextAuth.js automatically uses the VERCEL_URL if present.
+-      (str) => process.env.VERCEL_URL ?? str,
+-      // VERCEL_URL doesn't include `https` so it cant be validated as a URL
+-      process.env.VERCEL ? z.string() : z.string().url()
+-    ),
+-    DISCORD_CLIENT_ID: z.string(),
+-    DISCORD_CLIENT_SECRET: z.string(),
++    AUTH_DISCORD_ID: z.string(),
++    AUTH_DISCORD_SECRET: z.string(),
++    NODE_ENV: z
++      .enum(["development", "test", "production"])
++      .default("development"),
+   },
+ 
+   /**
+@@ -39,11 +32,10 @@ export const env = createEnv({
+    * middlewares) or client-side so we need to destruct manually.
+    */
+   runtimeEnv: {
++    AUTH_SECRET: process.env.AUTH_SECRET,
++    AUTH_DISCORD_ID: process.env.AUTH_DISCORD_ID,
++    AUTH_DISCORD_SECRET: process.env.AUTH_DISCORD_SECRET,
+     NODE_ENV: process.env.NODE_ENV,
+-    NEXTAUTH_SECRET: process.env.NEXTAUTH_SECRET,
+-    NEXTAUTH_URL: process.env.NEXTAUTH_URL,
+-    DISCORD_CLIENT_ID: process.env.DISCORD_CLIENT_ID,
+-    DISCORD_CLIENT_SECRET: process.env.DISCORD_CLIENT_SECRET,
+     // NEXT_PUBLIC_CLIENTVAR: process.env.NEXT_PUBLIC_CLIENTVAR,
+   },
+   /**
+diff --git a/src/pages/api/auth/[...nextauth].ts b/src/pages/api/auth/[...nextauth].ts
+deleted file mode 100644
+index 8739530..0000000
+--- a/src/pages/api/auth/[...nextauth].ts
++++ /dev/null
+@@ -1,5 +0,0 @@
+-import NextAuth from "next-auth";
+-
+-import { authOptions } from "~/server/auth";
+-
+-export default NextAuth(authOptions);
+diff --git a/src/server/api/trpc.ts b/src/server/api/trpc.ts
+index 3148e05..7fe732b 100644
+--- a/src/server/api/trpc.ts
++++ b/src/server/api/trpc.ts
+@@ -12,7 +12,7 @@ import { type Session } from "next-auth";
+ import superjson from "superjson";
+ import { ZodError } from "zod";
+ 
+-import { getServerAuthSession } from "~/server/auth";
++import { auth } from "~/server/auth";
+ 
+ /**
+  * 1. CONTEXT
+@@ -53,7 +53,7 @@ export const createTRPCContext = async ({
+   res,
+ }: CreateNextContextOptions) => {
+   // Get the session from the server using the getServerSession wrapper function
+-  const session = await getServerAuthSession({ req, res });
++  const session = await auth(req, res);
+ 
+   return createInnerTRPCContext({
+     session,
+diff --git a/src/server/auth.ts b/src/server/auth/config.ts
+similarity index 62%
+rename from src/server/auth.ts
+rename to src/server/auth/config.ts
+index cbeceb4..c88101a 100644
+--- a/src/server/auth.ts
++++ b/src/server/auth/config.ts
+@@ -1,13 +1,6 @@
+-import { type GetServerSidePropsContext } from "next";
+-import {
+-  getServerSession,
+-  type DefaultSession,
+-  type NextAuthOptions,
+-} from "next-auth";
++import { type DefaultSession, type NextAuthConfig } from "next-auth";
+ import DiscordProvider from "next-auth/providers/discord";
+ 
+-import { env } from "~/env";
+-
+ /**
+  * Module augmentation for `next-auth` types. Allows us to add custom properties to the `session`
+  * object and keep type safety.
+@@ -16,11 +9,11 @@ import { env } from "~/env";
+  */
+ declare module "next-auth" {
+   interface Session extends DefaultSession {
+-    user: DefaultSession["user"] & {
++    user: {
+       id: string;
+       // ...other properties
+       // role: UserRole;
+-    };
++    } & DefaultSession["user"];
+   }
+ 
+   // interface User {
+@@ -34,21 +27,9 @@ declare module "next-auth" {
+  *
+  * @see https://next-auth.js.org/configuration/options
+  */
+-export const authOptions: NextAuthOptions = {
+-  callbacks: {
+-    session: ({ session, token }) => ({
+-      ...session,
+-      user: {
+-        ...session.user,
+-        id: token.sub,
+-      },
+-    }),
+-  },
++export const authConfig = {
+   providers: [
+-    DiscordProvider({
+-      clientId: env.DISCORD_CLIENT_ID,
+-      clientSecret: env.DISCORD_CLIENT_SECRET,
+-    }),
++    DiscordProvider,
+     /**
+      * ...add more providers here.
+      *
+@@ -59,16 +40,13 @@ export const authOptions: NextAuthOptions = {
+      * @see https://next-auth.js.org/providers/github
+      */
+   ],
+-};
+-
+-/**
+- * Wrapper for `getServerSession` so that you don't need to import the `authOptions` in every file.
+- *
+- * @see https://next-auth.js.org/configuration/nextjs
+- */
+-export const getServerAuthSession = (ctx: {
+-  req: GetServerSidePropsContext["req"];
+-  res: GetServerSidePropsContext["res"];
+-}) => {
+-  return getServerSession(ctx.req, ctx.res, authOptions);
+-};
++  callbacks: {
++    session: ({ session, token }) => ({
++      ...session,
++      user: {
++        ...session.user,
++        id: token.sub,
++      },
++    }),
++  },
++} satisfies NextAuthConfig;
+diff --git a/src/server/auth/index.ts b/src/server/auth/index.ts
+new file mode 100644
+index 0000000..76c146d
+--- /dev/null
++++ b/src/server/auth/index.ts
+@@ -0,0 +1,10 @@
++import NextAuth from "next-auth";
++import { cache } from "react";
++
++import { authConfig } from "./config";
++
++const { auth: uncachedAuth, handlers, signIn, signOut } = NextAuth(authConfig);
++
++const auth = cache(uncachedAuth);
++
++export { auth, handlers, signIn, signOut };
